@@ -43,3 +43,6 @@
 #binaries
 server
 client
+
+#vscode settings
+.vscode
