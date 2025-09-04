@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/02 12:38:35 by rkaras        #+#    #+#                 */
-/*   Updated: 2025/09/02 14:05:30 by rkaras        ########   odam.nl         */
+/*   Updated: 2025/09/02 15:23:25 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ Socket::Socket(int domain, int service, int protocol, int port, u_long interface
 	_serverFd = socket(domain, service, protocol);
 	connectionValid(_serverFd);
 
-	//bind a socket - we're binding only at the server part of the code
+	//bind or connect the socket
 	_connection = ConnectBind(_serverFd, _address, flag);
 	connectionValid(_connection);
 }

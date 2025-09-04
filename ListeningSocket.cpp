@@ -1,22 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   main.cpp                                           :+:    :+:            */
+/*   ListeningSocket.cpp                                :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
-/*   Created: 2025/09/02 14:46:40 by rkaras        #+#    #+#                 */
-/*   Updated: 2025/09/04 16:10:11 by rkaras        ########   odam.nl         */
+/*   Created: 2025/09/02 15:40:05 by rkaras        #+#    #+#                 */
+/*   Updated: 2025/09/02 15:47:20 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Socket.hpp"
 #include "ListeningSocket.hpp"
-#include "Server.hpp"
 
-int main()
+ListeningSocket::ListeningSocket(int domain, int service, int protocol, int port, u_long interface, int flag, int backlog) : Socket(domain, service, protocol, port, interface, flag)
 {
-	Server server(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY, BIND, 10);
-	server.launch();
-	// Socket client(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY, CONNECT);
+	_backlog = backlog;
+	listening();
+	connectionValid(_listen);
+}
+
+void ListeningSocket::listening()
+{
+	_listen = listen(getServerFd(), _backlog);
 }

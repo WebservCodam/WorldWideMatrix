@@ -6,7 +6,7 @@
 #    By: rkaras <rkaras@student.codam.nl>             +#+                      #
 #                                                    +#+                       #
 #    Created: 2025/09/02 12:41:05 by rkaras        #+#    #+#                  #
-#    Updated: 2025/09/02 14:56:53 by rkaras        ########   odam.nl          #
+#    Updated: 2025/09/04 15:11:14 by rkaras        ########   odam.nl          #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,6 +19,8 @@ NAME = webserv
 
 # Source and object files
 SRC = Socket.cpp \
+	ListeningSocket.cpp \
+	Server.cpp \
 	main.cpp \
 	
 OBJ = $(SRC:.cpp=.o)
