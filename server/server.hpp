@@ -8,6 +8,8 @@
 # include <string.h>
 # include <iostream>
 # include <string>
+# include <sstream>			// For string stream
+# include <fstream>			// For file operations
 
 # define PORT 8080
 # define NBR_OF_CONNECTIONS 10
