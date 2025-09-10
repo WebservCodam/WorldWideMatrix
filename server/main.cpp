@@ -44,6 +44,7 @@ int	main(void)
 	server._address.sin_port = htons(PORT);					//	HTONS transform this number to Network Byte Order
 	memset(server._address.sin_zero, '\0', sizeof server._address.sin_zero);
 
+	//	Set socket options
 	int opt = 1;
 	setsockopt(server._fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 	
