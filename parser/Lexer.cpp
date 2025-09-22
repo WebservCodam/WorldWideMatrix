@@ -118,4 +118,5 @@ std::vector<Token>	Lexer::tokenize(const std::string& input)
 			pos++;	// Just advance to avoid an infinite loop
 		}
 	}
+	return (tokens);
 }
