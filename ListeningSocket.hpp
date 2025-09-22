@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/02 15:33:39 by rkaras        #+#    #+#                 */
-/*   Updated: 2025/09/04 14:45:40 by rkaras        ########   odam.nl         */
+/*   Updated: 2025/09/12 14:26:24 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ public:
 	~ListeningSocket() = default;
 
 	void listening();
+	void setNonblocking(int sockFD);
 };
 
 #endif /* !LISTENINGSOCKET_H */

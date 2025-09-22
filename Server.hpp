@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/04 15:09:11 by rkaras        #+#    #+#                 */
-/*   Updated: 2025/09/04 15:53:19 by rkaras        ########   odam.nl         */
+/*   Updated: 2025/09/12 14:28:23 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,11 @@
 #include "Socket.hpp"
 #include "ListeningSocket.hpp"
 #include <unistd.h>
-
 class Server
 {
 private:
 	ListeningSocket *_socket;
-	char _buffer[30000] = {0};
+	std::string _buffer;
 	int _new_socket;
 	
 	void accepter();

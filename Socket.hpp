@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/02 12:55:22 by rkaras        #+#    #+#                 */
-/*   Updated: 2025/09/02 14:24:06 by rkaras        ########   odam.nl         */
+/*   Updated: 2025/09/12 14:28:44 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <iostream>
+#include <fcntl.h>
 
 # define BIND 0
 # define CONNECT 1

@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/02 12:38:35 by rkaras        #+#    #+#                 */
-/*   Updated: 2025/09/02 15:23:25 by rkaras        ########   odam.nl         */
+/*   Updated: 2025/09/12 15:41:52 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,13 @@ Socket::Socket(int domain, int service, int protocol, int port, u_long interface
 	//create a socket
 	_serverFd = socket(domain, service, protocol);
 	connectionValid(_serverFd);
+
+	int opt = 1;
+	if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+	{
+		perror("setsockopt failed");
+		exit(EXIT_FAILURE);
+	}
 
 	//bind or connect the socket
 	_connection = ConnectBind(_serverFd, _address, flag);
