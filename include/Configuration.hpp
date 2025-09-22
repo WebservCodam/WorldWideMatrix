@@ -6,7 +6,7 @@
 
 enum TokenType
 {
-	STRING,
+	WORD,
 	NUMBER,
 	LBRACE,		// {
 	RBRACE,		// }
