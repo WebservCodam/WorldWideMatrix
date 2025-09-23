@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <memory>
 
 enum TokenType
 {
@@ -22,5 +23,32 @@ struct Token
 
 	size_t		line;
 	size_t		column;
+};
+
+// AST Node Types
+struct ASTNode
+{
+	size_t line;
+	size_t column;
+
+	virtual ~ASTNode() = default;
+};
+
+struct SimpleDirective : public ASTNode
+{
+	std::string					name;
+	std::vector<std::string>	parameters;
+};
+
+struct BlockDirective : public ASTNode
+{
+	std::string									name;
+	std::vector<std::string>					parameters;
+	std::vector<std::unique_ptr<ASTNode>>		children;
+};
+
+struct ConfigFile : public ASTNode
+{
+	std::vector<std::unique_ptr<ASTNode>>	directives;
 };
 

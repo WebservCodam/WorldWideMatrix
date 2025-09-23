@@ -118,5 +118,6 @@ std::vector<Token>	Lexer::tokenize(const std::string& input)
 			pos++;	// Just advance to avoid an infinite loop
 		}
 	}
+	tokens.push_back({END_OF_FILE, "", line_num, col_num});
 	return (tokens);
 }
