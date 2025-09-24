@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/04 15:11:22 by rkaras        #+#    #+#                 */
-/*   Updated: 2025/09/12 15:46:35 by rkaras        ########   odam.nl         */
+/*   Updated: 2025/09/24 16:26:35 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,49 @@ ListeningSocket *Server::getSocket()
 	return _socket;
 }
 
+HttpRequest Server::parseRequest(const std::string &buffer)
+{
+	HttpRequest request;
+
+	std::string header = buffer.substr(0, _headerEnd);
+	request.body = buffer.substr(_headerEnd + 4);
+
+	std::istringstream stream(header);
+	std::string line;
+
+	// request line
+	if (std::getline(stream, line))
+	{
+		if (!line.empty() && line.back() == '\r')
+			line.pop_back();
+			
+		std::istringstream reqLine(line);
+		reqLine >> request.method >> request.uri >> request.version;
+	}
+
+	// header
+	while (std::getline(stream, line))
+	{
+		if (!line.empty() && line.back() == '\r')
+			line.pop_back();
+
+		size_t colon = line.find(":");
+		if (colon != std::string::npos)
+		{
+			std::string key = line.substr(0, colon);
+			std::string value = line.substr(colon + 1);
+
+			key.erase(0, key.find_first_not_of(" "));
+			key.erase(key.find_last_not_of(" ") + 1);
+			value.erase(0, value.find_first_not_of(" "));
+			value.erase(value.find_last_not_of(" ") + 1);
+
+			request.headers[key] = value;
+		}
+	}
+	return (request);
+}
+
 void Server::accepter()
 {
 	struct sockaddr_in address = _socket->getAddress();
@@ -31,19 +74,39 @@ void Server::accepter()
 	char buf[1024];
 	_buffer.clear();
 	ssize_t bytesRead;
+	size_t headerEnd = std::string::npos;
 	
 	while ((bytesRead = read(_new_socket, buf, sizeof(buf))) > 0)
 	{
 		_buffer.append(buf, bytesRead);
-		if (_buffer.find("\r\n\r\n") != std::string::npos)
+		headerEnd = _buffer.find("\r\n\r\n");
+		if (headerEnd != std::string::npos)
 			break;
 	}
+	_headerEnd = headerEnd;
 
+	if (bytesRead <= 0)
+	{
+		perror("read");
+		return ;
+	}
+	_request = parseRequest(_buffer);
 }
 
 void Server::handler()
 {
-	std::cout << _buffer << std::endl;
+	std::cout << "Method: " << _request.method << std::endl
+		<< "URI: " << _request.uri << std::endl
+		<< "Version: " << _request.version << std::endl;
+
+	for (std::map<std::string, std::string>::iterator it = _request.headers.begin();
+		it != _request.headers.end(); it++)
+	{
+		std::cout << it->first << ": " << it->second << std::endl;
+	}
+	
+	if (!_request.body.empty())
+		std::cout << "Body: " << _request.body << std::endl;
 }
 
 void Server::responder()
