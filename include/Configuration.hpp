@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <stdexcept>
 
 enum TokenType
 {
@@ -31,7 +32,7 @@ struct ASTNode
 	size_t line;
 	size_t column;
 
-	virtual ~ASTNode() = default;
+	virtual ~ASTNode() = default;	// So that the smart pointer (unique_ptr) can destroy the object.
 };
 
 struct SimpleDirective : public ASTNode

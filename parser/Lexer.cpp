@@ -1,6 +1,6 @@
 #include <Lexer.hpp>
 
-std::string	consumeNumber(const std::string& input, size_t& pos)
+std::string	Lexer::consumeNumber(const std::string& input, size_t& pos)
 {
 	std::string	number;
 
@@ -12,14 +12,14 @@ std::string	consumeNumber(const std::string& input, size_t& pos)
 	return (number);
 }
 
-bool	isValidWordChar(char c)
+bool	Lexer::isValidWordChar(char c)
 {
 	if (isspace(c) || c == '{' || c == '}' || c == ';' || c == '#')
 		return (false);
 	return (true);
 }
 
-std::string	consumeWord(const std::string& input, size_t& pos)
+std::string	Lexer::consumeWord(const std::string& input, size_t& pos)
 {
 	std::string	word;
 
@@ -31,7 +31,7 @@ std::string	consumeWord(const std::string& input, size_t& pos)
 	return (word);
 }
 
-//
+
 std::vector<Token>	Lexer::tokenize(const std::string& input)
 {
 	std::vector<Token>	tokens;
