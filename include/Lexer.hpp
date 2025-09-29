@@ -5,10 +5,10 @@
 class	Lexer
 {
 	private:
-		std::string	consumeNumber(const std::string& input, size_t& pos);
-    	bool		isValidWordChar(char c);
-    	std::string	consumeWord(const std::string& input, size_t& pos);
+		static std::string	consumeNumber(const std::string& input, size_t& pos);
+		static bool		isValidWordChar(char c);
+		static std::string	consumeWord(const std::string& input, size_t& pos);
 
 	public:
-		std::vector<Token>	tokenize(const std::string& input);
+		static std::vector<Token>	tokenize(const std::string& input);
 };
