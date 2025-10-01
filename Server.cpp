@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/04 15:11:22 by rkaras        #+#    #+#                 */
-/*   Updated: 2025/09/24 16:26:35 by rkaras        ########   odam.nl         */
+/*   Updated: 2025/09/25 15:08:57 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,28 +69,17 @@ void Server::accepter()
 {
 	struct sockaddr_in address = _socket->getAddress();
 	int addrlen = sizeof(address);
+	
+	
 	_new_socket = accept(_socket->getServerFd(), (struct sockaddr *)&address, (socklen_t *)&addrlen);
 	
 	char buf[1024];
-	_buffer.clear();
 	ssize_t bytesRead;
-	size_t headerEnd = std::string::npos;
 	
 	while ((bytesRead = read(_new_socket, buf, sizeof(buf))) > 0)
 	{
 		_buffer.append(buf, bytesRead);
-		headerEnd = _buffer.find("\r\n\r\n");
-		if (headerEnd != std::string::npos)
-			break;
 	}
-	_headerEnd = headerEnd;
-
-	if (bytesRead <= 0)
-	{
-		perror("read");
-		return ;
-	}
-	_request = parseRequest(_buffer);
 }
 
 void Server::handler()
@@ -131,6 +120,8 @@ void Server::launch()
 	{
 		std::cout << "............. Waiting .............." << std::endl;
 		accepter();
+
+		ParseStatus status = parseRequestIncremental(_request)
 		handler();
 		responder();
 		std::cout << "............. Done .............." << std::endl;

@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/04 15:09:11 by rkaras        #+#    #+#                 */
-/*   Updated: 2025/09/24 16:04:52 by rkaras        ########   odam.nl         */
+/*   Updated: 2025/09/25 15:01:34 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,12 @@
 #include <unistd.h>
 #include <map>
 #include <sstream>
+
+enum ParseStatus {
+	INCOMPLETE,
+	COMPLETE,
+	ERROR
+};
 
 struct HttpRequest
 {
@@ -34,7 +40,7 @@ private:
 	ListeningSocket *_socket;
 	std::string _buffer;
 	int _new_socket;
-	size_t _headerEnd;
+	size_t _headerEnd = std::string::npos;
 	HttpRequest _request;
 	
 	void accepter();
