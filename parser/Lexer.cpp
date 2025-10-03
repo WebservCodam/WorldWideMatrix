@@ -65,7 +65,7 @@ std::vector<Token>	Lexer::tokenize(const std::string& input)
 			continue ;
 		}
 
-		//	--- Rule 3: Handle Single-Charcter Tokens
+		//	--- Rule 3: Handle Single-Character Tokens
 		else if (current_char == '{')
 		{
 			tokens.push_back({LBRACE, "{", line_num, col_num}); // Replace with addToken(LBRACE, "{");

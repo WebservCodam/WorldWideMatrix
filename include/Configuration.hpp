@@ -37,6 +37,9 @@ struct ASTNode
 	virtual ~ASTNode() = default;	// So that the smart pointer (unique_ptr) can destroy the object.
 };
 
+// name value ;
+// name { more directives }
+
 struct SimpleDirective : public ASTNode
 {
 	std::string					name;

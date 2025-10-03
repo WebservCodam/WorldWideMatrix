@@ -71,7 +71,7 @@ std::unique_ptr<ConfigFile>	Parser::parse()
 		}
 		catch (const ParseError& e)
 		{
-			throw ;
+			throw ; // Figure this out
 		}
 	}
 	
@@ -133,7 +133,7 @@ std::unique_ptr<BlockDirective>	Parser::parseBlockDirective()
 	directive->name = currentToken().value;
 	advance();
 
-	directive->parameters = parseParameters(); // Might be wrong, because we're expecting a block.
+	// directive->parameters = parseParameters(); // Might be wrong, because we're expecting a block.
 
 	expectToken(LBRACE, "Expected '{' to start block");
 	advance();

@@ -43,6 +43,7 @@
 #binaries
 server
 client
+test_lexer
 
 #vscode settings
 .vscode
