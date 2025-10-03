@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/25 15:36:17 by rkaras        #+#    #+#                 */
-/*   Updated: 2025/10/01 18:38:18 by rkaras        ########   odam.nl         */
+/*   Updated: 2025/10/03 15:52:27 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,15 @@ void HttpParser::appendData(ConnectionContext &ctx, const char *data, size_t len
 void HttpParser::parseRequestLine(const std::string &line, HttpRequest &req)
 {
 	std::istringstream requestLineStream(line);
+	
 	if (!(requestLineStream >> req.method >> req.uri >> req.version))
 		throw std::runtime_error("Malformed request line");
+	
+	if (req.version != "HTTP/1.1" && req.version != "HTTP/1.0") //check which one we'll be working with
+		throw std::runtime_error("Unsupported HTTP version");
+
+	if (req.method != "GET" && req.method != "POST" && req.method != "DELETE")
+		throw std::runtime_error("Unsupported HTTP method");
 }
 
 void HttpParser::parseHeaderLine(const std::string &line, HttpRequest &req)
@@ -39,6 +46,9 @@ void HttpParser::parseHeaderLine(const std::string &line, HttpRequest &req)
 	value.erase(0, value.find_first_not_of(" "));
 	value.erase(value.find_last_not_of(" ") + 1);
 
+	for (char &c : key)
+		c=std::tolower(c);
+
 	req.headers[key] = value;
 }
 
@@ -46,14 +56,14 @@ bool	HttpParser::expectsBody(const HttpRequest &req)
 {
 	if (req.method == "POST")
 		return (true);
-	if (req.method == "DELETE" && req.headers.count("Content-Length"))
+	if (req.method == "DELETE" && req.headers.count("content-length"))
 		return (true);
 	return (false);
 }
 
 size_t	HttpParser::bodyLength(const HttpRequest &req)
 {
-	std::map<std::string, std::string>::const_iterator it = req.headers.find("Content-Length");
+	std::map<std::string, std::string>::const_iterator it = req.headers.find("content-length");
 	if (it == req.headers.end())
 		return 0;
 	
@@ -61,7 +71,7 @@ size_t	HttpParser::bodyLength(const HttpRequest &req)
 		size_t len = std::stoul(it->second);
 		return (len);
 	} catch (const std::exception &e) {
-		throw std::runtime_error("Invalid Content-Lenght header");
+		throw std::runtime_error("Invalid Content-Length header");
 	}
 }
 
@@ -79,7 +89,7 @@ ParseStatus HttpParser::parseRequest(ConnectionContext &ctx)
 	if (!std::getline(stream, line))
 		return ParseStatus::ERROR;
 		
-	if (!line.empty() && line.back() == '\r')
+	if (!line.empty() && line.back() == '\r') //what if /r is not where it's supposed to be?
 		line.pop_back();
 
 	parseRequestLine(line, ctx.request);
@@ -95,14 +105,29 @@ ParseStatus HttpParser::parseRequest(ConnectionContext &ctx)
 		parseHeaderLine(line, ctx.request);
 	}
 
-	size_t expectedBody = 0;
-	if (expectsBody(ctx.request) == true)
-		expectedBody = bodyLength(ctx.request);
-
-	/* body if exists */
-	size_t bodyStart = ctx.headerEnd + 4;
-	if (bodyStart < ctx.buffer.size())
-		ctx.request.body = ctx.buffer.substr(bodyStart);
+	/* body */
 	
+	size_t bodyStart = ctx.headerEnd + 4;
+	size_t availableBody = 0;
+	
+	if (ctx.buffer.size() > bodyStart)
+		availableBody = ctx.buffer.size() - bodyStart;
+	
+	if (expectsBody(ctx.request) == true)
+	{
+		size_t expectedBody = bodyLength(ctx.request);
+		if (availableBody < expectedBody)
+			return ParseStatus::INCOMPLETE;
+		ctx.request.body = ctx.buffer.substr(bodyStart, expectedBody);	
+		
+		ctx.buffer.erase(0, bodyStart + expectedBody);
+		ctx.headerEnd = std::string::npos;
+	}
+		
+	/* 
+	there is an option to include 'else if' statement here that deals with the specific case of
+	expectedBody being false, but there still ARE bytes following the headers, they can be treated
+	as a body anyway if needed
+	*/
 	return ParseStatus::COMPLETE;
 }

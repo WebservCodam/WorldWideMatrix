@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/25 15:36:03 by rkaras        #+#    #+#                 */
-/*   Updated: 2025/09/25 16:37:29 by rkaras        ########   odam.nl         */
+/*   Updated: 2025/10/03 15:52:08 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,13 +17,8 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <fstream>
 
-struct ConnectionContext
-{
-	std::string buffer;
-	size_t headerEnd = std::string::npos;
-	HttpRequest request;
-};
 
 struct HttpRequest
 {
@@ -32,6 +27,13 @@ struct HttpRequest
 	std::string version;
 	std::map<std::string, std::string> headers;
 	std::string body;
+};
+
+struct ConnectionContext
+{
+	std::string buffer;
+	size_t headerEnd = std::string::npos;
+	HttpRequest request;
 };
 
 enum ParseStatus {
@@ -49,7 +51,7 @@ class HttpParser
 		size_t	bodyLength(const HttpRequest &req);
 	
 	public:
-		HttpParser() = delete;
+		HttpParser() = default;
 		HttpParser(const HttpParser& other) = delete;
 		HttpParser& operator=(const HttpParser& other) = delete;
 		~HttpParser() = default;

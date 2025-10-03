@@ -1,0 +1,6 @@
+DELETE /remove/item123 HTTP/1.1
+Host: api.service.com
+Content-Length: 7
+Connection: close
+
+Goodbye
