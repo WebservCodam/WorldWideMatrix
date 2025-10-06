@@ -12,6 +12,7 @@ const char* ParseError::what() const noexcept {
 // Very basic for now.
 Parser::Parser(std::vector<Token>& tokens)
 {
+	// Add checks for when the vector list is invalid.
 	this->_tokens = tokens;
 	this->_currentIndex = 0;
 }
@@ -108,9 +109,9 @@ std::unique_ptr<SimpleDirective>	Parser::parseSimpleDirective()
 	std::unique_ptr<SimpleDirective>	directive(new SimpleDirective());
 
 	directive->line	= currentToken().line;
-	directive->column	= currentToken().column;
+	directive->column = currentToken().column;
 
-	expectToken(WORD, "Expected directive name");
+	expectToken(WORD, "Expected directive name"); //Unless it's location which can expect an EQUALS or an AT
 	directive->name = currentToken().value;
 	advance();
 
@@ -132,8 +133,6 @@ std::unique_ptr<BlockDirective>	Parser::parseBlockDirective()
 	expectToken(WORD, "Expected directive name");
 	directive->name = currentToken().value;
 	advance();
-
-	// directive->parameters = parseParameters(); // Might be wrong, because we're expecting a block.
 
 	expectToken(LBRACE, "Expected '{' to start block");
 	advance();

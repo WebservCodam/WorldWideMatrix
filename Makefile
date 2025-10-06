@@ -1,4 +1,4 @@
-NAME = test_lexer
+NAME = tester
 
 CXX = c++
 CXXFLAGS = -Wall -Wextra -Werror -std=c++11 -I./include
@@ -25,7 +25,10 @@ test: $(NAME)
 	./$(NAME) $(SRCDIR)/example2.conf
 
 clean:
-	rm -rf $(OBJDIR) $(NAME)
+	rm -rf $(OBJDIR)
+
+fclean:	clean
+	$(NAME)
 
 re: clean all
 

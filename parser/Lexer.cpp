@@ -90,6 +90,22 @@ std::vector<Token>	Lexer::tokenize(const std::string& input)
 			continue ;
 		}
 
+		else if (current_char == '=')
+		{
+			tokens.push_back({EQUALS, "=", line_num, col_num});
+			pos++;
+			col_num++;
+			continue ;
+		}
+
+		else if (current_char == '@')
+		{
+			tokens.push_back({AT, "@", line_num, col_num});
+			pos++;
+			col_num++;
+			continue ;
+		}
+
 		//	--- Rule 4: Handle Numbers
 		else if (isdigit(current_char))
 		{

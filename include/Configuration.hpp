@@ -15,6 +15,13 @@ enum TokenType
 	LBRACE,		// {
 	RBRACE,		// }
 	SEMICOLON,	// ;
+	EQUALS,		// =
+	AT,			// @
+	STRING,		// "quoted string" or 'single quoted'
+	LBRACKET,	// [
+	RBRACKET,	// ]
+	COMMA,		// ,
+	COLON,		// :
 	COMMENT,	// # ...
 	END_OF_FILE	// Special token for the end of the input
 };
