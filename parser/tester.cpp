@@ -11,6 +11,11 @@ inline const char* tokenTypeToString(TokenType type)
 		case RBRACE:      return "RBRACE";
 		case SEMICOLON:   return "SEMICOLON";
 		case COMMENT:     return "COMMENT";
+        case STRING:      return "STRING";
+        case LBRACKET:    return "LBRACKET";
+        case RBRACKET:    return "RBRACKET";
+        case COMMA:       return "COMMA";
+        case COLON:       return "COLON";
 		case END_OF_FILE: return "END_OF_FILE";
 		default:          return "UNKNOWN";
 	}
@@ -173,6 +178,8 @@ int	main(int argc, char *argv[])
 	std::string input = buffer.str();
 
 	std::vector<Token> tokenList = Lexer::tokenize(input);
+
+    printTokensList(tokenList);
 
 	Parser parser = Parser(tokenList);
 	std::unique_ptr<ConfigFile> ast = parser.parse();

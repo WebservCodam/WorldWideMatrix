@@ -14,7 +14,7 @@ std::string	Lexer::consumeNumber(const std::string& input, size_t& pos)
 
 bool	Lexer::isValidWordChar(char c)
 {
-	if (isspace(c) || c == '{' || c == '}' || c == ';' || c == '#')
+	if (isspace(c) || c == '{' || c == '}' || c == ';' || c == '#') //There are more tokens now
 		return (false);
 	return (true);
 }
@@ -31,13 +31,28 @@ std::string	Lexer::consumeWord(const std::string& input, size_t& pos)
 	return (word);
 }
 
+std::string	Lexer::consumeString(const std::string& input, size_t& pos)
+{
+	std::string	string;
+	char		quote = input[pos++];	// Store and skip opening quote
+
+	while (pos < input.length() && input[pos] != quote)
+		string += input[pos++];
+
+	if (pos >= input.length())
+		throw std::runtime_error("Unterminated string literal");
+	
+	pos++;	// Skip closing quote
+	return (string);
+}
+
 
 std::vector<Token>	Lexer::tokenize(const std::string& input)
 {
-	std::vector<Token>	tokens;
-	size_t				line_num = 1;
-	size_t				col_num = 1;
-	size_t				pos = 0;
+	std::vector<Token>	tokens;			// These can be in the object
+	size_t				line_num = 1;	//	"
+	size_t				col_num = 1;	//	"
+	size_t				pos = 0;		// This can be indeed a function's variable. 
 
 	while (pos < input.length())
 	{
@@ -103,6 +118,46 @@ std::vector<Token>	Lexer::tokenize(const std::string& input)
 			tokens.push_back({AT, "@", line_num, col_num});
 			pos++;
 			col_num++;
+			continue ;
+		}
+
+		else if (current_char == '[')
+		{
+			tokens.push_back({LBRACKET, "[", line_num, col_num});
+			pos++;
+			col_num++;
+			continue ;
+		}
+
+		else if (current_char == ']')
+		{
+			tokens.push_back({RBRACKET, "]", line_num, col_num});
+			pos++;
+			col_num++;
+			continue ;
+		}
+
+		else if (current_char == ',')
+		{
+			tokens.push_back({COMMA, ",", line_num, col_num});
+			pos++;
+			col_num++;
+			continue ;
+		}
+
+		else if (current_char == ':')
+		{
+			tokens.push_back({COLON, ":", line_num, col_num});
+			pos++;
+			col_num++;
+			continue ;
+		}
+
+		else if (current_char == '"' || current_char == '\'')
+		{
+			std::string stringValue = consumeString(input, pos);
+			tokens.push_back({STRING, stringValue, line_num, col_num});
+			col_num += stringValue.length();
 			continue ;
 		}
 

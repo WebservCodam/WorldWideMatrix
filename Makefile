@@ -1,7 +1,7 @@
 NAME = tester
 
 CXX = c++
-CXXFLAGS = -Wall -Wextra -Werror -std=c++11 -I./include
+CXXFLAGS = -Wall -Wextra -Werror -std=c++11 -I./include -g
 SRCDIR = parser
 OBJDIR = obj
 
