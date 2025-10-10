@@ -89,7 +89,15 @@ std::unique_ptr<ASTNode>	Parser::parseDirective()
 
 	//	Skip all the words and numbers
 	size_t	lookAhead = 1;
-	while (peekToken(lookAhead).type == WORD || peekToken(lookAhead).type == NUMBER) // Would return EOF if at end
+	while (peekToken(lookAhead).type == WORD 
+		|| peekToken(lookAhead).type == NUMBER 
+		|| peekToken(lookAhead).type == EQUALS
+		|| peekToken(lookAhead).type == AT
+		|| peekToken(lookAhead).type == STRING
+		|| peekToken(lookAhead).type == LBRACKET
+		|| peekToken(lookAhead).type == RBRACKET
+		|| peekToken(lookAhead).type == COMMA
+		|| peekToken(lookAhead).type == COLON) // Would return EOF if at end
 		lookAhead++;
 
 	//	Determine the type of directive

@@ -5,7 +5,7 @@ CXXFLAGS = -Wall -Wextra -Werror -std=c++11 -I./include -g
 SRCDIR = parser
 OBJDIR = obj
 
-SOURCES = $(SRCDIR)/Lexer.cpp $(SRCDIR)/Parser.cpp $(SRCDIR)/tester.cpp
+SOURCES = $(SRCDIR)/Lexer.cpp $(SRCDIR)/Parser.cpp $(SRCDIR)/PrintUtilities.cpp $(SRCDIR)/tester.cpp
 OBJECTS = $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 
 all: $(NAME)
