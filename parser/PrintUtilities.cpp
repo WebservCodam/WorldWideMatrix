@@ -23,7 +23,7 @@ inline const char* tokenTypeToString(TokenType type)
         case LBRACKET:    return "LBRACKET";
         case RBRACKET:    return "RBRACKET";
         case COMMA:       return "COMMA";
-        case COLON:       return "COLON";
+        // case COLON:       return "COLON";
 		case END_OF_FILE: return "END_OF_FILE";
 		default:          return "UNKNOWN";
 	}

@@ -22,7 +22,7 @@ int	main(int argc, char *argv[])
 
 	std::vector<Token> tokenList = Lexer::tokenize(input);
 
-    printTokensList(tokenList);
+    // printTokensList(tokenList);
 
 	Parser parser = Parser(tokenList);
 	std::unique_ptr<ConfigFile> ast = parser.parse();

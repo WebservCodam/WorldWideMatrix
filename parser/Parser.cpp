@@ -89,19 +89,19 @@ std::unique_ptr<ASTNode>	Parser::parseDirective()
 
 	//	Skip all the words and numbers
 	size_t	lookAhead = 1;
-	while (peekToken(lookAhead).type == WORD 
-		|| peekToken(lookAhead).type == NUMBER 
-		|| peekToken(lookAhead).type == EQUALS
-		|| peekToken(lookAhead).type == AT
+	while (peekToken(lookAhead).type == WORD
+		|| peekToken(lookAhead).type == NUMBER
+		// || peekToken(lookAhead).type == EQUALS
 		|| peekToken(lookAhead).type == STRING
 		|| peekToken(lookAhead).type == LBRACKET
 		|| peekToken(lookAhead).type == RBRACKET
-		|| peekToken(lookAhead).type == COMMA
-		|| peekToken(lookAhead).type == COLON) // Would return EOF if at end
+		|| peekToken(lookAhead).type == COMMA) // Would return EOF if at end
 		lookAhead++;
 
 	//	Determine the type of directive
-	if (peekToken(lookAhead).type == SEMICOLON)
+	if (peekToken(lookAhead).type == EQUALS)
+		return (parseExactMatchDirective());	//Usually in locations, but can also appear in errors, and can be either simple or blocks
+	else if (peekToken(lookAhead).type == SEMICOLON)
 		return (parseSimpleDirective());
 	else if (peekToken(lookAhead).type == LBRACE)
 		return (parseBlockDirective());
@@ -112,6 +112,13 @@ std::unique_ptr<ASTNode>	Parser::parseDirective()
 	}
 }
 
+std::unique_ptr<ASTNode>	Parser::parseExactMatchDirective()
+{
+	std::unique_ptr<ASTNode>	directive;
+
+	return directive;
+}
+
 std::unique_ptr<SimpleDirective>	Parser::parseSimpleDirective()
 {
 	std::unique_ptr<SimpleDirective>	directive(new SimpleDirective());
@@ -119,7 +126,7 @@ std::unique_ptr<SimpleDirective>	Parser::parseSimpleDirective()
 	directive->line	= currentToken().line;
 	directive->column = currentToken().column;
 
-	expectToken(WORD, "Expected directive name"); //Unless it's location which can expect an EQUALS or an AT
+	expectToken(WORD, "Expected directive name"); //Unless it's location which can expect an EQUALS
 	directive->name = currentToken().value;
 	advance();
 
@@ -142,6 +149,8 @@ std::unique_ptr<BlockDirective>	Parser::parseBlockDirective()
 	directive->name = currentToken().value;
 	advance();
 
+	directive->parameters = parseParameters();
+
 	expectToken(LBRACE, "Expected '{' to start block");
 	advance();
 
@@ -162,7 +171,12 @@ std::vector<std::string>	Parser::parseParameters()
 {
 	std::vector<std::string>	parameters;
 
-	while (currentToken().type == WORD || currentToken().type == NUMBER)
+	while (currentToken().type == WORD
+		|| currentToken().type == NUMBER
+		|| currentToken().type == STRING
+		|| currentToken().type == LBRACKET
+		|| currentToken().type == COMMA
+		|| currentToken().type == RBRACKET)
 	{
 		parameters.push_back(currentToken().value);
 		advance();
