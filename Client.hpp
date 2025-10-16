@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/12 14:00:27 by vknape            #+#    #+#             */
-/*   Updated: 2025/09/18 13:51:09 by vknape           ###   ########.fr       */
+/*   Updated: 2025/10/16 13:00:25 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,3 @@ class Client
 		int CheckTime() const;
 		
 };
-
-
-int add_fd_map(int client_fd, Server& server);

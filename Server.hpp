@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/15 15:04:10 by vknape            #+#    #+#             */
-/*   Updated: 2025/09/18 13:47:38 by vknape           ###   ########.fr       */
+/*   Updated: 2025/10/16 13:21:21 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,10 +26,12 @@ class Server
 		const int server_fd;
 		const int epfd;
 		std::map<int, Client> list;
+		
+		void close_client(int fd);
+		void check_health();
+		void add_fd_map(int client_fd);
+		void connect_new();
+		void connect_in(int client_fd);
+		void connect_out(int client_fd);
+		void print_buffers();
 };
-
-int connect_new(Server& server);
-int connect_in(int client_fd, Server& server);
-int connect_out(int client_fd, Server& server);
-void print_buffers(Server& server);
-void check_health(Server& server);

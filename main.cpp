@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/15 14:47:31 by vknape            #+#    #+#             */
-/*   Updated: 2025/10/16 11:12:01 by vknape           ###   ########.fr       */
+/*   Updated: 2025/10/16 13:31:39 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ int main()
 		}	catch (const std::exception& e) {
 			std::cout << "Exception: " << e.what() << std::endl;
 		}
+		exit(0);
 	}
 	
 }
@@ -43,7 +44,7 @@ void	start_server(int server_fd, int epfd)
 	while (true)
 	{
 		printf("Connections made = %d\n", connections);
-		print_buffers(server);
+		server.print_buffers();
 		num_events = epoll_wait(epfd, events, 1000, 5000);
 		printf("Number of events waiting: %d\n", num_events);
 		if (num_events == -1)
@@ -53,24 +54,21 @@ void	start_server(int server_fd, int epfd)
 		{
 			if (events[i].data.fd == server_fd)
 			{
-				if (connect_new(server))
-					;
+				server.connect_new();
 				connections++;
 			}
 
 			else if (events[i].events & EPOLLIN)
 			{
-				if (connect_in(events[i].data.fd, server))
-					;
+				server.connect_in(events[i].data.fd);
 			}
 			
 			else if (events[i].events & EPOLLOUT)
 			{
-				if (connect_out(events[i].data.fd, server))
-					;
+				server.connect_out(events[i].data.fd);
 			}
 		}
-		check_health(server);
+		server.check_health();
 		
 	}
 }

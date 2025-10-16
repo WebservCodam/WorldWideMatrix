@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/15 13:53:29 by vknape            #+#    #+#             */
-/*   Updated: 2025/10/16 11:10:16 by vknape           ###   ########.fr       */
+/*   Updated: 2025/10/16 11:35:21 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@
 #include <stdexcept>
 
 #define MAXFD 1024
-#define TIMEOUT 10
+#define TIMEOUT 15
 
 #pragma once
 

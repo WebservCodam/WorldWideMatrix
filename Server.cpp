@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/01 10:59:15 by vknape            #+#    #+#             */
-/*   Updated: 2025/09/18 14:10:59 by vknape           ###   ########.fr       */
+/*   Updated: 2025/10/16 13:54:42 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,79 +17,96 @@ Server::Server(int server_fd1, int epfd1) : server_fd(server_fd1), epfd(epfd1) {
 
 Server::~Server() {};
 
-int connect_new(Server& server)
+void Server::close_client(int fd)
+{
+	epoll_ctl(epfd, EPOLL_CTL_DEL, fd, NULL);
+	close(fd);
+	// list.erase(fd);
+}
+void Server::add_fd_map(int client_fd)
+{
+	list.emplace(client_fd, client_fd);
+}
+
+void Server::connect_new()
 {
 	int client_fd;
 	while (true)
 	{
 		struct sockaddr_in client_addr;
 		socklen_t client_len = sizeof(client_addr);
-		client_fd = accept(server.server_fd, (struct sockaddr*)&client_addr, &client_len);
+		client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &client_len);
 		
 		if (client_fd == -1)
 		{
-			perror("Accept failed");
-			return (-1);
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+				return ;
+			else
+				throw std::runtime_error("Client accept failed");
 		}
 		
 		if (set_non_blocking(client_fd) == -1)
 		{
-			perror("Set flags failed");
-			return (-1);
+			// perror("Set flags failed");
+			// return (-1);
+			throw std::runtime_error("Client set flags failed");
 		}
-		if (add_fd_map(client_fd, server) == -1)
-		{
-			perror("Failed to create and add Client object");
-			return (-1);
+		try {
+			add_fd_map(client_fd);
+		} catch (const std::exception& e) {
+			std::cout << "Failed to create and add Client object: " << e.what() << std::endl;
+			throw;
 		}
 		struct epoll_event event;
 		event.events = EPOLLIN | EPOLLET;
 		event.data.fd = client_fd;
-		if (epoll_ctl(server.epfd, EPOLL_CTL_ADD, client_fd, &event) == -1)
+		if (epoll_ctl(epfd, EPOLL_CTL_ADD, client_fd, &event) == -1)
 		{
-			perror("Epoll_ctl: add client_fd failed");
-			close(client_fd);
+			// perror("Epoll_ctl: add client_fd failed");
+			// close(client_fd);
+			
+			throw std::runtime_error("Failed to add client to epoll");
 		}
+		printf("here\n");
 	}
 }
 
-int connect_in(int client_fd, Server& server)
+void Server::connect_in(int client_fd)
 {
 	printf("Read start\n");
 	char buffer[8192] = {0};
 	ssize_t count = 0;
 
 	count = recv(client_fd, buffer, sizeof(buffer), 0);
-	server.list.at(client_fd)._buf += buffer;
+	list.at(client_fd)._buf += buffer;
 	// write(STDOUT_FILENO, buffer, count);
 		
 	// perror("Read error: ");
-	if (count == 0)
-	{
-		printf("Client %d disconnected\n", client_fd);
-		close(client_fd);
-		server.list.erase(client_fd);
-		return (0);
-	}
-	else if (count == -1)
-	{
-		// perror("Read failed");
-		// close(client_fd);
-		server.list.at(client_fd).readstate = count;
-	}
+	// if (count == 0)
+	// {
+	// 	printf("Client %d disconnected\n", client_fd);
+	// 	close(client_fd);
+	// 	server.list.erase(client_fd);
+	// 	return (0);
+	// }
+	// else if (count == -1)
+	// {
+	// 	// perror("Read failed");
+	// 	// close(client_fd);
+	// 	server.list.at(client_fd).readstate = count;
+	// }
 	struct epoll_event event;
 	event.events = EPOLLOUT | EPOLLET;
 	event.data.fd = client_fd;
-	if (epoll_ctl(server.epfd, EPOLL_CTL_MOD, client_fd, &event) == -1)
+	if (epoll_ctl(epfd, EPOLL_CTL_MOD, client_fd, &event) == -1)
 	{
 		perror("Epoll_ctl: switch to EPOLLOUT failed");
 		close(client_fd);
 	}
-	printf("Read still open\n");
-	return (-1);
+	// printf("Read still open\n");
 }
 
-int connect_out(int client_fd, Server& server)
+void Server::connect_out(int client_fd)
 {
 	printf("Writing now\n");
 	std::ifstream file_stream("index.html");
@@ -98,7 +115,8 @@ int connect_out(int client_fd, Server& server)
 	// }
 	std::stringstream buffer;
 	buffer << file_stream.rdbuf();
-	std::string html =  buffer.str();	
+	std::string html =  buffer.str();
+	file_stream.close();
 	
 	
 	// const char* hello = "Hello from the server";
@@ -109,40 +127,45 @@ int connect_out(int client_fd, Server& server)
 	
 	// write(client_fd, "hello", 5);
 	// // close(client_fd);
+	list.at(client_fd)._buf.clear();
 	write(client_fd, response.c_str(), response.length());
+	if (list.at(client_fd)._alive == false)
+	{
+		close_client(client_fd);
+		list.erase(client_fd);
+		return;
+	}
 	struct epoll_event event;
 	event.events = EPOLLIN | EPOLLET;
 	event.data.fd = client_fd;
-	if (epoll_ctl(server.epfd, EPOLL_CTL_MOD, client_fd, &event) == -1)
+	if (epoll_ctl(epfd, EPOLL_CTL_MOD, client_fd, &event) == -1)
 	{
 		perror("Epoll_ctl: switch to EPOLLIN failed");
 		close(client_fd);
 	}
-	return (0);
 }
 
-void check_health(Server& server)
+void Server::check_health()
 {
-	for (auto it = server.list.begin(); it != server.list.end();)
+	for (auto it = list.begin(); it != list.end();)
 	{
-		printf("check1\n");
+		printf("Timecheck\n");
 		if (it->second.CheckTime() == -1)
 		{
-			printf("here\n");
-			epoll_ctl(server.epfd, EPOLL_CTL_DEL, it->first, NULL);
-			close(it->first);
-			it = server.list.erase(it);
+			close_client(it->first);
+			it = list.erase(it);
+			printf("Connection timed out after 15 seconds of inactivity\n");
 		}
 		else
 			it++;
-		printf("check2\n");
+		// printf("check2\n");
 	}
 }
 
-void print_buffers(Server& server)
+void Server::print_buffers()
 {
 	std::cout << "----------All stored data-----------" << std::endl;
-	for (const auto& pair : server.list)
+	for (const auto& pair : list)
 	{
 		std::cout << "FD = " << pair.first << std::endl;
 		std::cout << "Buffer =\n" << pair.second._buf << "\n" << std::endl;
