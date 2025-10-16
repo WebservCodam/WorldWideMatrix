@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/15 13:53:29 by vknape            #+#    #+#             */
-/*   Updated: 2025/09/18 13:58:26 by vknape           ###   ########.fr       */
+/*   Updated: 2025/10/16 11:10:16 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@
 #include <iostream>
 #include <map>
 #include <ctime>
+#include <stdexcept>
 
 #define MAXFD 1024
 #define TIMEOUT 10
@@ -31,4 +32,4 @@
 #pragma once
 
 int set_non_blocking(int fd);
-int	init_server(int& server_fd, int& epfd);
+void init_server(int& server_fd, int& epfd);

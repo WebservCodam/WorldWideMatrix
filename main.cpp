@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/15 14:47:31 by vknape            #+#    #+#             */
-/*   Updated: 2025/09/18 13:58:18 by vknape           ###   ########.fr       */
+/*   Updated: 2025/10/16 11:12:01 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,28 @@
 #include "utils.hpp"
 #include "Server.hpp"
 
+void	start_server(int server_fd, int epfd);
+
 int main()
 {
 	int server_fd, epfd;
-	if (init_server(server_fd, epfd) == -1)
-		perror("Server init failed");
+	
+	while (true)
+	{
+		try {
+			init_server(server_fd, epfd);
+			start_server(server_fd, epfd);
+		}	catch (const std::runtime_error& e) {
+			std::cout << "Runtime error: " << e.what() << std::endl;
+		}	catch (const std::exception& e) {
+			std::cout << "Exception: " << e.what() << std::endl;
+		}
+	}
+	
+}
 
+void	start_server(int server_fd, int epfd)
+{
 	Server server(server_fd, epfd);
 	epoll_event events[1000];
 	int num_events = 0;
@@ -31,7 +47,7 @@ int main()
 		num_events = epoll_wait(epfd, events, 1000, 5000);
 		printf("Number of events waiting: %d\n", num_events);
 		if (num_events == -1)
-			exit(1);
+			throw std::runtime_error("Epoll_wait failed");
 		
 		for (int i = 0; i < num_events; i++)
 		{
@@ -57,5 +73,4 @@ int main()
 		check_health(server);
 		
 	}
-	close(server_fd);
 }
