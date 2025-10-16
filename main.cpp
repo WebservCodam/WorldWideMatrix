@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/15 14:47:31 by vknape            #+#    #+#             */
-/*   Updated: 2025/10/16 13:31:39 by vknape           ###   ########.fr       */
+/*   Updated: 2025/10/16 14:06:18 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,5 @@ void	start_server(int server_fd, int epfd)
 			}
 		}
 		server.check_health();
-		
 	}
 }

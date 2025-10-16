@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/12 14:12:28 by vknape            #+#    #+#             */
-/*   Updated: 2025/10/16 13:00:05 by vknape           ###   ########.fr       */
+/*   Updated: 2025/10/16 14:02:32 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ Client::Client(int fd) : _fd(fd), _time(0), _alive(false) {SetTime();};
 
 Client::~Client() {std::cout << "destructed: " << _fd << std::endl;};
 
-// Client::~Client() {};
+Client::~Client() {close(_fd);};
 
 int Client::GetFd() const
 {

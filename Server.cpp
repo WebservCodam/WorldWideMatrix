@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/01 10:59:15 by vknape            #+#    #+#             */
-/*   Updated: 2025/10/16 13:54:42 by vknape           ###   ########.fr       */
+/*   Updated: 2025/10/16 14:04:00 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 Server::Server(int server_fd1, int epfd1) : server_fd(server_fd1), epfd(epfd1) {};
 
-Server::~Server() {};
+Server::~Server() {close(server_fd); close(epfd);};
 
 void Server::close_client(int fd)
 {
