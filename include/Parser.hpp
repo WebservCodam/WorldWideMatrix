@@ -30,6 +30,8 @@ class	Parser
 		bool			isAtEnd();
 		void			expectToken(TokenType type, const std::string& errorMessage);
 
+		std::unique_ptr<ASTNode>	initializeDirective();
+
 		std::unique_ptr<ASTNode>			parseDirective();
 		std::unique_ptr<ASTNode>			parseExactMatchDirective();
 		std::unique_ptr<SimpleDirective>	parseSimpleDirective();

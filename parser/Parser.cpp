@@ -91,7 +91,7 @@ std::unique_ptr<ASTNode>	Parser::parseDirective()
 	size_t	lookAhead = 1;
 	while (peekToken(lookAhead).type == WORD
 		|| peekToken(lookAhead).type == NUMBER
-		// || peekToken(lookAhead).type == EQUALS
+		|| peekToken(lookAhead).type == EQUALS
 		|| peekToken(lookAhead).type == STRING
 		|| peekToken(lookAhead).type == LBRACKET
 		|| peekToken(lookAhead).type == RBRACKET
@@ -99,9 +99,9 @@ std::unique_ptr<ASTNode>	Parser::parseDirective()
 		lookAhead++;
 
 	//	Determine the type of directive
-	if (peekToken(lookAhead).type == EQUALS)
-		return (parseExactMatchDirective());	//Usually in locations, but can also appear in errors, and can be either simple or blocks
-	else if (peekToken(lookAhead).type == SEMICOLON)
+	// if (peekToken(lookAhead).type == EQUALS)
+	// 	return (parseExactMatchDirective());	//Usually in locations, but can also appear in errors, and can be either simple or blocks
+	if (peekToken(lookAhead).type == SEMICOLON)
 		return (parseSimpleDirective());
 	else if (peekToken(lookAhead).type == LBRACE)
 		return (parseBlockDirective());
@@ -112,12 +112,22 @@ std::unique_ptr<ASTNode>	Parser::parseDirective()
 	}
 }
 
-std::unique_ptr<ASTNode>	Parser::parseExactMatchDirective()
-{
-	std::unique_ptr<ASTNode>	directive;
+// std::unique_ptr<ASTNode>	Parser::initializeDirective() // Can't implement this due to having a simple or block directive. Review polymorphism.
+// {
+// 	std::unique_ptr<ASTNode>	directive(new ASTNode());
 
-	return directive;
-}
+// 	directive->line	= currentToken().line;
+// 	directive->column = currentToken().column;
+
+// 	return (directive);
+// }
+
+// std::unique_ptr<ASTNode>	Parser::parseExactMatchDirective()
+// {
+// 	std::unique_ptr<ASTNode>	directive = initializeDirective();
+
+// 	return (directive);
+// }
 
 std::unique_ptr<SimpleDirective>	Parser::parseSimpleDirective()
 {
@@ -126,9 +136,15 @@ std::unique_ptr<SimpleDirective>	Parser::parseSimpleDirective()
 	directive->line	= currentToken().line;
 	directive->column = currentToken().column;
 
-	expectToken(WORD, "Expected directive name"); //Unless it's location which can expect an EQUALS
+	expectToken(WORD, "Expected directive name");
 	directive->name = currentToken().value;
 	advance();
+
+	size_t	lookAhead = 1;
+	while (peekToken(lookAhead).type != SEMICOLON && peekToken(lookAhead).type != EQUALS)
+		lookAhead++;
+
+	
 
 	directive->parameters = parseParameters();
 
@@ -148,6 +164,10 @@ std::unique_ptr<BlockDirective>	Parser::parseBlockDirective()
 	expectToken(WORD, "Expected directive name");
 	directive->name = currentToken().value;
 	advance();
+
+	size_t	lookAhead = 1;
+	while (peekToken(lookAhead).type != SEMICOLON && peekToken(lookAhead).type != EQUALS)
+		lookAhead++;
 
 	directive->parameters = parseParameters();
 
