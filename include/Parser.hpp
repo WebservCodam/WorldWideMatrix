@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Configuration.hpp"
-#include "Lexer.hpp"
 
 class ParseError : public std::runtime_error
 	{
@@ -30,18 +29,16 @@ class	Parser
 		bool			isAtEnd();
 		void			expectToken(TokenType type, const std::string& errorMessage);
 
-		std::unique_ptr<ASTNode>	initializeDirective();
-
 		std::unique_ptr<ASTNode>			parseDirective();
 		std::unique_ptr<ASTNode>			parseExactMatchDirective();
 		std::unique_ptr<SimpleDirective>	parseSimpleDirective();
 		std::unique_ptr<BlockDirective>		parseBlockDirective();
 		std::vector<std::string>			parseParameters();
 
-
 	public:
 		Parser() = delete;
 		Parser(std::vector<Token>& tokens);
+		~Parser();
 
 		std::unique_ptr<ConfigFile>	parse();
 

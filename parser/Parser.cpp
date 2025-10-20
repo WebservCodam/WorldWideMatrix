@@ -56,7 +56,7 @@ std::unique_ptr<ConfigFile>	Parser::parse()
 {
 	std::unique_ptr<ConfigFile>	config(new ConfigFile);
 	
-	if (!_tokens.empty())
+	if (_tokens.empty())
 	{
 		config->line = _tokens[0].line;
 		config->column = _tokens[0].column;
@@ -89,18 +89,10 @@ std::unique_ptr<ASTNode>	Parser::parseDirective()
 
 	//	Skip all the words and numbers
 	size_t	lookAhead = 1;
-	while (peekToken(lookAhead).type == WORD
-		|| peekToken(lookAhead).type == NUMBER
-		|| peekToken(lookAhead).type == EQUALS
-		|| peekToken(lookAhead).type == STRING
-		|| peekToken(lookAhead).type == LBRACKET
-		|| peekToken(lookAhead).type == RBRACKET
-		|| peekToken(lookAhead).type == COMMA) // Would return EOF if at end
+	while (peekToken(lookAhead).type != SEMICOLON
+		&& peekToken(lookAhead).type != LBRACE)
 		lookAhead++;
 
-	//	Determine the type of directive
-	// if (peekToken(lookAhead).type == EQUALS)
-	// 	return (parseExactMatchDirective());	//Usually in locations, but can also appear in errors, and can be either simple or blocks
 	if (peekToken(lookAhead).type == SEMICOLON)
 		return (parseSimpleDirective());
 	else if (peekToken(lookAhead).type == LBRACE)
@@ -111,23 +103,6 @@ std::unique_ptr<ASTNode>	Parser::parseDirective()
 						peekToken(lookAhead).line, peekToken(lookAhead).column);
 	}
 }
-
-// std::unique_ptr<ASTNode>	Parser::initializeDirective() // Can't implement this due to having a simple or block directive. Review polymorphism.
-// {
-// 	std::unique_ptr<ASTNode>	directive(new ASTNode());
-
-// 	directive->line	= currentToken().line;
-// 	directive->column = currentToken().column;
-
-// 	return (directive);
-// }
-
-// std::unique_ptr<ASTNode>	Parser::parseExactMatchDirective()
-// {
-// 	std::unique_ptr<ASTNode>	directive = initializeDirective();
-
-// 	return (directive);
-// }
 
 std::unique_ptr<SimpleDirective>	Parser::parseSimpleDirective()
 {
@@ -143,8 +118,6 @@ std::unique_ptr<SimpleDirective>	Parser::parseSimpleDirective()
 	size_t	lookAhead = 1;
 	while (peekToken(lookAhead).type != SEMICOLON && peekToken(lookAhead).type != EQUALS)
 		lookAhead++;
-
-	
 
 	directive->parameters = parseParameters();
 
@@ -191,7 +164,8 @@ std::vector<std::string>	Parser::parseParameters()
 {
 	std::vector<std::string>	parameters;
 
-	while (currentToken().type == WORD
+	while (currentToken().type == EQUALS
+		|| currentToken().type == WORD
 		|| currentToken().type == NUMBER
 		|| currentToken().type == STRING
 		|| currentToken().type == LBRACKET

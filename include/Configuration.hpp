@@ -8,6 +8,10 @@
 #include <memory>
 #include <stdexcept>
 
+#include "Lexer.hpp"
+#include "Parser.hpp"
+#include "Validator.hpp"
+
 enum TokenType
 {
 	WORD,
