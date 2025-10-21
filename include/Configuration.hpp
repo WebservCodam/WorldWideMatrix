@@ -7,6 +7,10 @@
 #include <vector>
 #include <memory>
 #include <stdexcept>
+#include <functional>
+#include <set>
+#include <map>
+#include <unordered_map>
 
 #include "Lexer.hpp"
 #include "Parser.hpp"
