@@ -12,9 +12,7 @@
 #include <map>
 #include <unordered_map>
 
-#include "Lexer.hpp"
-#include "Parser.hpp"
-#include "Validator.hpp"
+// #include "DirectiveSpecs.hpp"
 
 enum TokenType
 {
@@ -41,6 +39,16 @@ struct Token
 
 	size_t		line;
 	size_t		column;
+};
+
+struct DirectiveDefinition
+{
+	std::string				name;
+	bool					isBlock;
+	size_t					minArgs;
+	size_t					maxArgs;
+	std::set<std::string>	validContexts;
+	// std::function<bool(const std::vector<std::string>&)> validateArgs; //It's a function pointer.
 };
 
 // AST Node Types

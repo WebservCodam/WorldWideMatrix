@@ -17,6 +17,11 @@ Parser::Parser(std::vector<Token>& tokens)
 	this->_currentIndex = 0;
 }
 
+Parser::~Parser()
+{
+	
+}
+
 const	Token&	Parser::currentToken() const
 {
 	if (_currentIndex >= _tokens.size())

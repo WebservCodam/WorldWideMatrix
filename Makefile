@@ -2,10 +2,12 @@ NAME = tester
 
 CXX = c++
 CXXFLAGS = -Wall -Wextra -Werror -std=c++11 -I./include -g
+HEADERDIR = include
 SRCDIR = parser
 OBJDIR = obj
 
-SOURCES = $(SRCDIR)/Lexer.cpp $(SRCDIR)/Parser.cpp $(SRCDIR)/PrintUtilities.cpp $(SRCDIR)/tester.cpp
+HEADERS = $(HEADERDIR)/Configuration.hpp $(HEADERDIR)/DirectiveSpecs.hpp $(HEADERDIR)/Lexer.hpp $(HEADERDIR)/Parser.hpp $(HEADERDIR)/Validator.hpp
+SOURCES = $(SRCDIR)/DirectiveSpecs.cpp $(SRCDIR)/Lexer.cpp $(SRCDIR)/Parser.cpp $(SRCDIR)/PrintUtilities.cpp $(SRCDIR)/tester.cpp $(SRCDIR)/Validator.cpp 
 OBJECTS = $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 
 all: $(NAME)

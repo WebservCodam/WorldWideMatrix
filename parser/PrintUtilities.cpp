@@ -1,4 +1,4 @@
-#include <Configuration.hpp>
+#include "../include/Configuration.hpp"
 
 inline const char*		tokenTypeToString(TokenType type);
 inline std::ostream&	operator<<(std::ostream& os, const Token& token);

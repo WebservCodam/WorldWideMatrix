@@ -1,4 +1,4 @@
-#include <../include/Lexer.hpp>
+#include "../include/Lexer.hpp"
 
 std::string	Lexer::consumeNumber(const std::string& input, size_t& pos)
 {

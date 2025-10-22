@@ -1,5 +1,6 @@
-#include <../include/Lexer.hpp>
-#include <../include/Parser.hpp>
+#include "../include/Lexer.hpp"
+#include "../include/Parser.hpp"
+#include "../include/Validator.hpp"
 
 int	main(int argc, char *argv[])
 {
@@ -28,6 +29,8 @@ int	main(int argc, char *argv[])
 	std::unique_ptr<ConfigFile> ast = parser.parse();
 
 	printAST(ast);
+
+	Validator	validator(ast);
 
 	return (0);
 }

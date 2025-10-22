@@ -1,33 +1,16 @@
-#include "Validator.hpp"
+#include "../include/Validator.hpp"
+#include "../include/DirectiveSpecs.hpp"
 
-Validator::Validator(std::unique_ptr<ConfigFile>& configFile)
+Validator::Validator(std::unique_ptr<ConfigFile>& configFile) : _ConfigFile(std::move(configFile)), _directiveSpecs(NGINX_DIRECTIVE_SPECS)
 {
-	this->_ConfigFile = std::move(configFile);
+	
 }
 Validator::~Validator()
 {
 
 }
 
-void	Validator::validateSyntax()
+bool	Validator::validate()
 {
-	// Validate name
-	// Validate argument count
-	// Are semicolons, brackets and curly braces well placed? 
-}
-void	Validator::validateSemantics()
-{
-	// Are the argument types correct?
-	// Are the values within the correct ranges?
-	// Are the directives in the right context?
-}
-void	Validator::validateContext()
-{
-	// Are there conflicting directives?
-	// Are there dependencies within directives?
-}
-
-bool	validateName()
-{
-	
+	return (false);
 }
