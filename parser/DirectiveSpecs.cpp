@@ -2,6 +2,10 @@
 
 const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The equals explicitly says that this is an initialization.
 {
+	//	=== Main Context Directives ===
+	{"user", {"user", false, 1, 2, {"main"}}},
+	{"worker_processes", {"worker_processes", false, 1, 1, {"main"}}},
+
 	//	===	Block Directives === 
 	{"http", {"http", true, 0, 0, {"main"}}},
 	{"server", {"server", true, 0, 0, {"http"}}},

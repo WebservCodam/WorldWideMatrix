@@ -7,7 +7,7 @@ class	Validator
 {
 	private:
 		std::unique_ptr<ConfigFile>					_ConfigFile;
-		std::map<std::string, DirectiveDefinition> _directiveSpecs;
+		std::map<std::string, DirectiveDefinition>	_directiveSpecs;
 
 	public:
 		Validator() = delete;

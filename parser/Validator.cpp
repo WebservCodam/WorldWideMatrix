@@ -14,3 +14,23 @@ bool	Validator::validate()
 {
 	return (false);
 }
+
+bool	validateUserDirective();
+bool	validateWorkerProcessesDirective();
+bool	validateHttpDirective();
+bool	validateServerDirective();
+bool	validateLocationDirective();
+bool	validateListenDirective();
+bool	validateServerNameDirective();
+bool	validateRootDirective();
+bool	validateIndexDirective();
+bool	validateErrorPageDirective();
+bool	validateFastcgiPassDirective();
+bool	validateFastcgiParamDirective();
+bool	validateFastcgiIndexDirective();
+bool	validateReturnDirective();
+bool	validateRewriteDirective();
+bool	validateLimitExceptDirective();
+bool	validateClientBodyTempPathDirective();
+bool	validateClientMaxBodySizeDirective();
+bool	validateAutoIndexDirective();

@@ -22,12 +22,12 @@ enum TokenType
 	RBRACE,		// }
 	SEMICOLON,	// ;
 	EQUALS,		// =
-	// AT,			// @	This token is actually unnecessary and would only make things more complex
+	// AT,		// @	This token is actually unnecessary and would only make things more complex
 	STRING,		// "quoted string" or 'single quoted'
 	LBRACKET,	// [
 	RBRACKET,	// ]
 	COMMA,		// ,
-	// COLON,		// :	Would interefere with links, so wherever it was needed (interface:port) should be parsed separately
+	// COLON,	// :	Would interefere with links, so wherever it was needed (interface:port) should be parsed separately
 	COMMENT,	// # ...
 	END_OF_FILE	// Special token for the end of the input
 };
