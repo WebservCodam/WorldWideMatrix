@@ -57,23 +57,17 @@ void	Parser::expectToken(TokenType type, const std::string& errorMessage)
 	}
 }
 
-std::unique_ptr<ConfigFile>	Parser::parse()
+std::vector<std::unique_ptr<Directive>>	Parser::parse()
 {
-	std::unique_ptr<ConfigFile>	config(new ConfigFile);
-	
-	if (_tokens.empty())
-	{
-		config->line = _tokens[0].line;
-		config->column = _tokens[0].column;
-	}
+	std::vector<std::unique_ptr<Directive>>	config;
 
 	while (!isAtEnd())
 	{
 		try
 		{
-			std::unique_ptr<ASTNode>	directive = parseDirective();
+			std::unique_ptr<Directive>	directive = parseDirective();
 			if (directive)
-				config->directives.push_back(std::move(directive));	// Move transfers ownership from the local directive to the config->directives vector. The local directive becomes nullptr.
+				config.push_back(std::move(directive));	// Move transfers ownership from the local directive to the config->directives vector. The local directive becomes nullptr.
 		}
 		catch (const ParseError& e)
 		{
@@ -84,7 +78,7 @@ std::unique_ptr<ConfigFile>	Parser::parse()
 	return (config);
 }
 
-std::unique_ptr<ASTNode>	Parser::parseDirective()
+std::unique_ptr<Directive>	Parser::parseDirective()
 {
 	if (currentToken().type != WORD)
 	{
@@ -109,9 +103,9 @@ std::unique_ptr<ASTNode>	Parser::parseDirective()
 	}
 }
 
-std::unique_ptr<SimpleDirective>	Parser::parseSimpleDirective()
+std::unique_ptr<Directive>	Parser::parseSimpleDirective()
 {
-	std::unique_ptr<SimpleDirective>	directive(new SimpleDirective());
+	std::unique_ptr<Directive>	directive(new Directive());
 
 	directive->line	= currentToken().line;
 	directive->column = currentToken().column;
@@ -132,9 +126,9 @@ std::unique_ptr<SimpleDirective>	Parser::parseSimpleDirective()
 	return (directive);
 }
 
-std::unique_ptr<BlockDirective>	Parser::parseBlockDirective()
+std::unique_ptr<Directive>	Parser::parseBlockDirective()
 {
-	std::unique_ptr<BlockDirective>	directive(new BlockDirective);
+	std::unique_ptr<Directive>	directive(new Directive);
 
 	directive->line	= currentToken().line;
 	directive->column	= currentToken().column;
@@ -154,7 +148,7 @@ std::unique_ptr<BlockDirective>	Parser::parseBlockDirective()
 
 	while (!isAtEnd() && currentToken().type != RBRACE)
 	{
-		std::unique_ptr<ASTNode>	child = parseDirective();
+		std::unique_ptr<Directive>	child = parseDirective();
 		if (child)
 			directive->children.push_back(std::move(child));
 	}

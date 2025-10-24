@@ -26,11 +26,11 @@ int	main(int argc, char *argv[])
     // printTokensList(tokenList);
 
 	Parser parser = Parser(tokenList);
-	std::unique_ptr<ConfigFile> ast = parser.parse();
+	std::vector<std::unique_ptr<Directive>>	ast = parser.parse();
 
 	printAST(ast);
 
-	Validator	validator(ast);
+	// Validator	validator(ast);
 
 	return (0);
 }

@@ -4,10 +4,8 @@ inline const char*		tokenTypeToString(TokenType type);
 inline std::ostream&	operator<<(std::ostream& os, const Token& token);
 void					printTokensList(const std::vector<Token>& tokenList);
 void					printIndent(int indent, const std::string& prefix);
-void					printSimpleDirective(const SimpleDirective* directive, int indent, const std::string& prefix);
-void					printBlockDirective(const BlockDirective* directive, int indent, const std::string& prefix);
-void					printASTNode(const ASTNode* node, int indent, const std::string& prefix);
-void					printAST(const std::unique_ptr<ConfigFile>& config);
+void					printDirective(const Directive* directive, int indent, const std::string& prefix);
+void					printAST(const std::vector<std::unique_ptr<Directive>>& config);
 
 inline const char* tokenTypeToString(TokenType type)
 {
@@ -57,34 +55,31 @@ void    printIndent(int indent, const std::string& prefix)
     std::cout << prefix;
 }
 
-void    printSimpleDirective(const SimpleDirective* directive, int indent, const std::string& prefix)
+void    printDirective(const Directive* directive, int indent, const std::string& prefix)
 {
-    printIndent(indent, prefix);
-    std::cout << "SimpleDirective: " << directive->name 
-              << " [line:" << directive->line 
-              << ", col:" << directive->column << "]" << std::endl;
-    
-    if (!directive->parameters.empty())
+    if (!directive)
     {
-        printIndent(indent + 1, "");
-        std::cout << "Parameters: ";
-        for (size_t i = 0; i < directive->parameters.size(); i++)
-        {
-            std::cout << "\"" << directive->parameters[i] << "\"";
-            if (i < directive->parameters.size() - 1)
-                std::cout << ", ";
-        }
-        std::cout << std::endl;
+        printIndent(indent, prefix);
+        std::cout << "(null)" << std::endl;
+        return;
     }
-}
 
-void    printBlockDirective(const BlockDirective* directive, int indent, const std::string& prefix)
-{
     printIndent(indent, prefix);
-    std::cout << "BlockDirective: " << directive->name 
-              << " [line:" << directive->line 
+
+    // Determine if it's a simple or block directive based on children
+    if (directive->children.empty())
+    {
+        std::cout << "SimpleDirective: " << directive->name;
+    }
+    else
+    {
+        std::cout << "BlockDirective: " << directive->name;
+    }
+
+    std::cout << " [line:" << directive->line
               << ", col:" << directive->column << "]" << std::endl;
-    
+
+    // Print parameters if any
     if (!directive->parameters.empty())
     {
         printIndent(indent + 1, "");
@@ -97,7 +92,8 @@ void    printBlockDirective(const BlockDirective* directive, int indent, const s
         }
         std::cout << std::endl;
     }
-    
+
+    // Print children if any (for block directives)
     if (!directive->children.empty())
     {
         printIndent(indent + 1, "");
@@ -106,56 +102,22 @@ void    printBlockDirective(const BlockDirective* directive, int indent, const s
         {
             bool isLast = (i == directive->children.size() - 1);
             std::string childPrefix = isLast ? "└── " : "├── ";
-            printASTNode(directive->children[i].get(), indent + 2, childPrefix);
+            printDirective(directive->children[i].get(), indent + 2, childPrefix);
         }
     }
 }
 
-void    printASTNode(const ASTNode* node, int indent, const std::string& prefix)
-{
-    if (!node)
-    {
-        printIndent(indent, prefix);
-        std::cout << "(null)" << std::endl;
-        return;
-    }
-    
-    // Try to downcast to specific types
-    if (const SimpleDirective* simple = dynamic_cast<const SimpleDirective*>(node))
-    {
-        printSimpleDirective(simple, indent, prefix);
-    }
-    else if (const BlockDirective* block = dynamic_cast<const BlockDirective*>(node))
-    {
-        printBlockDirective(block, indent, prefix);
-    }
-    else if (const ConfigFile* config = dynamic_cast<const ConfigFile*>(node))
-    {
-        printIndent(indent, prefix);
-        std::cout << "ConfigFile [line:" << config->line 
-                  << ", col:" << config->column << "]" << std::endl;
-        
-        for (size_t i = 0; i < config->directives.size(); i++)
-        {
-            bool isLast = (i == config->directives.size() - 1);
-            std::string childPrefix = isLast ? "└── " : "├── ";
-            printASTNode(config->directives[i].get(), indent + 1, childPrefix);
-        }
-    }
-    else
-    {
-        printIndent(indent, prefix);
-        std::cout << "Unknown ASTNode [line:" << node->line 
-                  << ", col:" << node->column << "]" << std::endl;
-    }
-}
-
-void    printAST(const std::unique_ptr<ConfigFile>& config)
+void    printAST(const std::vector<std::unique_ptr<Directive>>& config)
 {
     std::cout << "\n=== AST Structure ===" << std::endl;
-    if (config)
+    if (!config.empty())
     {
-        printASTNode(config.get(), 0, "");
+        for (size_t i = 0; i < config.size(); i++)
+        {
+            bool isLast = (i == config.size() - 1);
+            std::string prefix = isLast ? "└── " : "├── ";
+            printDirective(config[i].get(), 0, prefix);
+        }
     }
     else
     {

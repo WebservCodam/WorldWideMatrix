@@ -29,10 +29,9 @@ class	Parser
 		bool			isAtEnd();
 		void			expectToken(TokenType type, const std::string& errorMessage);
 
-		std::unique_ptr<ASTNode>			parseDirective();
-		std::unique_ptr<ASTNode>			parseExactMatchDirective();
-		std::unique_ptr<SimpleDirective>	parseSimpleDirective();
-		std::unique_ptr<BlockDirective>		parseBlockDirective();
+		std::unique_ptr<Directive>			parseDirective();
+		std::unique_ptr<Directive>			parseSimpleDirective();
+		std::unique_ptr<Directive>			parseBlockDirective();
 		std::vector<std::string>			parseParameters();
 
 	public:
@@ -40,7 +39,7 @@ class	Parser
 		Parser(std::vector<Token>& tokens);
 		~Parser();
 
-		std::unique_ptr<ConfigFile>	parse();
+		std::vector<std::unique_ptr<Directive>>	parse();
 
 };
 
