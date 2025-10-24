@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/25 15:36:03 by rkaras        #+#    #+#                 */
-/*   Updated: 2025/10/03 15:52:08 by rkaras        ########   odam.nl         */
+/*   Updated: 2025/10/16 17:17:48 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <sstream>
 #include <string>
 #include <fstream>
+#include <algorithm>
 
 
 struct HttpRequest
@@ -36,7 +37,8 @@ struct ConnectionContext
 	HttpRequest request;
 };
 
-enum ParseStatus {
+enum ParseStatus
+{
 	INCOMPLETE,
 	COMPLETE,
 	ERROR
@@ -45,10 +47,13 @@ enum ParseStatus {
 class HttpParser
 {
 	private:
-		void	parseRequestLine(const std::string &line, HttpRequest &req);
-		void	parseHeaderLine(const std::string &line, HttpRequest &req);
-		bool	expectsBody(const HttpRequest &req);
-		size_t	bodyLength(const HttpRequest &req);
+		void		parseRequestLine(const std::string &line, HttpRequest &req);
+		void		parseHeaderLine(const std::string &line, HttpRequest &req);
+		// bool	expectsBody(const HttpRequest &req);
+		size_t		bodyLength(const HttpRequest &req);
+		bool		readLine(const char *buf, size_t length, size_t &pos, std::string &out);
+		bool		isChunked(const HttpRequest &req);
+		ParseStatus	parseChunkedBody(ConnectionContext &ctx, size_t bodyStart);
 	
 	public:
 		HttpParser() = default;
