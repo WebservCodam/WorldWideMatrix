@@ -4,7 +4,7 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The 
 {
 	//	=== Main Context Directives ===
 	{"user", {"user", false, 0, 2, {"main"}, nullptr}},
-	{"worker_processes", {"worker_processes", false, 1, 1, {"main"}, validateWorkerProcessesArgs}},
+	{"worker_processes", {"worker_processes", false, 1, 1, {"main"}, validateWorkerProcessesDirective}},
 
 	//	===	Block Directives ===
 	{"http", {"http", true, 0, 0, {"main"}, nullptr}},
@@ -12,7 +12,7 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The 
 	{"location", {"location", true, 1, 2, {"server", "location"}, nullptr}},	// 2 parameters in case it's an equals
 
 	//	=== Server Basics ===
-	{"listen", {"listen", false, 1, 10, {"server"}, nullptr}},
+	{"listen", {"listen", false, 1, 1, {"server"}, nullptr}}, //Only taking addresses and ports. It can be either/and. If it's both then it's separated by ':'.
 	{"server_name", {"server_name", false, 1, 100, {"server"}, nullptr}},
 	{"root", {"root", false, 1, 1, {"http", "server", "location"}, nullptr}},
 	{"index", {"index", false, 1, 100, {"http", "server", "location"}, nullptr}},
@@ -37,3 +37,111 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The 
 	//	=== Autoindex ===
 	{"autoindex", {"autoindex", false, 1, 1, {"http", "server", "location"}, nullptr}},  // on/off
 };
+
+// bool	Validator::validateUserDirective(const Directive* node)
+// {
+// 	return validateDirective(node);
+// }
+
+// Validation functions for specific directives
+bool	validateWorkerProcessesDirective(const Directive* node)
+{
+	if (node->parameters.at(0) == "auto")
+		return (true);
+
+	try
+	{
+		int processes = std::stoi(node->parameters.at(0));
+		return (processes > 0 && processes <= 16);
+	}
+	catch (const std::exception& e)
+	{
+		return (false);
+	}
+}
+bool	validateHttpDirective(const Directive* node)
+{
+	if (node->children.empty())
+		return (false);
+	else
+	{
+		// validate children directives
+		return (true);
+	}
+}
+bool	validateServerDirective(const Directive* node)
+{
+	if (node->children.empty())
+		return (false);
+	else
+	{
+		// validate children directives
+		return (true);
+	}
+}
+bool	validateLocationDirective(const Directive* node)
+{
+	if (node->children.empty())
+		return (false);
+	else
+	{
+		// validate children directives
+		return (true);
+	}
+}
+bool	validateListenDirective(const Directive* node)
+{
+	return (false);
+}
+bool	validateServerNameDirective(const Directive* node)
+{
+	return (false);
+}
+bool	validateRootDirective(const Directive* node)
+{
+	return (false);
+}
+bool	validateIndexDirective(const Directive* node)
+{
+	return (false);
+}
+bool	validateErrorPageDirective(const Directive* node)
+{
+	return (false);
+}
+bool	validateFastcgiPassDirective(const Directive* node)
+{
+	return (false);
+}
+bool	validateFastcgiParamDirective(const Directive* node)
+{
+	return (false);
+}
+bool	validateFastcgiIndexDirective(const Directive* node)
+{
+	return (false);
+}
+bool	validateReturnDirective(const Directive* node)
+{
+	return (false);
+}
+bool	validateRewriteDirective(const Directive* node)
+{
+	return (false);
+}
+bool	validateLimitExceptDirective(const Directive* node)
+{
+	return (false);
+}
+bool	validateClientBodyTempPathDirective(const Directive* node)
+{
+	return (false);
+}
+bool	validateClientMaxBodySizeDirective(const Directive* node)
+{
+	return (false);
+}
+bool	validateAutoIndexDirective(const Directive* node)
+{
+	return (false);
+}
