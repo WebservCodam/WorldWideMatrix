@@ -6,8 +6,8 @@ HEADERDIR = include
 SRCDIR = parser
 OBJDIR = obj
 
-HEADERS = $(HEADERDIR)/Configuration.hpp $(HEADERDIR)/DirectiveSpecs.hpp $(HEADERDIR)/Lexer.hpp $(HEADERDIR)/Parser.hpp $(HEADERDIR)/Validator.hpp
-SOURCES = $(SRCDIR)/DirectiveSpecs.cpp $(SRCDIR)/Lexer.cpp $(SRCDIR)/Parser.cpp $(SRCDIR)/PrintUtilities.cpp $(SRCDIR)/tester.cpp $(SRCDIR)/Validator.cpp 
+HEADERS = $(HEADERDIR)/Configuration.hpp $(HEADERDIR)/DirectiveSpecs.hpp $(HEADERDIR)/Lexer.hpp $(HEADERDIR)/ParseError.hpp $(HEADERDIR)/Parser.hpp $(HEADERDIR)/Validator.hpp
+SOURCES = $(SRCDIR)/DirectiveSpecs.cpp $(SRCDIR)/Lexer.cpp $(SRCDIR)/ParseError.cpp $(SRCDIR)/Parser.cpp $(SRCDIR)/PrintUtilities.cpp $(SRCDIR)/tester.cpp $(SRCDIR)/Validator.cpp 
 OBJECTS = $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 
 all: $(NAME)

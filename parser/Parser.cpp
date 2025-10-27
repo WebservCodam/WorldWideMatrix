@@ -1,13 +1,5 @@
 #include "../include/Parser.hpp"
-
-ParseError::ParseError(const std::string& message, size_t line, size_t column) :
-std::runtime_error("Parse error at line " + std::to_string(line)
-					+ ", column " + std::to_string(column) + ": " + message),
-					_line(line), _column(column) {}  // Initializer list
-
-const char* ParseError::what() const noexcept {
-	return std::runtime_error::what();
-}
+#include "../include/ParseError.hpp"
 
 // Very basic for now.
 Parser::Parser(std::vector<Token>& tokens)
@@ -114,6 +106,10 @@ std::unique_ptr<Directive>	Parser::parseSimpleDirective()
 	directive->name = currentToken().value;
 	advance();
 
+	// If it already exists it was created by a block directive with a context. Otherwise it should be the main. (Double check that)
+	if (directive->context.empty())
+		directive->context = "main";
+
 	size_t	lookAhead = 1;
 	while (peekToken(lookAhead).type != SEMICOLON && peekToken(lookAhead).type != EQUALS)
 		lookAhead++;
@@ -137,6 +133,9 @@ std::unique_ptr<Directive>	Parser::parseBlockDirective()
 	directive->name = currentToken().value;
 	advance();
 
+	if (directive->context.empty())
+		directive->context = "main";
+
 	size_t	lookAhead = 1;
 	while (peekToken(lookAhead).type != SEMICOLON && peekToken(lookAhead).type != EQUALS)
 		lookAhead++;
@@ -149,6 +148,7 @@ std::unique_ptr<Directive>	Parser::parseBlockDirective()
 	while (!isAtEnd() && currentToken().type != RBRACE)
 	{
 		std::unique_ptr<Directive>	child = parseDirective();
+		child->context = directive->name;
 		if (child)
 			directive->children.push_back(std::move(child));
 	}

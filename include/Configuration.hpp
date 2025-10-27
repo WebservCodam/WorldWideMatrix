@@ -43,12 +43,12 @@ struct Token
 
 struct DirectiveDefinition
 {
-	std::string				name;
-	bool					isBlock;
-	size_t					minArgs;
-	size_t					maxArgs;
-	std::set<std::string>	validContexts;
-	// std::function<bool(const std::vector<std::string>&)> validateArgs; //It's a function pointer.
+	std::string								name;
+	bool									isBlock;
+	size_t									minArgs;
+	size_t									maxArgs;
+	std::set<std::string>					validContexts;
+	std::function<bool(const Directive*)>	validateArgs;
 };
 
 // AST Node Types
@@ -57,7 +57,8 @@ struct Directive
 	size_t line;
 	size_t column;
 
-	std::string					name;
+	std::string									name;
+	std::string									context;
 	std::vector<std::string>					parameters;
 	std::vector<std::unique_ptr<Directive>>		children;
 

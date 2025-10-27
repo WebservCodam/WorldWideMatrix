@@ -17,6 +17,7 @@ class	Validator
 		bool	validate();
 
 	private:
+		bool	validateDirective(const Directive* node);
 
 		bool	validateUserDirective(const Directive* node);
 		bool	validateWorkerProcessesDirective(const Directive* node);

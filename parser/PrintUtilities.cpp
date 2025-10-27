@@ -76,8 +76,9 @@ void    printDirective(const Directive* directive, int indent, const std::string
         std::cout << "BlockDirective: " << directive->name;
     }
 
-    std::cout << " [line:" << directive->line
-              << ", col:" << directive->column << "]" << std::endl;
+    std::cout << " [line: " << directive->line
+              << ", col: " << directive->column
+              << ", context: " << directive->context << "]" << std::endl;
 
     // Print parameters if any
     if (!directive->parameters.empty())
