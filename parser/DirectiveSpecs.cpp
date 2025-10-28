@@ -91,6 +91,16 @@ bool	validateLocationDirective(const Directive* node)
 }
 bool	validateListenDirective(const Directive* node)
 {
+	try
+	{
+		int port = std::stoi(node->parameters.at(0));
+		
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+	}
+	
 	return (false);
 }
 bool	validateServerNameDirective(const Directive* node)

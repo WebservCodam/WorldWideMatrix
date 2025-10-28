@@ -39,5 +39,3 @@ bool	Validator::validateDirective(const Directive* node)
 	// If no specific validation, basic checks passed
 	return (true);
 }
-
-
