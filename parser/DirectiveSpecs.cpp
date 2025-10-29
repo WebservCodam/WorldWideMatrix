@@ -7,12 +7,12 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The 
 	{"worker_processes", {"worker_processes", false, 1, 1, {"main"}, validateWorkerProcessesDirective}},
 
 	//	===	Block Directives ===
-	{"http", {"http", true, 0, 0, {"main"}, nullptr}},
-	{"server", {"server", true, 0, 0, {"http"}, nullptr}},
-	{"location", {"location", true, 1, 2, {"server", "location"}, nullptr}},	// 2 parameters in case it's an equals
+	{"http", {"http", true, 0, 0, {"main"}, validateHttpDirective}},
+	{"server", {"server", true, 0, 0, {"http"}, validateServerDirective}},
+	{"location", {"location", true, 1, 2, {"server", "location"}, validateLocationDirective}},	// 2 parameters in case it's an equals
 
 	//	=== Server Basics ===
-	{"listen", {"listen", false, 1, 1, {"server"}, nullptr}}, //Only taking addresses and ports. It can be either/and. If it's both then it's separated by ':'.
+	{"listen", {"listen", false, 1, 1, {"server"}, validateListenDirective}}, //Only taking addresses and ports. It can be either/and. If it's both then it's separated by ':'.
 	{"server_name", {"server_name", false, 1, 100, {"server"}, nullptr}},
 	{"root", {"root", false, 1, 1, {"http", "server", "location"}, nullptr}},
 	{"index", {"index", false, 1, 100, {"http", "server", "location"}, nullptr}},
@@ -91,10 +91,18 @@ bool	validateLocationDirective(const Directive* node)
 }
 bool	validateListenDirective(const Directive* node)
 {
-	try
+	//Divide IP from Port
+		// Check that the IP address is valid.
+		// Localhost can also be a valid address
+	
+	//Check IP if present
+
+	//Check Port if present: from 1-65535
+
+
+	try //Only port
 	{
 		int port = std::stoi(node->parameters.at(0));
-		
 	}
 	catch(const std::exception& e)
 	{
@@ -103,55 +111,85 @@ bool	validateListenDirective(const Directive* node)
 	
 	return (false);
 }
-bool	validateServerNameDirective(const Directive* node)
-{
-	return (false);
-}
+// bool	validateServerNameDirective(const Directive* node)
+// {
+// 	return (false);
+// }
+
 bool	validateRootDirective(const Directive* node)
 {
-	return (false);
+	//Validate path?
+
+	return (true);
 }
+
 bool	validateIndexDirective(const Directive* node)
 {
+	//List that should be used as indices. Files are checked in the specific order.
+
 	return (false);
 }
+
 bool	validateErrorPageDirective(const Directive* node)
 {
+
 	return (false);
 }
+
 bool	validateFastcgiPassDirective(const Directive* node)
 {
 	return (false);
 }
+
 bool	validateFastcgiParamDirective(const Directive* node)
 {
 	return (false);
 }
+
 bool	validateFastcgiIndexDirective(const Directive* node)
 {
 	return (false);
 }
+
 bool	validateReturnDirective(const Directive* node)
 {
 	return (false);
 }
-bool	validateRewriteDirective(const Directive* node)
-{
-	return (false);
-}
+
+
+
+// bool	validateRewriteDirective(const Directive* node)
+// {
+//	// Because it uses regex, according to the subject it's not needed to be handled.
+// 	return (false);
+// }
+
 bool	validateLimitExceptDirective(const Directive* node)
 {
+	// It should take a method as a parameter. 
+	// If GET is allowed, so is HEAD.
+	// It allows these methods inside a location.
+	// Within, it should have directives 'allow' and/or 'deny'.
 	return (false);
 }
+
 bool	validateClientBodyTempPathDirective(const Directive* node)
 {
+	// If it can create a directory with path then it should be valid, otherwise no.
 	return (false);
 }
+
 bool	validateClientMaxBodySizeDirective(const Directive* node)
 {
+	// If 0 == no limit
+	// Can be 1m or 10m which means 10 megabytes. Any request that exceeds that it returns a 413 error.
+	// The letter can be lower or upper case.
 	return (false);
 }
+
 bool	validateAutoIndexDirective(const Directive* node)
 {
+	if (node->parameters.at(0) == "on" || node->parameters.at(0) == "off")
+		return (true);
 	return (false);
 }

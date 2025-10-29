@@ -8,7 +8,7 @@ bool	validateHttpDirective(const Directive* node);
 bool	validateServerDirective(const Directive* node);
 bool	validateLocationDirective(const Directive* node);
 bool	validateListenDirective(const Directive* node);
-bool	validateServerNameDirective(const Directive* node);
+// bool	validateServerNameDirective(const Directive* node);
 bool	validateRootDirective(const Directive* node);
 bool	validateIndexDirective(const Directive* node);
 bool	validateErrorPageDirective(const Directive* node);
