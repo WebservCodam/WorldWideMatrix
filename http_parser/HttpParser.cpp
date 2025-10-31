@@ -6,12 +6,12 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/25 15:36:17 by rkaras        #+#    #+#                 */
-/*   Updated: 2025/10/31 14:14:47 by rkaras        ########   odam.nl         */
+/*   Updated: 2025/10/31 15:33:08 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpParser.hpp"
-#include "../Client.hpp"
+#include "../server/Client.hpp"
 
 ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 {
@@ -88,7 +88,7 @@ ParseStatus HttpParser::initParser(Client &client)
 	ParseStatus status = parseRequest(ctx);
 	
 	if (status == ParseStatus::COMPLETE)
-	{
+	{		
 		std::map<std::string, std::string>::iterator it = ctx.request.headers.find("connection");
 		if (it != ctx.request.headers.end())
 		{
@@ -101,6 +101,8 @@ ParseStatus HttpParser::initParser(Client &client)
 			client._alive = false;
 			
 		client._buf.clear();
+
+		
 	}
 	else if (status == ParseStatus::ERROR)
 	{

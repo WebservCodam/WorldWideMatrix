@@ -6,14 +6,14 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/25 15:36:03 by rkaras        #+#    #+#                 */
-/*   Updated: 2025/10/31 14:33:06 by rkaras        ########   odam.nl         */
+/*   Updated: 2025/10/31 15:14:40 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef HTTPPARSER_H
 #define HTTPPARSER_H
 
-#include "../Client.hpp"
+#include "../server/Client.hpp"
 
 #include <iostream>
 #include <map>
@@ -63,7 +63,7 @@ class HttpParser
 		HttpParser&	operator=(const HttpParser& other) = delete;
 		~HttpParser() = default;
 
-		void		appendData(ConnectionContext &ctx, const char *data, size_t len);
+		// void		appendData(ConnectionContext &ctx, const char *data, size_t len);
 		ParseStatus initParser(Client &client);
 };
 
