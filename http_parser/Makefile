@@ -6,7 +6,7 @@
 #    By: rkaras <rkaras@student.codam.nl>             +#+                      #
 #                                                    +#+                       #
 #    Created: 2025/09/02 12:41:05 by rkaras        #+#    #+#                  #
-#    Updated: 2025/10/03 15:51:21 by rkaras        ########   odam.nl          #
+#    Updated: 2025/10/31 14:20:28 by rkaras        ########   odam.nl          #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,6 +19,10 @@ NAME = webserv
 
 # Source and object files
 SRC = HttpParser.cpp \
+	Body.cpp \
+	Headers.cpp \
+	RequestLine.cpp \
+	utils.cpp \
 	main.cpp \
 	
 OBJ = $(SRC:.cpp=.o)

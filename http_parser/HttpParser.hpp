@@ -6,12 +6,14 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/25 15:36:03 by rkaras        #+#    #+#                 */
-/*   Updated: 2025/10/16 17:17:48 by rkaras        ########   odam.nl         */
+/*   Updated: 2025/10/31 14:33:06 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef HTTPPARSER_H
 #define HTTPPARSER_H
+
+#include "../Client.hpp"
 
 #include <iostream>
 #include <map>
@@ -49,20 +51,20 @@ class HttpParser
 	private:
 		void		parseRequestLine(const std::string &line, HttpRequest &req);
 		void		parseHeaderLine(const std::string &line, HttpRequest &req);
-		// bool	expectsBody(const HttpRequest &req);
 		size_t		bodyLength(const HttpRequest &req);
 		bool		readLine(const char *buf, size_t length, size_t &pos, std::string &out);
 		bool		isChunked(const HttpRequest &req);
 		ParseStatus	parseChunkedBody(ConnectionContext &ctx, size_t bodyStart);
+		ParseStatus	parseRequest(ConnectionContext &ctx);
 	
 	public:
 		HttpParser() = default;
 		HttpParser(const HttpParser& other) = delete;
-		HttpParser& operator=(const HttpParser& other) = delete;
+		HttpParser&	operator=(const HttpParser& other) = delete;
 		~HttpParser() = default;
 
 		void		appendData(ConnectionContext &ctx, const char *data, size_t len);
-		ParseStatus	parseRequest(ConnectionContext &ctx);
+		ParseStatus initParser(Client &client);
 };
 
 #endif /* !HTTPPARSER_H */
