@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/15 13:53:29 by vknape            #+#    #+#             */
-/*   Updated: 2025/10/16 11:35:21 by vknape           ###   ########.fr       */
+/*   Updated: 2025/11/03 14:48:07 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,11 @@
 #include <map>
 #include <ctime>
 #include <stdexcept>
+#include <vector>
+#include <bits/stdc++.h>
+#include <sys/types.h>
+#include <netdb.h>
+#include <cstring>
 
 #define MAXFD 1024
 #define TIMEOUT 15
@@ -33,3 +38,4 @@
 
 int set_non_blocking(int fd);
 void init_server(int& server_fd, int& epfd);
+int createSocket(const char* ip, int port);

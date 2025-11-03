@@ -6,16 +6,76 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/01 10:59:15 by vknape            #+#    #+#             */
-/*   Updated: 2025/10/16 14:04:00 by vknape           ###   ########.fr       */
+/*   Updated: 2025/11/03 15:19:43 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 #include "Client.hpp"
 
-Server::Server(int server_fd1, int epfd1) : server_fd(server_fd1), epfd(epfd1) {};
+Server::Server(int epfd1) : epfd(epfd1) {};
 
-Server::~Server() {close(server_fd); close(epfd);};
+Server::~Server() {close(epfd);};
+
+void Server::init_server()
+{
+	while (true)
+	{
+		server_fds.push_back(createSocket(NULL, 8080));
+		break ;
+	}
+
+	for (auto fd: server_fds)
+	{
+		add_servers_to_epoll(fd);
+	}
+}
+
+void Server::add_servers_to_epoll(int server_fd)
+{
+		//epoll start
+	static struct epoll_event event;
+	event.data.fd = server_fd;
+	event.events = EPOLLIN | EPOLLET | EPOLLPRI | EPOLLHUP;
+	if (epoll_ctl(epfd, EPOLL_CTL_ADD, server_fd, &event) == -1)
+		throw std::runtime_error("Server add to epoll failed");
+}
+void Server::start_server()
+{
+	Server server(epfd);
+	epoll_event events[1000];
+	int num_events = 0;
+	int connections = 0;
+	while (true)
+	{
+		printf("Connections made = %d\n", connections);
+		server.print_buffers();
+		num_events = epoll_wait(epfd, events, 1000, 5000);
+		printf("Number of events waiting: %d\n", num_events);
+		if (num_events == -1)
+			throw std::runtime_error("Epoll_wait failed");
+		
+		for (int i = 0; i < num_events; i++)
+		{
+			if (std::find(server_fds.begin(), server_fds.end(), events[i].data.fd) != server_fds.end())
+			{
+				server.connect_new(events[i].data.fd);
+				connections++;
+			}
+
+			else if (events[i].events & EPOLLIN)
+			{
+				server.connect_in(events[i].data.fd);
+			}
+			
+			else if (events[i].events & EPOLLOUT)
+			{
+				server.connect_out(events[i].data.fd);
+			}
+		}
+		server.check_health();
+	}
+}
 
 void Server::close_client(int fd)
 {
@@ -28,7 +88,7 @@ void Server::add_fd_map(int client_fd)
 	list.emplace(client_fd, client_fd);
 }
 
-void Server::connect_new()
+void Server::connect_new(int server_fd)
 {
 	int client_fd;
 	while (true)
