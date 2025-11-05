@@ -193,10 +193,60 @@ bool	validateAutoIndexDirective(const Directive* node)
 
 bool	validateErrorPageDirective(const Directive* node)
 {
-	// If a value has an equals then it means that the response code is changed.
-	// It can have a bunch of values, all of which are error codes. So these have to be valid.
-	// The last value is an URI, and it's what the server serves instead of the failing request.
-	return (false);
+	// error_page 404 /404.html;			The last value is a URI.
+	// error_page 500 502 503 /50x.html;	There can be multiple codes.
+	// error_page 404 =200 /empty.gif;		An equals changes the code.
+
+	if (node->parameters.size() < 2)
+		return (false);
+
+	// Last parameter is always the URI
+	const std::string& uri = node->parameters.back();
+
+	// Check URI format (should start with / or be a valid URL)
+	if (uri.empty() || (uri[0] != '/' && uri.find("http") != 0))
+		return (false);
+
+	// All parameters except the last one are error codes
+	for (size_t i = 0; i < node->parameters.size() - 1; ++i)
+	{
+		const std::string& param = node->parameters[i];
+
+		// Check for response code change (e.g., "=200")
+		if (param[0] == '=')
+		{
+			if (param.length() < 2)
+				return (false);
+
+			try
+			{
+				int new_code = std::stoi(param.substr(1));
+				// Validate it's a valid HTTP status code
+				if (new_code < 100 || new_code > 599)
+					return (false);
+			}
+			catch (const std::exception&)
+			{
+				return (false);
+			}
+		}
+		else
+		{
+			// Regular error code
+			try
+			{
+				int error_code = std::stoi(param);
+				// Must be a 4xx or 5xx error code
+				if (error_code < 400 || error_code > 599)
+					return (false);
+			}
+			catch (const std::exception&)
+			{
+				return (false);
+			}
+		}
+	}
+	return (true);
 }
 
 bool	validateFastcgiPassDirective(const Directive* node)
@@ -230,12 +280,72 @@ bool	validateFastcgiIndexDirective(const Directive* node)
 
 bool	validateReturnDirective(const Directive* node)
 {
-	// It returns the code that's specified as value.
-	// Optionally there's a 2nd argument that's a text or URL.
-	// NGINX also allows to only return a URL, but we can skip that.
-	// A URL may contain variables.
+	// return 301 http://example.com;
+	// return 404;
+	// return 200 "some text";
 
-	return (false);
+	if (node->parameters.empty() || node->parameters.size() > 2)
+		return (false);
+
+	// First parameter must be a valid HTTP status code
+	try
+	{
+		int status_code = std::stoi(node->parameters.at(0));
+
+		// Must be a valid HTTP status code (100-599)
+		if (status_code < 100 || status_code > 599)
+			return (false);
+	}
+	catch (const std::exception&)
+	{
+		return (false);
+	}
+
+	// If there's a second parameter, validate it as URL or text
+	if (node->parameters.size() == 2)
+	{
+		const std::string& second_param = node->parameters.at(1);
+
+		if (second_param.empty())
+			return (false);
+
+		// For URLs starting with http:// or https://
+		if (second_param.find("http://") == 0 || second_param.find("https://") == 0)
+		{
+			// Basic URL validation - must have something after protocol
+			if (second_param.length() <= 8) // "https://" is 8 chars
+				return (false);
+		}
+		// For quoted text
+		else if (second_param.front() == '"' && second_param.back() == '"')
+		{
+			// Must have content between quotes
+			if (second_param.length() < 3)
+				return (false);
+		}
+		// For relative URLs or paths
+		else if (second_param.front() == '/')
+		{
+			// Check for valid path characters and format
+			for (size_t i = 0; i < second_param.length(); ++i)
+			{
+				char c = second_param[i];
+				// Allow alphanumeric, slash, dash, underscore, dot, percent (for URL encoding)
+				if (!std::isalnum(c) && c != '/' && c != '-' && c != '_' && c != '.' && c != '%')
+					return (false);
+			}
+
+			// Check for consecutive slashes (except at start)
+			if (second_param.find("//") != std::string::npos)
+				return (false);
+		}
+		else
+		{
+			// Other text content is also valid
+		}
+	}
+
+	return (true);
 }
 
 // bool	validateRewriteDirective(const Directive* node)
