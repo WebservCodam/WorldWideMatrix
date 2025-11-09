@@ -15,7 +15,6 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The 
 	{"listen", {"listen", false, 1, 1, {"server"}, validateListenDirective}}, //Only taking addresses and ports. It can be either/and. If it's both then it's separated by ':'.
 	{"server_name", {"server_name", false, 1, 100, {"server"}, nullptr}},
 	{"root", {"root", false, 1, 1, {"http", "server", "location"}, validateRootDirective}},
-	// {"index", {"index", false, 1, 100, {"http", "server", "location"}, nullptr}},
 
 	//	=== Autoindex ===
 	{"autoindex", {"autoindex", false, 1, 1, {"http", "server", "location"}, validateAutoIndexDirective}},  // on/off
@@ -30,7 +29,7 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The 
 
 	//	===	Request Handling ===
 	{"return", {"return", false, 1, 2, {"server", "location"}, nullptr}},	// 301, 302 redirects
-    {"rewrite", {"rewrite", false, 2, 4, {"server", "location"}, nullptr}},
+    // {"rewrite", {"rewrite", false, 2, 4, {"server", "location"}, nullptr}},
 
 	//	=== Methods/Limits	===
 	{"limit_except", {"limit_except", true, 1, 10, {"location"}, nullptr}},	// GET, POST, DELETE
@@ -38,10 +37,72 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The 
 	{"client_max_body_size", {"client_max_body_size", false, 1, 1, {"http", "server", "location"}, nullptr}}
 };
 
-// bool	Validator::validateUserDirective(const Directive* node)
-// {
-// 	return validateDirective(node);
-// }
+static std::string	breakDownAddress(std::string& address)
+{
+	std::string	port;
+	size_t		pos;
+
+	if (address.empty())
+		return (nullptr);
+	pos = address.find(":");
+	if (pos == address.npos)
+		return (address);
+	port = address.substr(pos + 1, address.size() - (pos + 1));
+	address = address.substr(0, pos);
+	return (port);
+}
+
+static bool isByte(std::string &number)
+{
+	if (number.empty())
+		return (false);
+
+    try
+	{
+		int	num = std::stoi(number);
+		if (number.size() != std::to_string(num).length())
+			return (false);
+		if (num > 255 || num < 0)
+			return (false);
+	}
+	catch(const std::exception& e)
+	{
+		return (false);
+	}	
+    return (true);
+}
+
+static bool	validateAddress(std::string& address)
+{
+	size_t		currentPos = 0;
+	size_t		nextPos;
+	size_t		iterations = 0;
+	std::string	currentChunk;
+
+	if (address.empty())
+		return (false);
+
+	while (currentPos < address.length())
+	{
+		nextPos = address.find(".", currentPos);
+		if (nextPos == std::string::npos)
+			currentChunk = address.substr(currentPos);
+		else
+			currentChunk = address.substr(currentPos, nextPos - currentPos);
+
+		if (!isByte(currentChunk))
+			return (false);
+
+		iterations++;
+		if (nextPos == std::string::npos)
+			break;
+		currentPos = nextPos + 1;
+	}
+	if (iterations != 4)
+		return (false);
+	return (true);
+}
+
 
 // Validation functions for specific directives
 bool	validateWorkerProcessesDirective(const Directive* node)
@@ -111,11 +172,6 @@ bool	validateListenDirective(const Directive* node)
 	
 	return (false);
 }
-// bool	validateServerNameDirective(const Directive* node)
-// {
-// 	return (false);
-// }
-
 
 //	Default root would be the root at the http block. (To do after validation)
 bool	validateRootDirective(const Directive* node)
@@ -175,14 +231,6 @@ bool	validateRootDirective(const Directive* node)
 	// Invalid: doesn't start with '/', '"', or '$'
 	return (false);
 }
-
-// We could simply have autoindex on
-// bool	validateIndexDirective(const Directive* node)
-// {
-// 	//List that should be used as indices. Files are checked in the specific order.
-
-// 	return (false);
-// }
 
 bool	validateAutoIndexDirective(const Directive* node)
 {
@@ -254,6 +302,8 @@ bool	validateFastcgiPassDirective(const Directive* node)
 	// Sets the address for a FastCGI server.
 	// The address can be specified as a domain name or IP address, and a port (e.g.): localhost:9000;
 	// If a domain name resolves to several addresses, all of them will be used in a round-robin fashion. But we don't need that...
+
+
 
 	return (false);
 }
@@ -347,12 +397,6 @@ bool	validateReturnDirective(const Directive* node)
 
 	return (true);
 }
-
-// bool	validateRewriteDirective(const Directive* node)
-// {
-//	// Because it uses regex, according to the subject it's not needed to be handled.
-// 	return (false);
-// }
 
 bool	validateLimitExceptDirective(const Directive* node)
 {
