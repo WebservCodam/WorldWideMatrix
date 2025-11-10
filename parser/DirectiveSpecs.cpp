@@ -18,6 +18,7 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The 
 
 	//	=== Autoindex ===
 	{"autoindex", {"autoindex", false, 1, 1, {"http", "server", "location"}, validateAutoIndexDirective}},  // on/off
+	//index
 
 	//	=== Error Handling ===
 	{"error_page", {"error_page", false, 2, 100, {"http", "server", "location"}, nullptr}},
@@ -33,23 +34,29 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The 
 
 	//	=== Methods/Limits	===
 	{"limit_except", {"limit_except", true, 1, 10, {"location"}, nullptr}},	// GET, POST, DELETE
-    {"client_body_temp_path", {"client_body_temp_path", false, 1, 1, {"http", "server", "location"}, nullptr}},
+    // {"client_body_temp_path", {"client_body_temp_path", false, 1, 1, {"http", "server", "location"}, nullptr}},
 	{"client_max_body_size", {"client_max_body_size", false, 1, 1, {"http", "server", "location"}, nullptr}}
 };
 
-static std::string	breakDownAddress(std::string& address)
+static std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address)
 {
-	std::string	port;
+	std::pair<std::string, std::string>	addressAndPort = {"", ""};
+	std::string	addressPart;
+	std::string	portPart;
 	size_t		pos;
 
 	if (address.empty())
-		return (nullptr);
+		return (addressAndPort);
 	pos = address.find(":");
 	if (pos == address.npos)
-		return (address);
-	port = address.substr(pos + 1, address.size() - (pos + 1));
-	address = address.substr(0, pos);
-	return (port);
+		addressAndPort = {address, ""};
+	else
+	{
+		addressPart = address.substr(0, pos);
+		portPart = address.substr(pos + 1, address.size() - (pos + 1));
+		addressAndPort = {std::move(addressPart), std::move(portPart)};
+	}
+	return (addressAndPort);
 }
 
 static bool isByte(std::string &number)
@@ -82,6 +89,9 @@ static bool	validateAddress(std::string& address)
 	if (address.empty())
 		return (false);
 
+	if (address == "localhost")
+		return (true);
+
 	while (currentPos < address.length())
 	{
 		nextPos = address.find(".", currentPos);
@@ -103,6 +113,25 @@ static bool	validateAddress(std::string& address)
 	return (true);
 }
 
+static bool	validatePort(std::string& port)
+{
+	if (port.empty())
+		return (false);
+	
+	try
+	{
+		int portNumber = std::stoi(port);
+		if (port.size() != std::to_string(portNumber).length())
+			throw (std::runtime_error("Wrong port"));
+		if (portNumber >= 1 && portNumber <= 65535)
+			return (true);
+	}
+	catch(const std::exception& e)
+	{
+		return (false);
+	}
+	return (false);
+}
 
 // Validation functions for specific directives
 bool	validateWorkerProcessesDirective(const Directive* node)
@@ -152,24 +181,22 @@ bool	validateLocationDirective(const Directive* node)
 }
 bool	validateListenDirective(const Directive* node)
 {
-	//Divide IP from Port
-		// Check that the IP address is valid.
-		// Localhost can also be a valid address
+	std::pair<std::string, std::string>	addressAndPort;
+	bool	isValidAddress;
+	bool	isValidPort;
+
+	if (node->parameters.empty())
+		return (false);
 	
-	//Check IP if present
-
-	//Check Port if present: from 1-65535
-
-
-	try //Only port
-	{
-		int port = std::stoi(node->parameters.at(0));
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << e.what() << '\n';
-	}
-	
+	addressAndPort = parseAddressAndPort(node->parameters[0]);
+	isValidAddress = validateAddress(addressAndPort.first);
+	isValidPort = validatePort(addressAndPort.second);
+	if (isValidAddress && addressAndPort.second.empty())
+		return (true);
+	else if (isValidAddress && isValidPort)
+		return (true);
+	else if (addressAndPort.first.empty() && isValidPort)
+		return (true);
 	return (false);
 }
 
