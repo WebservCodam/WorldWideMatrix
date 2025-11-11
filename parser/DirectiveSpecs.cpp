@@ -11,6 +11,9 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The 
 	{"server", {"server", true, 0, 0, {"http"}, validateServerDirective}},
 	{"location", {"location", true, 1, 2, {"server", "location"}, validateLocationDirective}},	// 2 parameters in case it's an equals
 
+	{"allow", {"allow", false, 1, 1, {"http", "server", "location", "limit_except"}, validateAllowOrDeny}},
+	{"deny", {"deny", false, 1, 1, {"http", "server", "location", "limit_except"}, validateAllowOrDeny}},
+
 	//	=== Server Basics ===
 	{"listen", {"listen", false, 1, 1, {"server"}, validateListenDirective}}, //Only taking addresses and ports. It can be either/and. If it's both then it's separated by ':'.
 	{"server_name", {"server_name", false, 1, 100, {"server"}, nullptr}},
@@ -38,48 +41,7 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The 
 	{"client_max_body_size", {"client_max_body_size", false, 1, 1, {"http", "server", "location"}, nullptr}}
 };
 
-static std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address)
-{
-	std::pair<std::string, std::string>	addressAndPort = {"", ""};
-	std::string	addressPart;
-	std::string	portPart;
-	size_t		pos;
-
-	if (address.empty())
-		return (addressAndPort);
-	pos = address.find(":");
-	if (pos == address.npos)
-		addressAndPort = {address, ""};
-	else
-	{
-		addressPart = address.substr(0, pos);
-		portPart = address.substr(pos + 1, address.size() - (pos + 1));
-		addressAndPort = {std::move(addressPart), std::move(portPart)};
-	}
-	return (addressAndPort);
-}
-
-static bool isByte(std::string &number)
-{
-	if (number.empty())
-		return (false);
-
-    try
-	{
-		int	num = std::stoi(number);
-		if (number.size() != std::to_string(num).length())
-			return (false);
-		if (num > 255 || num < 0)
-			return (false);
-	}
-	catch(const std::exception& e)
-	{
-		return (false);
-	}	
-    return (true);
-}
-
-static bool	validateAddress(std::string& address)
+bool	validateAddress(std::string& address)
 {
 	size_t		currentPos = 0;
 	size_t		nextPos;
@@ -113,7 +75,43 @@ static bool	validateAddress(std::string& address)
 	return (true);
 }
 
-static bool	validatePort(std::string& port)
+bool	validateAllowOrDeny(std::string& address)
+{
+	size_t		cidrPos = 0;
+	std::string	addressPart;
+	std::string	cidrPart;
+
+	if (address.empty())
+		return (false);
+
+	if (address == "all")
+		return (true);
+	
+	cidrPos = address.find("/");
+	if (cidrPos != std::string::npos)
+	{
+		addressPart = address.substr(0, cidrPos);
+		cidrPart = address.substr(cidrPos + 1);
+		try
+		{
+			int	cidr = std::stoi(cidrPart);
+			if (cidrPart.length() != std::to_string(cidr).length())
+				return (false);
+			if (cidr < 0 || cidr > 32)
+				return (false);
+		}
+		catch(const std::exception& e)
+		{
+			return (false);
+		}
+		if (!validateAddress(addressPart))
+			return (false);
+	}
+	else
+		return (validateAddress(address));
+}
+
+bool	validatePort(std::string& port)
 {
 	if (port.empty())
 		return (false);
@@ -329,9 +327,6 @@ bool	validateFastcgiPassDirective(const Directive* node)
 	// Sets the address for a FastCGI server.
 	// The address can be specified as a domain name or IP address, and a port (e.g.): localhost:9000;
 	// If a domain name resolves to several addresses, all of them will be used in a round-robin fashion. But we don't need that...
-
-
-
 	return (false);
 }
 
@@ -427,18 +422,18 @@ bool	validateReturnDirective(const Directive* node)
 
 bool	validateLimitExceptDirective(const Directive* node)
 {
-	// It should take a method as a parameter. 
+	// It should take a method as a parameter.
 	// If GET is allowed, so is HEAD.
 	// It allows these methods inside a location.
 	// Within, it should have directives 'allow' and/or 'deny'.
 	return (false);
 }
 
-bool	validateClientBodyTempPathDirective(const Directive* node)
-{
-	// If it can create a directory with path then it should be valid, otherwise no.
-	return (false);
-}
+// bool	validateClientBodyTempPathDirective(const Directive* node)
+// {
+// 	// If it can create a directory with path then it should be valid, otherwise no.
+// 	return (false);
+// }
 
 bool	validateClientMaxBodySizeDirective(const Directive* node)
 {

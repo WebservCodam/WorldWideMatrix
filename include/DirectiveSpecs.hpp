@@ -22,6 +22,10 @@ bool	validateLimitExceptDirective(const Directive* node);
 bool	validateClientBodyTempPathDirective(const Directive* node);
 bool	validateClientMaxBodySizeDirective(const Directive* node);
 
+std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address);
+bool 								isByte(std::string &number);
+bool								validateAddress(std::string& address);
+
 
 extern const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS;
 
