@@ -33,11 +33,9 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The 
 
 	//	===	Request Handling ===
 	{"return", {"return", false, 1, 2, {"server", "location"}, nullptr}},	// 301, 302 redirects
-    // {"rewrite", {"rewrite", false, 2, 4, {"server", "location"}, nullptr}},
 
 	//	=== Methods/Limits	===
 	{"limit_except", {"limit_except", true, 1, 10, {"location"}, nullptr}},	// GET, POST, DELETE
-    // {"client_body_temp_path", {"client_body_temp_path", false, 1, 1, {"http", "server", "location"}, nullptr}},
 	{"client_max_body_size", {"client_max_body_size", false, 1, 1, {"http", "server", "location"}, nullptr}}
 };
 
@@ -426,19 +424,63 @@ bool	validateLimitExceptDirective(const Directive* node)
 	// If GET is allowed, so is HEAD.
 	// It allows these methods inside a location.
 	// Within, it should have directives 'allow' and/or 'deny'.
-	return (false);
-}
 
-// bool	validateClientBodyTempPathDirective(const Directive* node)
-// {
-// 	// If it can create a directory with path then it should be valid, otherwise no.
-// 	return (false);
-// }
+	const std::vector<std::string> httpMethods = {"GET", "POST", "DELETE", "HEAD"};
+
+	if (node->parameters.empty() || node->children.empty())
+		return (false);
+	
+	for (std::string currentMethod : node->parameters)
+	{
+		bool	isValidMethod = false;
+		for (std::string allowed : httpMethods)
+		{
+			if (currentMethod == allowed)
+			{
+				isValidMethod = true;
+				break ;
+			}
+		}
+		if (isValidMethod == false)
+			return (false);	// Throw validation error
+	}
+	//	Validate children
+	for (const std::unique_ptr<Directive>&	currentChild : node->children)
+	{
+		if (currentChild->name != "allow" && currentChild->name != "deny")
+			return (false); //Missing directives inside the block
+		if (!validateAllowOrDeny(currentChild->parameters[0]))
+			return (false);
+	}
+	return (true);
+}
 
 bool	validateClientMaxBodySizeDirective(const Directive* node)
 {
 	// If 0 == no limit
 	// Can be 1m or 10m which means 10 megabytes. Any request that exceeds that it returns a 413 error.
 	// The letter can be lower or upper case.
+
+	if (node->parameters.empty())
+		return (false);
+	if (node->parameters[0] == "0")
+		return (true);
+	try
+	{
+		int	size = std::stoi(node->parameters[0]);
+		if (size < 1 || size > 10)
+		{
+			return (false); //Invalid size
+		}
+		if (node->parameters[0].back() != 'm' || node->parameters[0].back() != 'M')	//Only accepting megabytes as valid sizes
+		{
+			return (false);	//Unknown size
+		}
+	}
+	catch(const std::exception& e)
+	{
+		throw std::runtime_error("Failed stoi in validate client max body size");
+	}
+	
 	return (false);
 }
