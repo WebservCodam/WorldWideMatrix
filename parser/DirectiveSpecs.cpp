@@ -151,7 +151,14 @@ bool	validateHttpDirective(const Directive* node)
 		return (false);
 	else
 	{
-		// validate children directives
+		for (const std::unique_ptr<Directive>& currentChild : node->children)
+		{
+			for (const std::string& currentDirective : NGINX_DIRECTIVE_SPECS. GET NAME FROM THE MAP) // Try iterator
+			{
+
+			}
+
+		}
 		return (true);
 	}
 }
