@@ -21,7 +21,7 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The 
 
 	//	=== Autoindex ===
 	{"autoindex", {"autoindex", false, 1, 1, {"http", "server", "location"}, validateAutoIndexDirective}},  // on/off
-	//index
+	{"index", {"index", false, 1, 1, {"http", "server", "location"}, validateIndexDirective}},
 
 	//	=== Error Handling ===
 	{"error_page", {"error_page", false, 2, 100, {"http", "server", "location"}, nullptr}},
@@ -39,7 +39,7 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The 
 	{"client_max_body_size", {"client_max_body_size", false, 1, 1, {"http", "server", "location"}, nullptr}}
 };
 
-bool	validateAddress(std::string& address)
+bool	validateAddress(const std::string& address)
 {
 	size_t		currentPos = 0;
 	size_t		nextPos;
@@ -107,13 +107,13 @@ bool	validateAllowOrDeny(std::string& address)
 	}
 	else
 		return (validateAddress(address));
+	return (true);
 }
 
-bool	validatePort(std::string& port)
+bool	validatePort(const std::string& port)
 {
 	if (port.empty())
 		return (false);
-	
 	try
 	{
 		int portNumber = std::stoi(port);
@@ -130,11 +130,12 @@ bool	validatePort(std::string& port)
 }
 
 // Validation functions for specific directives
+
+//Why would we configure this?
 bool	validateWorkerProcessesDirective(const Directive* node)
 {
 	if (node->parameters.at(0) == "auto")
 		return (true);
-
 	try
 	{
 		int processes = std::stoi(node->parameters.at(0));
@@ -155,7 +156,7 @@ bool	validateHttpDirective(const Directive* node)
 		{
 			for (const std::string& currentDirective : NGINX_DIRECTIVE_SPECS. GET NAME FROM THE MAP) // Try iterator
 			{
-
+				
 			}
 
 		}
@@ -184,14 +185,22 @@ bool	validateLocationDirective(const Directive* node)
 }
 bool	validateListenDirective(const Directive* node)
 {
-	std::pair<std::string, std::string>	addressAndPort;
-	bool	isValidAddress;
-	bool	isValidPort;
+	std::pair<std::string, std::string>	addressAndPort;	//127.0.0.0:8080
+	bool								isValidAddress;
+	bool								isValidPort;
 
 	if (node->parameters.empty())
 		return (false);
 	
 	addressAndPort = parseAddressAndPort(node->parameters[0]);
+	if (addressAndPort.first.empty() && addressAndPort.second.empty())
+	{
+		if (validateAddress(node->parameters[0]))
+			return (true);
+		if (validatePort(node->parameters[0]))
+			return (true);
+		return (false);
+	}
 	isValidAddress = validateAddress(addressAndPort.first);
 	isValidPort = validatePort(addressAndPort.second);
 	if (isValidAddress && addressAndPort.second.empty())
@@ -262,8 +271,19 @@ bool	validateRootDirective(const Directive* node)
 	return (false);
 }
 
+bool	validateIndexDirective(const Directive* node)
+{
+	if (node->parameters.empty())
+		return (false);
+	if (node->parameters.at(0) == "index.html") //Hardcoded
+		return (true);
+	return (false);
+}
+
 bool	validateAutoIndexDirective(const Directive* node)
 {
+	if (node->parameters.empty())
+		return (false);
 	if (node->parameters.at(0) == "on" || node->parameters.at(0) == "off")
 		return (true);
 	return (false);
@@ -295,7 +315,6 @@ bool	validateErrorPageDirective(const Directive* node)
 		{
 			if (param.length() < 2)
 				return (false);
-
 			try
 			{
 				int new_code = std::stoi(param.substr(1));

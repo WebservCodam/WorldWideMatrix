@@ -24,7 +24,8 @@ bool	validateClientMaxBodySizeDirective(const Directive* node);
 
 std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address);
 bool 								isByte(std::string &number);
-bool								validateAddress(std::string& address);
+bool								validateAddress(const std::string& address);
+bool								validatePort(const std::string& port);
 
 
 extern const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS;

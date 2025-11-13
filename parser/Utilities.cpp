@@ -11,7 +11,7 @@ std::pair<std::string, std::string>	parseAddressAndPort(const std::string& addre
 		return (addressAndPort);
 	pos = address.find(":");
 	if (pos == address.npos)
-		addressAndPort = {address, ""};
+		return (addressAndPort);
 	else
 	{
 		addressPart = address.substr(0, pos);
