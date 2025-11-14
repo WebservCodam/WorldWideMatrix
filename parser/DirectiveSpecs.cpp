@@ -20,7 +20,7 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The 
 	{"root", {"root", false, 1, 1, {"http", "server", "location"}, validateRootDirective}},
 
 	//	=== Autoindex ===
-	{"autoindex", {"autoindex", false, 1, 1, {"http", "server", "location"}, validateAutoIndexDirective}},  // on/off
+	{"autoindex", {"autoindex", false, 1, 1, {"http", "server", "location"}, validateAutoIndexDirective}},  // Produces directory listing
 	{"index", {"index", false, 1, 1, {"http", "server", "location"}, validateIndexDirective}},
 
 	//	=== Error Handling ===
@@ -146,6 +146,7 @@ bool	validateWorkerProcessesDirective(const Directive* node)
 		return (false);
 	}
 }
+
 bool	validateHttpDirective(const Directive* node)
 {
 	if (node->children.empty())
@@ -163,6 +164,7 @@ bool	validateHttpDirective(const Directive* node)
 		return (true);
 	}
 }
+
 bool	validateServerDirective(const Directive* node)
 {
 	if (node->children.empty())
