@@ -9,7 +9,9 @@ CC			=		c++
 FLAGS		=		-Wall -Wextra -Werror -g
 # FLAGS		+=		-fsanitize=thread
 # FLAGS		+=		-fsanitize=address
-ARGS		=		
+ARGS		=	
+V1			= 		10
+V2			=		100	
 
 $(NAME):	$(OBJ)
 				$(CC) $(FLAGS) -o $(NAME) $(OBJ)
@@ -33,5 +35,10 @@ run:		all
 #				@bash ./test.sh
 #				@valgrind --leak-check=full ./$(NAME) $(ARGS)
 
+test:
+			siege -t $(V1)s -c $(V2) http://localhost:8080
 
-.PHONY:		all clean fclean re
+teststart:
+			./server && siege -t $(V1)s -c $(V2) http://localhost:8080
+
+.PHONY:		all clean fclean re test teststart
