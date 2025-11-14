@@ -147,22 +147,36 @@ bool	validateWorkerProcessesDirective(const Directive* node)
 	}
 }
 
+//bool validateContext(const Directive* childNode)
+
+
 bool	validateHttpDirective(const Directive* node)
 {
 	if (node->children.empty())
 		return (false);
-	else
+	for (const std::unique_ptr<Directive>& currentChild : node->children)
 	{
-		for (const std::unique_ptr<Directive>& currentChild : node->children)
+		for (std::map<std::string, DirectiveDefinition>::const_iterator it = NGINX_DIRECTIVE_SPECS.begin(); it != NGINX_DIRECTIVE_SPECS.end(); ++it)
 		{
-			for (const std::string& currentDirective : NGINX_DIRECTIVE_SPECS. GET NAME FROM THE MAP) // Try iterator
-			{
-				
-			}
+			const std::string& 			directiveName = it->first;
+			const DirectiveDefinition&	directiveSpec = it->second;
+			bool						validContext = false;
 
+			if (directiveName != currentChild->name)
+				continue ;
+			for (const std::string& context : directiveSpec.validContexts)
+			{
+				if (currentChild->context == context)
+				{
+					validContext = true;
+					break ;
+				}
+			}
+			if (!validContext)
+				return (false); // Throw invalid context.
 		}
-		return (true);
 	}
+	return (true);
 }
 
 bool	validateServerDirective(const Directive* node)
