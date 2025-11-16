@@ -3,40 +3,40 @@
 const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The equals explicitly says that this is an initialization.
 {
 	//	=== Main Context Directives ===
-	{"user", {"user", false, 0, 2, {"main"}, nullptr}},
-	{"worker_processes", {"worker_processes", false, 1, 1, {"main"}, validateWorkerProcessesDirective}},
+	{"user", DirectiveDefinition{"user", false, 0, 2, {"main"}, nullptr, {}}},
+	{"worker_processes", DirectiveDefinition{"worker_processes", false, 1, 1, {"main"}, validateWorkerProcessesDirective, {}}},
 
 	//	===	Block Directives ===
-	{"http", {"http", true, 0, 0, {"main"}, validateHttpDirective}},
-	{"server", {"server", true, 0, 0, {"http"}, validateServerDirective}},
-	{"location", {"location", true, 1, 2, {"server", "location"}, validateLocationDirective}},	// 2 parameters in case it's an equals
+	{"http", DirectiveDefinition{"http", true, 0, 0, {"main"}, validateHttpDirective, {"server"}}},
+	{"server", DirectiveDefinition{"server", true, 0, 0, {"http"}, validateServerDirective, {"listen"}}},
+	{"location", DirectiveDefinition{"location", true, 1, 2, {"server", "location"}, validateLocationDirective, {}}},	// 2 parameters in case it's an equals
 
-	{"allow", {"allow", false, 1, 1, {"http", "server", "location", "limit_except"}, validateAllowOrDeny}},
-	{"deny", {"deny", false, 1, 1, {"http", "server", "location", "limit_except"}, validateAllowOrDeny}},
+	{"allow", DirectiveDefinition{"allow", false, 1, 1, {"http", "server", "location", "limit_except"}, validateAllowOrDeny, {}}},
+	{"deny", DirectiveDefinition{"deny", false, 1, 1, {"http", "server", "location", "limit_except"}, validateAllowOrDeny, {}}},
 
 	//	=== Server Basics ===
-	{"listen", {"listen", false, 1, 1, {"server"}, validateListenDirective}}, //Only taking addresses and ports. It can be either/and. If it's both then it's separated by ':'.
-	{"server_name", {"server_name", false, 1, 100, {"server"}, nullptr}},
-	{"root", {"root", false, 1, 1, {"http", "server", "location"}, validateRootDirective}},
+	{"listen", DirectiveDefinition{"listen", false, 1, 1, {"server"}, validateListenDirective, {}}}, //Only taking addresses and ports. It can be either/and. If it's both then it's separated by ':'.
+	{"server_name", DirectiveDefinition{"server_name", false, 1, 100, {"server"}, nullptr, {}}},
+	{"root", DirectiveDefinition{"root", false, 1, 1, {"http", "server", "location"}, validateRootDirective, {}}},
 
 	//	=== Autoindex ===
-	{"autoindex", {"autoindex", false, 1, 1, {"http", "server", "location"}, validateAutoIndexDirective}},  // Produces directory listing
-	{"index", {"index", false, 1, 1, {"http", "server", "location"}, validateIndexDirective}},
+	{"autoindex", DirectiveDefinition{"autoindex", false, 1, 1, {"http", "server", "location"}, validateAutoIndexDirective, {}}},  // Produces directory listing
+	{"index", DirectiveDefinition{"index", false, 1, 1, {"http", "server", "location"}, validateIndexDirective, {}}},
 
 	//	=== Error Handling ===
-	{"error_page", {"error_page", false, 2, 100, {"http", "server", "location"}, nullptr}},
+	{"error_page", DirectiveDefinition{"error_page", false, 2, 100, {"http", "server", "location"}, nullptr, {}}},
 
 	// === CGI ===
-	{"fastcgi_pass", {"fastcgi_pass", false, 1, 1, {"location"}, nullptr}},
-	{"fastcgi_param", {"fastcgi_param", false, 2, 3, {"http", "server", "location"}, nullptr}},
-	{"fastcgi_index", {"fastcgi_index", false, 1, 1, {"http", "server", "location"}, nullptr}},
+	{"fastcgi_pass", DirectiveDefinition{"fastcgi_pass", false, 1, 1, {"location"}, nullptr, {}}},
+	{"fastcgi_param", DirectiveDefinition{"fastcgi_param", false, 2, 3, {"http", "server", "location"}, nullptr, {}}},
+	{"fastcgi_index", DirectiveDefinition{"fastcgi_index", false, 1, 1, {"http", "server", "location"}, nullptr, {}}},
 
 	//	===	Request Handling ===
-	{"return", {"return", false, 1, 2, {"server", "location"}, nullptr}},	// 301, 302 redirects
+	{"return", DirectiveDefinition{"return", false, 1, 2, {"server", "location"}, nullptr, {}}},	// 301, 302 redirects
 
 	//	=== Methods/Limits	===
-	{"limit_except", {"limit_except", true, 1, 10, {"location"}, nullptr}},	// GET, POST, DELETE
-	{"client_max_body_size", {"client_max_body_size", false, 1, 1, {"http", "server", "location"}, nullptr}}
+	{"limit_except", DirectiveDefinition{"limit_except", true, 1, 10, {"location"}, nullptr, {}}},	// GET, POST, DELETE
+	{"client_max_body_size", DirectiveDefinition{"client_max_body_size", false, 1, 1, {"http", "server", "location"}, nullptr, {}}}
 };
 
 bool	validateAddress(const std::string& address)
@@ -73,11 +73,12 @@ bool	validateAddress(const std::string& address)
 	return (true);
 }
 
-bool	validateAllowOrDeny(std::string& address)
+bool	validateAllowOrDeny(const Directive* node)
 {
-	size_t		cidrPos = 0;
-	std::string	addressPart;
-	std::string	cidrPart;
+	const std::string&	address = node->parameters.at(0);
+	size_t				cidrPos = 0;
+	std::string			addressPart;
+	std::string			cidrPart;
 
 	if (address.empty())
 		return (false);
@@ -147,35 +148,76 @@ bool	validateWorkerProcessesDirective(const Directive* node)
 	}
 }
 
-//bool validateContext(const Directive* childNode)
+bool	validateContext(const Directive* node)
+{
+	for (const std::unique_ptr<Directive>& currentChild : node->children)
+	{
+		// Look up the child directive in specs
+        std::map<std::string, DirectiveDefinition>::const_iterator it = 
+            NGINX_DIRECTIVE_SPECS.find(currentChild->name);
+
+		if (it == NGINX_DIRECTIVE_SPECS.end())
+            return (false); // Unknown directive
+		
+		const DirectiveDefinition&	directiveSpec = it->second;
+		bool						validContext = false;
+
+		// Check if current context is valid for this directive
+		for (const std::string& context : directiveSpec.validContexts)
+		{
+			if (currentChild->context == context)
+			{
+				validContext = true;
+				break ;
+			}
+		}
+		if (!validContext)
+			return (false); // Throw invalid context.
+	}
+	return (true);
+}
+
+bool	validateRequiredChildren(const Directive* node)
+{
+	// Find the directive specification
+	std::map<std::string, DirectiveDefinition>::const_iterator it = NGINX_DIRECTIVE_SPECS.find(node->name);
+	if (it == NGINX_DIRECTIVE_SPECS.end())
+		return (false); // Directive not found in specs
+
+	const DirectiveDefinition& spec = it->second;
+
+	// Check each required child directive
+	for (const std::string& requiredChild : spec.requiredChildren)
+	{
+		bool found = false;
+		for (const std::unique_ptr<Directive>& child : node->children)
+		{
+			if (child->name == requiredChild)
+			{
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+			return (false); // Required child directive missing
+	}
+	return (true);
+}
 
 
 bool	validateHttpDirective(const Directive* node)
 {
 	if (node->children.empty())
 		return (false);
-	for (const std::unique_ptr<Directive>& currentChild : node->children)
-	{
-		for (std::map<std::string, DirectiveDefinition>::const_iterator it = NGINX_DIRECTIVE_SPECS.begin(); it != NGINX_DIRECTIVE_SPECS.end(); ++it)
-		{
-			const std::string& 			directiveName = it->first;
-			const DirectiveDefinition&	directiveSpec = it->second;
-			bool						validContext = false;
 
-			if (directiveName != currentChild->name)
-				continue ;
-			for (const std::string& context : directiveSpec.validContexts)
-			{
-				if (currentChild->context == context)
-				{
-					validContext = true;
-					break ;
-				}
-			}
-			if (!validContext)
-				return (false); // Throw invalid context.
-		}
-	}
+	// Validate required children are present
+	if (!validateRequiredChildren(node))
+		return (false);
+
+	// Validate that each child is in the right context
+	if (!validateContext(node))
+		return (false);
+
 	return (true);
 }
 
@@ -183,21 +225,29 @@ bool	validateServerDirective(const Directive* node)
 {
 	if (node->children.empty())
 		return (false);
-	else
-	{
-		// validate children directives
-		return (true);
-	}
+
+	// Validate required children are present
+	if (!validateRequiredChildren(node))
+		return (false);
+
+	if (!validateContext(node))
+		return (false);
+
+	return (true);
 }
 bool	validateLocationDirective(const Directive* node)
 {
 	if (node->children.empty())
 		return (false);
-	else
-	{
-		// validate children directives
-		return (true);
-	}
+
+	// Validate required children are present
+	if (!validateRequiredChildren(node))
+		return (false);
+
+	if (!validateContext(node))
+		return (false);
+
+	return (true);
 }
 bool	validateListenDirective(const Directive* node)
 {

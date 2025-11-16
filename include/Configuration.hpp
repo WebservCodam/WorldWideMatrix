@@ -49,6 +49,7 @@ struct DirectiveDefinition
 	size_t									maxArgs;
 	std::set<std::string>					validContexts;
 	std::function<bool(const Directive*)>	validateArgs;
+	std::set<std::string>					requiredChildren;
 };
 
 // AST Node Types

@@ -21,11 +21,14 @@ bool	validateReturnDirective(const Directive* node);
 bool	validateLimitExceptDirective(const Directive* node);
 bool	validateClientBodyTempPathDirective(const Directive* node);
 bool	validateClientMaxBodySizeDirective(const Directive* node);
+bool	validateAllowOrDeny(const Directive* node);
 
 std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address);
 bool 								isByte(std::string &number);
 bool								validateAddress(const std::string& address);
 bool								validatePort(const std::string& port);
+bool								validateContext(const Directive* node);
+bool								validateRequiredChildren(const Directive* node);
 
 
 extern const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS;
