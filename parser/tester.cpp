@@ -33,4 +33,28 @@ int	main(int argc, char *argv[])
 	// Validator	validator(ast);
 
 	return (0);
+
+	// // Main usage:
+	// try
+	// {
+	// 	// Phase 1: Lexing
+	// 	Lexer lexer(input, filename);
+	// 	std::vector<Token> tokens = lexer.tokenize();
+
+	// 	// Phase 2: Parsing
+	// 	Parser parser(tokens);
+	// 	std::unique_ptr<ConfigFile> config = parser.parse();
+
+	// 	// Phase 3: Validation
+	// 	Validator validator(config.get());  // Pass pointer, not ownership
+	// 	validator.validate();  // Throws on error
+
+	// 	// Phase 4: Use validated config
+	// 	// ...
+
+	// } catch (const ParseError& e) {
+	// 	std::cerr << e.what() << std::endl;
+	// } catch (const ValidationError& e) {
+	// 	std::cerr << e.what() << std::endl;
+	// }
 }
