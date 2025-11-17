@@ -1,4 +1,4 @@
-#include "../include/DirectiveSpecs.hpp"
+#include "DirectiveSpecs.hpp"
 
 const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The equals explicitly says that this is an initialization.
 {
@@ -288,16 +288,11 @@ bool	validateRootDirective(const Directive* node)
 
 	const std::string&	path = node->parameters.at(0);
 
-	// Case 1: Path starts with '/' (regular path that may contain variables)
-	if (path[0] == '/')
-	{
-		// TODO: Check if path contains variables ($variable_name)
-		// If it does, resolve those variables and validate the resulting path
-		// For now, just validate that it starts with '/'
-		return (true);
-	}
-
-	// Case 2: Path starts with '"' (quoted path, may contain spaces, no variable expansion)
+	// Case 1: Path starts with '/'
+	if (path[0] == '/') // Good start
+		return (true) ;
+	
+	// Case 2: Path starts with '"' (quoted path, may contain spaces)
 	else if (path[0] == '"')
 	{
 		// Extract the content between quotes
@@ -310,28 +305,10 @@ bool	validateRootDirective(const Directive* node)
 		if (quoted_content.empty() || quoted_content[0] != '/')
 			return (false);
 
-		// Quoted paths should not contain variables (they don't expand)
 		return (true);
 	}
 
-	// Case 3: Path starts with '$' (variable that must resolve to a path starting with '/')
-	else if (path[0] == '$')
-	{
-		// TODO: Resolve the variable and check that it starts with '/'
-		// For now, just validate the variable format
-		if (path.length() < 2)
-			return (false);
-
-		// Variable name should contain only alphanumeric characters and underscores
-		for (size_t i = 1; i < path.length(); ++i)
-		{
-			if (!std::isalnum(path[i]) && path[i] != '_')
-				return (false);
-		}
-
-		// TODO: Actually resolve the variable and validate the result starts with '/'
-		return (true);
-	}
+	// Would need to verify that it's a valid path.
 
 	// Invalid: doesn't start with '/', '"', or '$'
 	return (false);
@@ -541,7 +518,7 @@ bool	validateLimitExceptDirective(const Directive* node)
 	{
 		if (currentChild->name != "allow" && currentChild->name != "deny")
 			return (false); //Missing directives inside the block
-		if (!validateAllowOrDeny(currentChild->parameters[0]))
+		if (!validateAllowOrDeny(currentChild.get()))
 			return (false);
 	}
 	return (true);

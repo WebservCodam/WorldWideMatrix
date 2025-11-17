@@ -25,7 +25,5 @@ class	Parser
 		Parser(std::vector<Token>& tokens);
 		~Parser();
 
-		std::vector<std::unique_ptr<Directive>>	parse();
-
+		std::unique_ptr<ConfigFile>	parse();
 };
-

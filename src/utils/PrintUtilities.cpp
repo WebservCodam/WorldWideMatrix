@@ -1,4 +1,4 @@
-#include "../include/Configuration.hpp"
+#include "Configuration.hpp"
 
 inline const char*		tokenTypeToString(TokenType type);
 inline std::ostream&	operator<<(std::ostream& os, const Token& token);
@@ -21,7 +21,6 @@ inline const char* tokenTypeToString(TokenType type)
         case LBRACKET:    return "LBRACKET";
         case RBRACKET:    return "RBRACKET";
         case COMMA:       return "COMMA";
-        // case COLON:       return "COLON";
 		case END_OF_FILE: return "END_OF_FILE";
 		default:          return "UNKNOWN";
 	}
@@ -35,7 +34,7 @@ inline std::ostream& operator<<(std::ostream& os, const Token& token)
 	   << ", line=" << token.line
 	   << ", column=" << token.column
 	   << ")";
-	return os;
+	return (os);
 }
 
 void	printTokensList(const std::vector<Token>& tokenList)

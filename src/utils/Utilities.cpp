@@ -1,4 +1,4 @@
-#include "../include/DirectiveSpecs.hpp"
+#include "DirectiveSpecs.hpp"
 
 std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address)
 {
