@@ -1,43 +1,44 @@
 #include "DirectiveSpecs.hpp"
 
-const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The equals explicitly says that this is an initialization.
+const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 {
 	//	=== Main Context Directives ===
-	{"user", DirectiveDefinition{"user", false, 0, 2, {"main"}, nullptr, {}}},
-	{"worker_processes", DirectiveDefinition{"worker_processes", false, 1, 1, {"main"}, validateWorkerProcessesDirective, {}}},
+	{"user", DirectiveDefinition{"user", false, 0, 2, {"main"}, {}, nullptr}},
+	{"worker_processes", DirectiveDefinition{"worker_processes", false, 1, 1, {"main"}, {}, validateWorkerProcessesDirective}},
 
 	//	===	Block Directives ===
-	{"http", DirectiveDefinition{"http", true, 0, 0, {"main"}, validateHttpDirective, {"server"}}},
-	{"server", DirectiveDefinition{"server", true, 0, 0, {"http"}, validateServerDirective, {"listen"}}},
-	{"location", DirectiveDefinition{"location", true, 1, 2, {"server", "location"}, validateLocationDirective, {}}},	// 2 parameters in case it's an equals
+	{"http", DirectiveDefinition{"http", true, 0, 0, {"main"}, {"server"}, validateHttpDirective}},
+	{"server", DirectiveDefinition{"server", true, 0, 0, {"http"}, {"listen"}, validateServerDirective}},
+	{"location", DirectiveDefinition{"location", true, 1, 2, {"server", "location"}, {}, validateLocationDirective}},	// 2 parameters in case it's an equals
 
-	{"allow", DirectiveDefinition{"allow", false, 1, 1, {"http", "server", "location", "limit_except"}, validateAllowOrDeny, {}}},
-	{"deny", DirectiveDefinition{"deny", false, 1, 1, {"http", "server", "location", "limit_except"}, validateAllowOrDeny, {}}},
+	{"allow", DirectiveDefinition{"allow", false, 1, 1, {"http", "server", "location", "limit_except"}, {}, validateAllowOrDeny}},
+	{"deny", DirectiveDefinition{"deny", false, 1, 1, {"http", "server", "location", "limit_except"}, {}, validateAllowOrDeny}},
 
 	//	=== Server Basics ===
-	{"listen", DirectiveDefinition{"listen", false, 1, 1, {"server"}, validateListenDirective, {}}}, //Only taking addresses and ports. It can be either/and. If it's both then it's separated by ':'.
-	{"server_name", DirectiveDefinition{"server_name", false, 1, 100, {"server"}, nullptr, {}}},
-	{"root", DirectiveDefinition{"root", false, 1, 1, {"http", "server", "location"}, validateRootDirective, {}}},
+	{"listen", DirectiveDefinition{"listen", false, 1, 1, {"server"}, {}, validateListenDirective}}, 
+	{"server_name", DirectiveDefinition{"server_name", false, 1, 100, {"server"}, {}, nullptr}},
+	{"root", DirectiveDefinition{"root", false, 1, 1, {"http", "server", "location"}, {}, validateRootDirective}},
 
 	//	=== Autoindex ===
-	{"autoindex", DirectiveDefinition{"autoindex", false, 1, 1, {"http", "server", "location"}, validateAutoIndexDirective, {}}},  // Produces directory listing
-	{"index", DirectiveDefinition{"index", false, 1, 1, {"http", "server", "location"}, validateIndexDirective, {}}},
+	{"autoindex", DirectiveDefinition{"autoindex", false, 1, 1, {"http", "server", "location"}, {}, validateAutoIndexDirective}},
+	{"index", DirectiveDefinition{"index", false, 1, 1, {"http", "server", "location"}, {}, validateIndexDirective}},
 
 	//	=== Error Handling ===
-	{"error_page", DirectiveDefinition{"error_page", false, 2, 100, {"http", "server", "location"}, nullptr, {}}},
+	{"error_page", DirectiveDefinition{"error_page", false, 2, 100, {"http", "server", "location"}, {}, nullptr}},
 
 	// === CGI ===
-	{"fastcgi_pass", DirectiveDefinition{"fastcgi_pass", false, 1, 1, {"location"}, nullptr, {}}},
-	{"fastcgi_param", DirectiveDefinition{"fastcgi_param", false, 2, 3, {"http", "server", "location"}, nullptr, {}}},
-	{"fastcgi_index", DirectiveDefinition{"fastcgi_index", false, 1, 1, {"http", "server", "location"}, nullptr, {}}},
+	{"fastcgi_pass", DirectiveDefinition{"fastcgi_pass", false, 1, 1, {"location"}, {}, nullptr}},
+	{"fastcgi_param", DirectiveDefinition{"fastcgi_param", false, 2, 3, {"http", "server", "location"}, {}, nullptr}},
+	{"fastcgi_index", DirectiveDefinition{"fastcgi_index", false, 1, 1, {"http", "server", "location"}, {}, nullptr}},
 
 	//	===	Request Handling ===
-	{"return", DirectiveDefinition{"return", false, 1, 2, {"server", "location"}, nullptr, {}}},	// 301, 302 redirects
+	{"return", DirectiveDefinition{"return", false, 1, 2, {"server", "location"}, {}, nullptr}},	
 
 	//	=== Methods/Limits	===
-	{"limit_except", DirectiveDefinition{"limit_except", true, 1, 10, {"location"}, nullptr, {}}},	// GET, POST, DELETE
-	{"client_max_body_size", DirectiveDefinition{"client_max_body_size", false, 1, 1, {"http", "server", "location"}, nullptr, {}}}
+	{"limit_except", DirectiveDefinition{"limit_except", true, 1, 10, {"location"}, {}, nullptr}},	
+	{"client_max_body_size", DirectiveDefinition{"client_max_body_size", false, 1, 1, {"http", "server", "location"}, {}, nullptr}}
 };
+
 
 bool	validateAllowOrDeny(const Directive* node)
 {

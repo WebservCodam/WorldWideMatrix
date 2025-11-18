@@ -73,17 +73,7 @@ class	Directive
 		}
 };
 
-struct DirectiveDefinition
-{
-	std::string								name;
-	bool									isBlock;
-	size_t									minArgs;
-	size_t									maxArgs;
-	std::set<std::string>					validContexts;
-	std::set<std::string>					requiredChildren;
 
-	bool (*validateArgs)(const Directive*);
-};
 
 enum TokenType
 {

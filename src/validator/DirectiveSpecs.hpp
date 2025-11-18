@@ -30,6 +30,18 @@ bool								validatePort(const std::string& port);
 bool								validateContext(const Directive* node);
 bool								validateRequiredChildren(const Directive* node);
 
+struct DirectiveDefinition
+{
+	std::string								name;
+	bool									isBlock;
+	size_t									minArgs;
+	size_t									maxArgs;
+	std::set<std::string>					validContexts;
+	std::set<std::string>					requiredChildren;
+
+	bool (*validateArgs)(const Directive*);
+};
+
 
 extern const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS;
 
