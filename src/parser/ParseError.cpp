@@ -8,4 +8,3 @@ std::runtime_error("Parse error at line " + std::to_string(line)
 const char* ParseError::what() const noexcept {
 	return std::runtime_error::what();
 }
-

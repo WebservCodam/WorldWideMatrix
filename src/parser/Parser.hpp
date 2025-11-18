@@ -23,7 +23,7 @@ class	Parser
 	public:
 		Parser() = delete;
 		Parser(std::vector<Token>& tokens);
-		~Parser();
+		~Parser() = default;
 
 		std::unique_ptr<ConfigFile>	parse();
 };

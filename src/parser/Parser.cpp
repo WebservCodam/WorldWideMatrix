@@ -2,12 +2,7 @@
 #include "ParseError.hpp"
 
 // Very basic for now.
-Parser::Parser(std::vector<Token>& tokens)
-{
-	// Add checks for when the vector list is invalid.
-	this->_tokens = tokens;
-	this->_currentIndex = 0;
-}
+Parser::Parser(std::vector<Token>& tokens) : _tokens(tokens), _currentIndex(0) {}
 
 Parser::~Parser()
 {
@@ -51,7 +46,8 @@ void	Parser::expectToken(TokenType type, const std::string& errorMessage)
 
 std::unique_ptr<ConfigFile>	Parser::parse()
 {
-	std::unique_ptr<ConfigFile>	config;
+	std::unique_ptr<ConfigFile>				config;
+	std::vector<std::unique_ptr<Directive>>	directives;
 
 	while (!isAtEnd())
 	{
@@ -59,14 +55,16 @@ std::unique_ptr<ConfigFile>	Parser::parse()
 		{
 			std::unique_ptr<Directive>	directive = parseDirective();
 			if (directive)
-				config.push_back(std::move(directive));	// Move transfers ownership from the local directive to the config->directives vector. The local directive becomes nullptr.
+				directives.push_back(std::move(directive));	// Move transfers ownership from the local directive to the config->directives vector. The local directive becomes nullptr.
 		}
 		catch (const ParseError& e)
 		{
-			throw ; // Figure this out
+			//throw ;  // Figure this out
+			return (nullptr) ;
 		}
 	}
-	
+
+	config = std::make_unique<ConfigFile>(std::move(directives));
 	return (config);
 }
 
@@ -99,22 +97,22 @@ std::unique_ptr<Directive>	Parser::parseSimpleDirective()
 {
 	std::unique_ptr<Directive>	directive(new Directive());
 
-	directive->line	= currentToken().line;
-	directive->column = currentToken().column;
+	directive->setLine(currentToken().line);
+	directive->setColumn(currentToken().column);
 
 	expectToken(WORD, "Expected directive name");
-	directive->name = currentToken().value;
+	directive->setName(currentToken().value);
 	advance();
 
 	// If it already exists it was created by a block directive with a context. Otherwise it should be the main. (Double check that)
-	if (directive->context.empty())
-		directive->context = "main";
+	if (directive->getContext().empty())
+		directive->setContext("main");
 
 	size_t	lookAhead = 1;
 	while (peekToken(lookAhead).type != SEMICOLON && peekToken(lookAhead).type != EQUALS)
 		lookAhead++;
 
-	directive->parameters = parseParameters();
+	directive->setParameters(std::move(parseParameters()));
 
 	expectToken(SEMICOLON, "Expected ';' after simple directive");
 	advance();
@@ -126,21 +124,21 @@ std::unique_ptr<Directive>	Parser::parseBlockDirective()
 {
 	std::unique_ptr<Directive>	directive(new Directive);
 
-	directive->line	= currentToken().line;
-	directive->column	= currentToken().column;
+	directive->setLine(currentToken().line);
+	directive->setColumn(currentToken().column);
 
 	expectToken(WORD, "Expected directive name");
-	directive->name = currentToken().value;
+	directive->setName(currentToken().value);
 	advance();
 
-	if (directive->context.empty())
-		directive->context = "main";
+	if (directive->getContext().empty())
+		directive->setContext("main");
 
 	size_t	lookAhead = 1;
 	while (peekToken(lookAhead).type != SEMICOLON && peekToken(lookAhead).type != EQUALS)
 		lookAhead++;
 
-	directive->parameters = parseParameters();
+	directive->setParameters(std::move(parseParameters()));
 
 	expectToken(LBRACE, "Expected '{' to start block");
 	advance();
@@ -148,9 +146,9 @@ std::unique_ptr<Directive>	Parser::parseBlockDirective()
 	while (!isAtEnd() && currentToken().type != RBRACE)
 	{
 		std::unique_ptr<Directive>	child = parseDirective();
-		child->context = directive->name;
+		child->setContext(directive->getName());
 		if (child)
-			directive->children.push_back(std::move(child));
+			directive->addChild(std::move(child));
 	}
 
 	expectToken(RBRACE, "Expected '}' to close block");

@@ -16,12 +16,10 @@ class	ConfigFile
 {
 	private:
 		std::vector<std::unique_ptr<Directive>>	_directives;
-		std::string								_filename;
 
 	public:
 		ConfigFile() = delete;
-		ConfigFile(std::vector<std::unique_ptr<Directive>> directives,
-				const std::string& filename = "");
+		ConfigFile(std::vector<std::unique_ptr<Directive>> directives);
 		~ConfigFile() = default;
 
 		const std::vector<std::unique_ptr<Directive>>&	getDirectives() const;
@@ -80,8 +78,9 @@ struct DirectiveDefinition
 	size_t									minArgs;
 	size_t									maxArgs;
 	std::set<std::string>					validContexts;
-	std::function<bool(const Directive*)>	validateArgs;
 	std::set<std::string>					requiredChildren;
+
+	bool (*validateArgs)(const Directive*);
 };
 
 enum TokenType

@@ -1,7 +1,6 @@
 #include "Configuration.hpp"
 
-ConfigFile::ConfigFile(std::vector<std::unique_ptr<Directive>> directives,
-				const std::string& filename = "") : _directives(directives), _filename(filename) {}
+ConfigFile::ConfigFile(std::vector<std::unique_ptr<Directive>> directives) : _directives(directives) {}
 
 const std::vector<std::unique_ptr<Directive>>&	ConfigFile::getDirectives() const
 {
@@ -47,6 +46,33 @@ Directive::Directive(
       _children(std::move(children))
 {}
 
+// Getters
+
+size_t	Directive::getLine() const
+{
+	return (this->_line);
+}
+
+size_t	Directive::getColumn() const
+{
+	return (this->_column);
+}
+
+const std::string&	Directive::getName() const
+{
+	return (this->_name);
+}
+
+const std::string&	Directive::getContext() const
+{
+	return (this->_context);
+}
+
+const std::vector<std::string>&	Directive::getParameters() const
+{
+	return (this->_parameters);
+}
+
 std::vector<const Directive*>	Directive::getChildren() const
 {
 	std::vector<const Directive*>	result;
@@ -57,4 +83,33 @@ std::vector<const Directive*>	Directive::getChildren() const
 		result.push_back(child.get());
 	}
 	return (result);
+}
+
+// Setters
+
+void Directive::setLine(size_t line)
+{
+	this->_line = line;
+}
+
+void Directive::setColumn(size_t column)
+{
+	this->_column = column;
+}
+void Directive::setName(const std::string& name)
+{
+	this->_name = name;
+}
+void Directive::setContext(const std::string& context)
+{
+	this->_context = context;
+}
+void Directive::setParameters(const std::vector<std::string>& parameters)
+{
+	this->_parameters = parameters;
+}
+
+void Directive::addChild(std::unique_ptr<Directive> child)
+{
+	this->_children.push_back(std::move(child));
 }
