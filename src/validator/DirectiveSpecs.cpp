@@ -39,11 +39,9 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The 
 	{"client_max_body_size", DirectiveDefinition{"client_max_body_size", false, 1, 1, {"http", "server", "location"}, nullptr, {}}}
 };
 
-
-
 bool	validateAllowOrDeny(const Directive* node)
 {
-	const std::string&	address = node->parameters.at(0);
+	const std::string&	address = node->getParameters().at(0);
 	size_t				cidrPos = 0;
 	std::string			addressPart;
 	std::string			cidrPart;
@@ -79,18 +77,16 @@ bool	validateAllowOrDeny(const Directive* node)
 	return (true);
 }
 
-
-
 // Validation functions for specific directives
 
 //Why would we configure this?
 bool	validateWorkerProcessesDirective(const Directive* node)
 {
-	if (node->parameters.at(0) == "auto")
+	if (node->getParameter(0) == "auto")
 		return (true);
 	try
 	{
-		int processes = std::stoi(node->parameters.at(0));
+		int processes = std::stoi(node->getParameter(0));
 		return (processes > 0 && processes <= 16);
 	}
 	catch (const std::exception& e)
@@ -101,14 +97,14 @@ bool	validateWorkerProcessesDirective(const Directive* node)
 
 bool	validateContext(const Directive* node)
 {
-	for (const std::unique_ptr<Directive>& currentChild : node->children)
+	for (const Directive* currentChild : node->getChildren())
 	{
 		// Look up the child directive in specs
-        std::map<std::string, DirectiveDefinition>::const_iterator it = 
-            NGINX_DIRECTIVE_SPECS.find(currentChild->name);
+		std::map<std::string, DirectiveDefinition>::const_iterator it = 
+			NGINX_DIRECTIVE_SPECS.find(currentChild->getName());
 
 		if (it == NGINX_DIRECTIVE_SPECS.end())
-            return (false); // Unknown directive
+			return (false); // Unknown directive
 		
 		const DirectiveDefinition&	directiveSpec = it->second;
 		bool						validContext = false;
@@ -116,7 +112,7 @@ bool	validateContext(const Directive* node)
 		// Check if current context is valid for this directive
 		for (const std::string& context : directiveSpec.validContexts)
 		{
-			if (currentChild->context == context)
+			if (currentChild->getContext() == context)
 			{
 				validContext = true;
 				break ;
@@ -131,7 +127,7 @@ bool	validateContext(const Directive* node)
 bool	validateRequiredChildren(const Directive* node)
 {
 	// Find the directive specification
-	std::map<std::string, DirectiveDefinition>::const_iterator it = NGINX_DIRECTIVE_SPECS.find(node->name);
+	std::map<std::string, DirectiveDefinition>::const_iterator it = NGINX_DIRECTIVE_SPECS.find(node->getName());
 	if (it == NGINX_DIRECTIVE_SPECS.end())
 		return (false); // Directive not found in specs
 
@@ -141,9 +137,9 @@ bool	validateRequiredChildren(const Directive* node)
 	for (const std::string& requiredChild : spec.requiredChildren)
 	{
 		bool found = false;
-		for (const std::unique_ptr<Directive>& child : node->children)
+		for (const Directive* child : node->getChildren())
 		{
-			if (child->name == requiredChild)
+			if (child->getName() == requiredChild)
 			{
 				found = true;
 				break;
@@ -158,7 +154,7 @@ bool	validateRequiredChildren(const Directive* node)
 
 bool	validateHttpDirective(const Directive* node)
 {
-	if (node->children.empty())
+	if (node->getChildren().empty())
 		return (false);
 
 	// Validate required children are present
@@ -174,7 +170,7 @@ bool	validateHttpDirective(const Directive* node)
 
 bool	validateServerDirective(const Directive* node)
 {
-	if (node->children.empty())
+	if (node->getChildren().empty())
 		return (false);
 
 	// Validate required children are present
@@ -188,7 +184,7 @@ bool	validateServerDirective(const Directive* node)
 }
 bool	validateLocationDirective(const Directive* node)
 {
-	if (node->children.empty())
+	if (node->getChildren().empty())
 		return (false);
 
 	// Validate required children are present
@@ -206,15 +202,15 @@ bool	validateListenDirective(const Directive* node)
 	bool								isValidAddress;
 	bool								isValidPort;
 
-	if (node->parameters.empty())
+	if (node->getParameters().empty())
 		return (false);
 	
-	addressAndPort = parseAddressAndPort(node->parameters[0]);
+	addressAndPort = parseAddressAndPort(node->getParameter(0));
 	if (addressAndPort.first.empty() && addressAndPort.second.empty())
 	{
-		if (validateAddress(node->parameters[0]))
+		if (validateAddress(node->getParameter(0)))
 			return (true);
-		if (validatePort(node->parameters[0]))
+		if (validatePort(node->getParameter(0)))
 			return (true);
 		return (false);
 	}
@@ -237,7 +233,7 @@ bool	validateRootDirective(const Directive* node)
 	// If it is only variable, it has to resolve to an actual path.
 	// A path must begin with a '/'
 
-	const std::string&	path = node->parameters.at(0);
+	const std::string&	path = node->getParameter(0);
 
 	// Case 1: Path starts with '/'
 	if (path[0] == '/') // Good start
@@ -267,18 +263,18 @@ bool	validateRootDirective(const Directive* node)
 
 bool	validateIndexDirective(const Directive* node)
 {
-	if (node->parameters.empty())
+	if (node->getParameters().empty())
 		return (false);
-	if (node->parameters.at(0) == "index.html") //Hardcoded
+	if (node->getParameter(0) == "index.html") //Hardcoded
 		return (true);
 	return (false);
 }
 
 bool	validateAutoIndexDirective(const Directive* node)
 {
-	if (node->parameters.empty())
+	if (node->getParameters().empty())
 		return (false);
-	if (node->parameters.at(0) == "on" || node->parameters.at(0) == "off")
+	if (node->getParameter(0) == "on" || node->getParameter(0) == "off")
 		return (true);
 	return (false);
 }
@@ -289,20 +285,20 @@ bool	validateErrorPageDirective(const Directive* node)
 	// error_page 500 502 503 /50x.html;	There can be multiple codes.
 	// error_page 404 =200 /empty.gif;		An equals changes the code.
 
-	if (node->parameters.size() < 2)
+	if (node->getParameters().size() < 2)
 		return (false);
 
 	// Last parameter is always the URI
-	const std::string& uri = node->parameters.back();
+	const std::string& uri = node->getParameters().back();
 
 	// Check URI format (should start with / or be a valid URL)
 	if (uri.empty() || (uri[0] != '/' && uri.find("http") != 0))
 		return (false);
 
 	// All parameters except the last one are error codes
-	for (size_t i = 0; i < node->parameters.size() - 1; ++i)
+	for (size_t i = 0; i < node->getParameters().size() - 1; ++i)
 	{
-		const std::string& param = node->parameters[i];
+		const std::string& param = node->getParameter(i);
 
 		// Check for response code change (e.g., "=200")
 		if (param[0] == '=')
@@ -374,13 +370,13 @@ bool	validateReturnDirective(const Directive* node)
 	// return 404;
 	// return 200 "some text";
 
-	if (node->parameters.empty() || node->parameters.size() > 2)
+	if (node->getParameters().empty() || node->getParameters().size() > 2)
 		return (false);
 
 	// First parameter must be a valid HTTP status code
 	try
 	{
-		int status_code = std::stoi(node->parameters.at(0));
+		int status_code = std::stoi(node->getParameter(0));
 
 		// Must be a valid HTTP status code (100-599)
 		if (status_code < 100 || status_code > 599)
@@ -392,9 +388,9 @@ bool	validateReturnDirective(const Directive* node)
 	}
 
 	// If there's a second parameter, validate it as URL or text
-	if (node->parameters.size() == 2)
+	if (node->getParameters().size() == 2)
 	{
-		const std::string& second_param = node->parameters.at(1);
+		const std::string& second_param = node->getParameter(1);
 
 		if (second_param.empty())
 			return (false);
@@ -447,10 +443,10 @@ bool	validateLimitExceptDirective(const Directive* node)
 
 	const std::vector<std::string> httpMethods = {"GET", "POST", "DELETE", "HEAD"};
 
-	if (node->parameters.empty() || node->children.empty())
+	if (node->getParameters().empty() || node->getChildren().empty())
 		return (false);
 	
-	for (std::string currentMethod : node->parameters)
+	for (std::string currentMethod : node->getParameters())
 	{
 		bool	isValidMethod = false;
 		for (std::string allowed : httpMethods)
@@ -465,11 +461,11 @@ bool	validateLimitExceptDirective(const Directive* node)
 			return (false);	// Throw validation error
 	}
 	//	Validate children
-	for (const std::unique_ptr<Directive>&	currentChild : node->children)
+	for (const Directive*	currentChild : node->getChildren())
 	{
-		if (currentChild->name != "allow" && currentChild->name != "deny")
+		if (currentChild->getName() != "allow" && currentChild->getName() != "deny")
 			return (false); //Missing directives inside the block
-		if (!validateAllowOrDeny(currentChild.get()))
+		if (!validateAllowOrDeny(currentChild))
 			return (false);
 	}
 	return (true);
@@ -481,18 +477,18 @@ bool	validateClientMaxBodySizeDirective(const Directive* node)
 	// Can be 1m or 10m which means 10 megabytes. Any request that exceeds that it returns a 413 error.
 	// The letter can be lower or upper case.
 
-	if (node->parameters.empty())
+	if (node->getParameters().empty())
 		return (false);
-	if (node->parameters[0] == "0")
+	if (node->getParameter(0) == "0")
 		return (true);
 	try
 	{
-		int	size = std::stoi(node->parameters[0]);
+		int	size = std::stoi(node->getParameter(0));
 		if (size < 1 || size > 10)
 		{
 			return (false); //Invalid size
 		}
-		if (node->parameters[0].back() != 'm' || node->parameters[0].back() != 'M')	//Only accepting megabytes as valid sizes
+		if (node->getParameter(0).back() != 'm' || node->getParameter(0).back() != 'M')	//Only accepting megabytes as valid sizes
 		{
 			return (false);	//Unknown size
 		}

@@ -68,6 +68,14 @@ const std::string&	Directive::getContext() const
 	return (this->_context);
 }
 
+const std::string&	Directive::getParameter(size_t i) const
+{
+	if (i < 0 || i >= _parameters.size())
+		throw std::out_of_range("Parameter index out of range");
+
+	return (_parameters.at(i));
+}
+
 const std::vector<std::string>&	Directive::getParameters() const
 {
 	return (this->_parameters);
@@ -76,7 +84,7 @@ const std::vector<std::string>&	Directive::getParameters() const
 const Directive*	Directive::getChild(size_t i) const
 {
 	if (i < 0 || i >= _children.size())
-		return (nullptr);
+		return (nullptr); // Throw exception
 
 	return (_children[i].get());
 }

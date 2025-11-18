@@ -56,6 +56,7 @@ class	Directive
 		size_t							getColumn() const;
 		const std::string&				getName() const;
 		const std::string&				getContext() const;
+		const std::string&				getParameter(size_t i) const;
 		const std::vector<std::string>&	getParameters() const;
 		const Directive*				getChild(size_t i) const;
 		std::vector<const Directive*>	getChildren() const;
