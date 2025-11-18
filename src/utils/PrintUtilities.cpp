@@ -66,43 +66,43 @@ void    printDirective(const Directive* directive, int indent, const std::string
     printIndent(indent, prefix);
 
     // Determine if it's a simple or block directive based on children
-    if (directive->children.empty())
+    if (directive->getChildren().empty())
     {
-        std::cout << "SimpleDirective: " << directive->name;
+        std::cout << "SimpleDirective: " << directive->getName();
     }
     else
     {
-        std::cout << "BlockDirective: " << directive->name;
+        std::cout << "BlockDirective: " << directive->getName();
     }
 
-    std::cout << " [line: " << directive->line
-              << ", col: " << directive->column
-              << ", context: " << directive->context << "]" << std::endl;
+    std::cout << " [line: " << directive->getLine()
+              << ", col: " << directive->getColumn()
+              << ", context: " << directive->getContext() << "]" << std::endl;
 
     // Print parameters if any
-    if (!directive->parameters.empty())
+    if (!directive->getParameters().empty())
     {
         printIndent(indent + 1, "");
         std::cout << "Parameters: ";
-        for (size_t i = 0; i < directive->parameters.size(); i++)
+        for (size_t i = 0; i < directive->getParameters().size(); i++)
         {
-            std::cout << "\"" << directive->parameters[i] << "\"";
-            if (i < directive->parameters.size() - 1)
+            std::cout << "\"" << directive->getParameters()[i] << "\"";
+            if (i < directive->getParameters().size() - 1)
                 std::cout << ", ";
         }
         std::cout << std::endl;
     }
 
     // Print children if any (for block directives)
-    if (!directive->children.empty())
+    if (!directive->getChildren().empty())
     {
         printIndent(indent + 1, "");
         std::cout << "Children:" << std::endl;
-        for (size_t i = 0; i < directive->children.size(); i++)
+        for (size_t i = 0; i < directive->getChildren().size(); i++)
         {
-            bool isLast = (i == directive->children.size() - 1);
+            bool isLast = (i == directive->getChildren().size() - 1);
             std::string childPrefix = isLast ? "└── " : "├── ";
-            printDirective(directive->children[i].get(), indent + 2, childPrefix);
+            printDirective(directive->getChild(i), indent + 2, childPrefix);
         }
     }
 }

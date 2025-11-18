@@ -73,6 +73,14 @@ const std::vector<std::string>&	Directive::getParameters() const
 	return (this->_parameters);
 }
 
+const Directive*	Directive::getChild(size_t i) const
+{
+	if (i < 0 || i >= _children.size())
+		return (nullptr);
+
+	return (_children[i].get());
+}
+
 std::vector<const Directive*>	Directive::getChildren() const
 {
 	std::vector<const Directive*>	result;

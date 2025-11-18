@@ -39,39 +39,7 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS = // The 
 	{"client_max_body_size", DirectiveDefinition{"client_max_body_size", false, 1, 1, {"http", "server", "location"}, nullptr, {}}}
 };
 
-bool	validateAddress(const std::string& address)
-{
-	size_t		currentPos = 0;
-	size_t		nextPos;
-	size_t		iterations = 0;
-	std::string	currentChunk;
 
-	if (address.empty())
-		return (false);
-
-	if (address == "localhost")
-		return (true);
-
-	while (currentPos < address.length())
-	{
-		nextPos = address.find(".", currentPos);
-		if (nextPos == std::string::npos)
-			currentChunk = address.substr(currentPos);
-		else
-			currentChunk = address.substr(currentPos, nextPos - currentPos);
-
-		if (!isByte(currentChunk))
-			return (false);
-
-		iterations++;
-		if (nextPos == std::string::npos)
-			break;
-		currentPos = nextPos + 1;
-	}
-	if (iterations != 4)
-		return (false);
-	return (true);
-}
 
 bool	validateAllowOrDeny(const Directive* node)
 {
@@ -111,24 +79,7 @@ bool	validateAllowOrDeny(const Directive* node)
 	return (true);
 }
 
-bool	validatePort(const std::string& port)
-{
-	if (port.empty())
-		return (false);
-	try
-	{
-		int portNumber = std::stoi(port);
-		if (port.size() != std::to_string(portNumber).length())
-			throw (std::runtime_error("Wrong port"));
-		if (portNumber >= 1 && portNumber <= 65535)
-			return (true);
-	}
-	catch(const std::exception& e)
-	{
-		return (false);
-	}
-	return (false);
-}
+
 
 // Validation functions for specific directives
 

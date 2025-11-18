@@ -57,6 +57,7 @@ class	Directive
 		const std::string&				getName() const;
 		const std::string&				getContext() const;
 		const std::vector<std::string>&	getParameters() const;
+		const Directive*				getChild(size_t i) const;
 		std::vector<const Directive*>	getChildren() const;
 
 		// Setters (Move definitions to configuration.cpp?)
