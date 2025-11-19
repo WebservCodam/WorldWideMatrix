@@ -4,11 +4,6 @@
 // Very basic for now.
 Parser::Parser(std::vector<Token>& tokens) : _tokens(tokens), _currentIndex(0) {}
 
-Parser::~Parser()
-{
-	
-}
-
 const	Token&	Parser::currentToken() const
 {
 	if (_currentIndex >= _tokens.size())

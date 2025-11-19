@@ -62,15 +62,14 @@ class	Directive
 		std::vector<const Directive*>	getChildren() const;
 
 		// Setters (Move definitions to configuration.cpp?)
-		void setLine(size_t line) { _line = line; }
-		void setColumn(size_t column) { _column = column; }
-		void setName(const std::string& name) { _name = name; }
-		void setContext(const std::string& context) { _context = context; }
-		void setParameters(const std::vector<std::string>& parameters) { _parameters = parameters; }
+		void setLine(size_t line);
+		void setColumn(size_t column);
+		void setName(const std::string& name);
+		void setContext(const std::string& context);
+		void setParameters(const std::vector<std::string>& parameters);
+		void addChild(std::unique_ptr<Directive> child);
 
-		void addChild(std::unique_ptr<Directive> child) {
-			_children.push_back(std::move(child));
-		}
+		
 };
 
 

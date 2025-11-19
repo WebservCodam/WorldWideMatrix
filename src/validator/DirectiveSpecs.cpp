@@ -24,19 +24,19 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 	{"index", DirectiveDefinition{"index", false, 1, 1, {"http", "server", "location"}, {}, validateIndexDirective}},
 
 	//	=== Error Handling ===
-	{"error_page", DirectiveDefinition{"error_page", false, 2, 100, {"http", "server", "location"}, {}, nullptr}},
+	{"error_page", DirectiveDefinition{"error_page", false, 2, 100, {"http", "server", "location"}, {}, validateErrorPageDirective}},
 
 	// === CGI ===
-	{"fastcgi_pass", DirectiveDefinition{"fastcgi_pass", false, 1, 1, {"location"}, {}, nullptr}},
-	{"fastcgi_param", DirectiveDefinition{"fastcgi_param", false, 2, 3, {"http", "server", "location"}, {}, nullptr}},
-	{"fastcgi_index", DirectiveDefinition{"fastcgi_index", false, 1, 1, {"http", "server", "location"}, {}, nullptr}},
+	{"fastcgi_pass", DirectiveDefinition{"fastcgi_pass", false, 1, 1, {"location"}, {}, validateFastcgiPassDirective}},
+	{"fastcgi_param", DirectiveDefinition{"fastcgi_param", false, 2, 3, {"http", "server", "location"}, {}, validateFastcgiParamDirective}},
+	{"fastcgi_index", DirectiveDefinition{"fastcgi_index", false, 1, 1, {"http", "server", "location"}, {}, validateFastcgiIndexDirective}},
 
 	//	===	Request Handling ===
-	{"return", DirectiveDefinition{"return", false, 1, 2, {"server", "location"}, {}, nullptr}},	
+	{"return", DirectiveDefinition{"return", false, 1, 2, {"server", "location"}, {}, validateReturnDirective}},	
 
 	//	=== Methods/Limits	===
-	{"limit_except", DirectiveDefinition{"limit_except", true, 1, 10, {"location"}, {}, nullptr}},	
-	{"client_max_body_size", DirectiveDefinition{"client_max_body_size", false, 1, 1, {"http", "server", "location"}, {}, nullptr}}
+	{"limit_except", DirectiveDefinition{"limit_except", true, 1, 10, {"location"}, {}, validateLimitExceptDirective}},	
+	{"client_max_body_size", DirectiveDefinition{"client_max_body_size", false, 1, 1, {"http", "server", "location"}, {}, validateClientMaxBodySizeDirective}}
 };
 
 
