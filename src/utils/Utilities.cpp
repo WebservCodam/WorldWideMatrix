@@ -93,5 +93,3 @@ bool isByte(std::string &number)
 	}	
     return (true);
 }
-
-

@@ -12,7 +12,7 @@ class	Validator
 	public:
 		Validator() = delete;
 		Validator(std::unique_ptr<ConfigFile>& configFile);
-		~Validator();
+		~Validator() = default;
 
 		bool	validate();
 

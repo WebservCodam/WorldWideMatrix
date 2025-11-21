@@ -32,7 +32,7 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 	{"fastcgi_index", DirectiveDefinition{"fastcgi_index", false, 1, 1, {"http", "server", "location"}, {}, nullptr}},
 
 	//	===	Request Handling ===
-	{"return", DirectiveDefinition{"return", false, 1, 2, {"server", "location"}, {}, nullptr}},	
+	{"return", DirectiveDefinition{"return", false, 1, 2, {"server", "location"}, {}, nullptr}},
 
 	//	=== Methods/Limits	===
 	{"limit_except", DirectiveDefinition{"limit_except", true, 1, 10, {"location"}, {}, nullptr}},	
@@ -152,7 +152,6 @@ bool	validateRequiredChildren(const Directive* node)
 	return (true);
 }
 
-
 bool	validateHttpDirective(const Directive* node)
 {
 	if (node->getChildren().empty())
@@ -183,6 +182,7 @@ bool	validateServerDirective(const Directive* node)
 
 	return (true);
 }
+
 bool	validateLocationDirective(const Directive* node)
 {
 	if (node->getChildren().empty())
@@ -197,6 +197,7 @@ bool	validateLocationDirective(const Directive* node)
 
 	return (true);
 }
+
 bool	validateListenDirective(const Directive* node)
 {
 	std::pair<std::string, std::string>	addressAndPort;	//127.0.0.0:8080
