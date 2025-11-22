@@ -24,16 +24,6 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
 $(NAME): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $(NAME)
 
-# Explicit target to build the tester executable
-.PHONY: tester
-tester: $(NAME)
-	@echo "Built $(NAME)"
-
-test: $(NAME)
-	./$(NAME) $(CONFIG_FILES_DIR)/example.conf
-	echo "----------------------------------------"
-	./$(NAME) $(CONFIG_FILES_DIR)/example2.conf
-
 clean:
 	rm -rf $(OBJDIR)
 
