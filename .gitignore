@@ -43,7 +43,7 @@
 #binaries
 server
 client
-tester
+
 
 #vscode settings
 .vscode
