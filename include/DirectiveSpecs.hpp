@@ -10,7 +10,7 @@ bool	validateLocationDirective(const Directive* node);
 bool	validateListenDirective(const Directive* node);
 // bool	validateServerNameDirective(const Directive* node);
 bool	validateRootDirective(const Directive* node);
-// bool	validateIndexDirective(const Directive* node);
+bool	validateIndexDirective(const Directive* node);
 bool	validateAutoIndexDirective(const Directive* node);
 bool	validateErrorPageDirective(const Directive* node);
 bool	validateFastcgiPassDirective(const Directive* node);

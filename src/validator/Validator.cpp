@@ -5,10 +5,6 @@ Validator::Validator(std::unique_ptr<ConfigFile>& configFile) : _ConfigFile(std:
 {
 	
 }
-Validator::~Validator()
-{
-
-}
 
 bool	Validator::validate()
 {

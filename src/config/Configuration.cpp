@@ -1,6 +1,6 @@
 #include "../../include/Configuration.hpp"
 
-ConfigFile::ConfigFile(std::vector<std::unique_ptr<Directive>> directives) : _directives(directives) {}
+ConfigFile::ConfigFile(std::vector<std::unique_ptr<Directive>> directives) : _directives(std::move(directives)) {}
 
 const std::vector<std::unique_ptr<Directive>>&	ConfigFile::getDirectives() const
 {
