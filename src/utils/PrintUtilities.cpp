@@ -1,11 +1,11 @@
-#include "Configuration.hpp"
+#include "../../include/Configuration.hpp"
 
 inline const char*		tokenTypeToString(TokenType type);
 inline std::ostream&	operator<<(std::ostream& os, const Token& token);
 void					printTokensList(const std::vector<Token>& tokenList);
 void					printIndent(int indent, const std::string& prefix);
 void					printDirective(const Directive* directive, int indent, const std::string& prefix);
-void					printAST(const std::vector<std::unique_ptr<Directive>>& config);
+void					printAST(const std::unique_ptr<ConfigFile>& config);
 
 inline const char* tokenTypeToString(TokenType type)
 {
@@ -107,16 +107,19 @@ void    printDirective(const Directive* directive, int indent, const std::string
     }
 }
 
-void    printAST(const std::vector<std::unique_ptr<Directive>>& config)
+void    printAST(const std::unique_ptr<ConfigFile>& config)
 {
     std::cout << "\n=== AST Structure ===" << std::endl;
-    if (!config.empty())
+
+    const std::vector<std::unique_ptr<Directive>>& directives = config.get()->getDirectives();
+
+    if (!directives.empty())
     {
-        for (size_t i = 0; i < config.size(); i++)
+        for (size_t i = 0; i < directives.size(); i++)
         {
-            bool isLast = (i == config.size() - 1);
+            bool isLast = (i == directives.size() - 1);
             std::string prefix = isLast ? "└── " : "├── ";
-            printDirective(config[i].get(), 0, prefix);
+            printDirective(directives[i].get(), 0, prefix);
         }
     }
     else

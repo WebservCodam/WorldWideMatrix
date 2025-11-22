@@ -1,4 +1,4 @@
-#include "ParseError.hpp"
+#include "../../include/ParseError.hpp"
 
 ParseError::ParseError(const std::string& message, size_t line, size_t column) :
 std::runtime_error("Parse error at line " + std::to_string(line)

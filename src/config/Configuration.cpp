@@ -1,4 +1,4 @@
-#include "Configuration.hpp"
+#include "../../include/Configuration.hpp"
 
 ConfigFile::ConfigFile(std::vector<std::unique_ptr<Directive>> directives) : _directives(directives) {}
 

@@ -1,13 +1,8 @@
-#include "Parser.hpp"
-#include "ParseError.hpp"
+#include "../../include/Parser.hpp"
+#include "../../include/ParseError.hpp"
 
 // Very basic for now.
 Parser::Parser(std::vector<Token>& tokens) : _tokens(tokens), _currentIndex(0) {}
-
-Parser::~Parser()
-{
-	
-}
 
 const	Token&	Parser::currentToken() const
 {

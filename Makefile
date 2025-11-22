@@ -1,13 +1,15 @@
-NAME = tester
+NAME = test
 
 CXX = c++
 CXXFLAGS = #-Wall -Wextra -Werror -std=c++11 -I./include -g
 HEADERDIR = include
-SRCDIR = parser
+SRCDIR = src
 OBJDIR = obj
+CONFIG_FILES_DIR = config_files
 
-HEADERS = $(HEADERDIR)/Configuration.hpp $(HEADERDIR)/DirectiveSpecs.hpp $(HEADERDIR)/Lexer.hpp $(HEADERDIR)/ParseError.hpp $(HEADERDIR)/Parser.hpp $(HEADERDIR)/Validator.hpp
-SOURCES = $(SRCDIR)/DirectiveSpecs.cpp $(SRCDIR)/Lexer.cpp $(SRCDIR)/ParseError.cpp $(SRCDIR)/Parser.cpp $(SRCDIR)/PrintUtilities.cpp $(SRCDIR)/tester.cpp $(SRCDIR)/Validator.cpp 
+SOURCES = $(SRCDIR)/config/Configuration.cpp $(SRCDIR)/lexer/Lexer.cpp $(SRCDIR)/parser/ParseError.cpp $(SRCDIR)/parser/Parser.cpp $(SRCDIR)/utils/PrintUtilities.cpp $(SRCDIR)/utils/Utilities.cpp $(SRCDIR)/validator/DirectiveSpecs.cpp $(SRCDIR)/validator/Validator.cpp
+TESTER = $(SRCDIR)/tester/Tester.cpp
+SOURCES += $(TESTER)
 OBJECTS = $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 
 all: $(NAME)
@@ -16,22 +18,28 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
+	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(NAME): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $(NAME)
 
+# Explicit target to build the tester executable
+.PHONY: tester
+tester: $(NAME)
+	@echo "Built $(NAME)"
+
 test: $(NAME)
-	./$(NAME) $(SRCDIR)/example.conf
+	./$(NAME) $(CONFIG_FILES_DIR)/example.conf
 	echo "----------------------------------------"
-	./$(NAME) $(SRCDIR)/example2.conf
+	./$(NAME) $(CONFIG_FILES_DIR)/example2.conf
 
 clean:
 	rm -rf $(OBJDIR)
 
 fclean:	clean
-	$(NAME)
+	rm -f $(NAME)
 
 re: clean all
 
-.PHONY: all test clean
+.PHONY: all test clean tester
