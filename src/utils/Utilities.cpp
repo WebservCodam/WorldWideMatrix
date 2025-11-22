@@ -1,4 +1,4 @@
-#include "DirectiveSpecs.hpp"
+#include "../../include/DirectiveSpecs.hpp"
 
 std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address)
 {
@@ -93,5 +93,3 @@ bool isByte(std::string &number)
 	}	
     return (true);
 }
-
-

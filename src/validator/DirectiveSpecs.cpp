@@ -1,4 +1,4 @@
-#include "DirectiveSpecs.hpp"
+#include "../../include/DirectiveSpecs.hpp"
 
 const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 {
@@ -152,7 +152,6 @@ bool	validateRequiredChildren(const Directive* node)
 	return (true);
 }
 
-
 bool	validateHttpDirective(const Directive* node)
 {
 	if (node->getChildren().empty())
@@ -183,6 +182,7 @@ bool	validateServerDirective(const Directive* node)
 
 	return (true);
 }
+
 bool	validateLocationDirective(const Directive* node)
 {
 	if (node->getChildren().empty())
@@ -197,6 +197,7 @@ bool	validateLocationDirective(const Directive* node)
 
 	return (true);
 }
+
 bool	validateListenDirective(const Directive* node)
 {
 	std::pair<std::string, std::string>	addressAndPort;	//127.0.0.0:8080

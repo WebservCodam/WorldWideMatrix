@@ -12,23 +12,6 @@
 #include <map>
 #include <unordered_map>
 
-class	ConfigFile
-{
-	private:
-		std::vector<std::unique_ptr<Directive>>	_directives;
-
-	public:
-		ConfigFile() = delete;
-		ConfigFile(std::vector<std::unique_ptr<Directive>> directives);
-		~ConfigFile() = default;
-
-		const std::vector<std::unique_ptr<Directive>>&	getDirectives() const;
-
-		// Query methods
-		const Directive*				findDirective(const std::string& name) const;
-		std::vector<const Directive*>	findAllDirectives(const std::string& name) const;
-};
-
 class	Directive
 {
 	private:
@@ -61,7 +44,7 @@ class	Directive
 		const Directive*				getChild(size_t i) const;
 		std::vector<const Directive*>	getChildren() const;
 
-		// Setters (Move definitions to configuration.cpp?)
+		// Setters
 		void setLine(size_t line);
 		void setColumn(size_t column);
 		void setName(const std::string& name);
@@ -72,7 +55,22 @@ class	Directive
 		
 };
 
+class	ConfigFile
+{
+	private:
+		std::vector<std::unique_ptr<Directive>>	_directives;
 
+	public:
+		ConfigFile() = delete;
+		ConfigFile(std::vector<std::unique_ptr<Directive>> directives);
+		~ConfigFile() = default;
+
+		const std::vector<std::unique_ptr<Directive>>&	getDirectives() const;
+
+		// Query methods
+		const Directive*				findDirective(const std::string& name) const;
+		std::vector<const Directive*>	findAllDirectives(const std::string& name) const;
+};
 
 enum TokenType
 {
@@ -82,12 +80,10 @@ enum TokenType
 	RBRACE,		// }
 	SEMICOLON,	// ;
 	EQUALS,		// =
-	// AT,		// @	This token is actually unnecessary and would only make things more complex
 	STRING,		// "quoted string" or 'single quoted'
 	LBRACKET,	// [
 	RBRACKET,	// ]
 	COMMA,		// ,
-	// COLON,	// :	Would interefere with links, so wherever it was needed (interface:port) should be parsed separately
 	COMMENT,	// # ...
 	END_OF_FILE	// Special token for the end of the input
 };
