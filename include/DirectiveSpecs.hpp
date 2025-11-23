@@ -2,9 +2,7 @@
 
 #include "Configuration.hpp"
 
-// bool	validateUserDirective(const Directive* node);	// Doens't need validation, unless we combine validation + creating the final object.
-// bool	validateServerNameDirective(const Directive* node);
-// bool	validateHttpDirective(const Directive* node); // We can skip this because every server in this project is going to be HTTP.
+bool	validateHttpDirective(const Directive* node);
 bool	validateServerDirective(const Directive* node);
 bool	validateLocationDirective(const Directive* node);
 bool	validateListenDirective(const Directive* node);
@@ -12,10 +10,11 @@ bool	validateRootDirective(const Directive* node);
 bool	validateIndexDirective(const Directive* node);
 bool	validateAutoIndexDirective(const Directive* node);
 bool	validateErrorPageDirective(const Directive* node);
-// bool	validateFastcgiPassDirective(const Directive* node);	// Postponed
-// bool	validateFastcgiParamDirective(const Directive* node);	// Postponed
-// bool	validateFastcgiIndexDirective(const Directive* node);	// Postponed
+// bool	validateFastcgiPassDirective(const Directive* node);
+// bool	validateFastcgiParamDirective(const Directive* node);
+// bool	validateFastcgiIndexDirective(const Directive* node);
 bool	validateReturnDirective(const Directive* node);
+bool	validateLimitExceptDirective(const Directive* node);
 bool	validateClientMaxBodySizeDirective(const Directive* node);
 bool	validateAllowOrDeny(const Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
 

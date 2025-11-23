@@ -1,4 +1,5 @@
 #include "../../include/Lexer.hpp"
+#include "../../include/ConfigError.hpp"
 
 std::string	Lexer::consumeNumber(const std::string& input, size_t& pos)
 {
@@ -31,7 +32,7 @@ std::string	Lexer::consumeWord(const std::string& input, size_t& pos)
 	return (word);
 }
 
-std::string	Lexer::consumeString(const std::string& input, size_t& pos)
+std::string	Lexer::consumeString(const std::string& input, size_t& pos, size_t line, size_t col)
 {
 	std::string	string;
 	char		quote = input[pos++];	// Store and skip opening quote
@@ -40,8 +41,8 @@ std::string	Lexer::consumeString(const std::string& input, size_t& pos)
 		string += input[pos++];
 
 	if (pos >= input.length())
-		throw std::runtime_error("Unterminated string literal");
-	
+		throw ConfigError(ErrorType::LEXER, "Unterminated string literal", line, col);
+
 	pos++;	// Skip closing quote
 	return (string);
 }
@@ -139,7 +140,7 @@ std::vector<Token>	Lexer::tokenize(const std::string& input)
 
 		else if (current_char == '"' || current_char == '\'')
 		{
-			std::string stringValue = consumeString(input, pos);
+			std::string stringValue = consumeString(input, pos, line_num, col_num);
 			tokens.push_back({STRING, stringValue, line_num, col_num});
 			col_num += stringValue.length();
 			continue ;
@@ -166,10 +167,9 @@ std::vector<Token>	Lexer::tokenize(const std::string& input)
 		//	Rule 6: Handle Errors
 		else
 		{
-			throw std::runtime_error("Unexpected character '" 
-									+ std::string(1, current_char)
-									+ "' at line " + std::to_string(line_num)
-									+ ", column " + std::to_string(col_num));
+			throw ConfigError(ErrorType::LEXER,
+							"Unexpected character '" + std::string(1, current_char) + "'",
+							line_num, col_num);
 			pos++;	// Just advance to avoid an infinite loop
 		}
 	}

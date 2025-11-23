@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Configuration.hpp"
-#include "ParseError.hpp"
+#include "ConfigError.hpp"
 
 class	Parser
 {

@@ -1,9 +1,8 @@
 #include "../include/Configuration.hpp"
 #include "../include/Lexer.hpp"
 #include "../include/Parser.hpp"
-#include "../include/ParseError.hpp"
-#include "../include/PrintUtilities.hpp"
-#include "../include/Utilities.hpp"
+#include "../include/ConfigError.hpp"
+#include "PrintUtilities.hpp"
 #include "../include/Validator.hpp"
 
 int	main(int argc, char *argv[])
@@ -25,43 +24,46 @@ int	main(int argc, char *argv[])
 	buffer << file.rdbuf();
 	std::string input = buffer.str();
 
-	std::vector<Token> tokenList = Lexer::tokenize(input);
+	try
+	{
+		// Phase 1: Lexing
+		std::vector<Token> tokenList = Lexer::tokenize(input);
+		// printTokensList(tokenList);
 
-    // printTokensList(tokenList);
+		// Phase 2: Parsing
+		Parser parser = Parser(tokenList);
+		std::unique_ptr<ConfigFile>	ast = parser.parse();
 
-	Parser parser = Parser(tokenList);
-	std::unique_ptr<ConfigFile>	ast = parser.parse();
+		if (!ast)
+		{
+			std::cerr << "Error: Failed to parse configuration" << std::endl;
+			return (EXIT_FAILURE);
+		}
 
-	// printAST(ast);
+		// printAST(ast);
 
-	Validator	validator(ast);
-
-	validator.validate();
-
-	return (0);
-
-	// // Main usage:
-	// try
-	// {
-	// 	// Phase 1: Lexing
-	// 	Lexer lexer(input, filename);
-	// 	std::vector<Token> tokens = lexer.tokenize();
-
-	// 	// Phase 2: Parsing
-	// 	Parser parser(tokens);
-	// 	std::unique_ptr<ConfigFile> config = parser.parse();
-
-	// 	// Phase 3: Validation
-	// 	Validator validator(config.get());  // Pass pointer, not ownership
-	// 	validator.validate();  // Throws on error
-
-	// 	// Phase 4: Use validated config
-	// 	// ...
-
-	// } catch (const ParseError& e) {
-	// 	std::cerr << e.what() << std::endl;
-	// } catch (const ValidationError& e) {
-	// 	std::cerr << e.what() << std::endl;
-	// }
+		// Phase 3: Validation
+		Validator	validator(ast);
+		if (validator.validate())
+		{
+			std::cout << "Configuration is valid!" << std::endl;
+			return (EXIT_SUCCESS);
+		}
+		else
+		{
+			std::cerr << "Error: Configuration validation failed" << std::endl;
+			return (EXIT_FAILURE);
+		}
+	}
+	catch (const ConfigError& e)
+	{
+		std::cerr << e.what() << std::endl;
+		return (EXIT_FAILURE);
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "Unexpected error: " << e.what() << std::endl;
+		return (EXIT_FAILURE);
+	}
 }
 

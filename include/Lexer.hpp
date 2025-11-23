@@ -12,7 +12,7 @@ class	Lexer
 		static std::string	consumeNumber(const std::string& input, size_t& pos);
 		static bool			isValidWordChar(char c);
 		static std::string	consumeWord(const std::string& input, size_t& pos);
-		static std::string	consumeString(const std::string& input, size_t& pos);
+		static std::string	consumeString(const std::string& input, size_t& pos, size_t line, size_t col);
 
 	public:
 		static std::vector<Token>	tokenize(const std::string& input);

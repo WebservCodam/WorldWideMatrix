@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Configuration.hpp"
+#include "../include/Configuration.hpp"
 
 //	---------- PRINT UTILITIES ---------- 
 

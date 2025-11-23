@@ -8,7 +8,7 @@ OBJDIR = obj
 CONFIG_SRC = $(SRCDIR)/config
 CONFIG_FILES_DIR = config_files
 
-SOURCES = $(CONFIG_SRC)/Configuration.cpp $(CONFIG_SRC)/Lexer.cpp $(CONFIG_SRC)/ParseError.cpp $(CONFIG_SRC)/Parser.cpp $(CONFIG_SRC)/DirectiveSpecs.cpp $(CONFIG_SRC)/Validator.cpp
+SOURCES = $(CONFIG_SRC)/Configuration.cpp $(CONFIG_SRC)/Lexer.cpp $(CONFIG_SRC)/ConfigError.cpp $(CONFIG_SRC)/Parser.cpp $(CONFIG_SRC)/DirectiveSpecs.cpp $(CONFIG_SRC)/Validator.cpp
 TESTER = tester/Tester.cpp tester/PrintUtilities.cpp
 SOURCES += $(TESTER)
 OBJECTS = $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)

@@ -1,5 +1,5 @@
 #include "../../include/Parser.hpp"
-#include "../../include/ParseError.hpp"
+#include "../../include/ConfigError.hpp"
 
 // Very basic for now.
 Parser::Parser(std::vector<Token>& tokens) : _tokens(tokens), _currentIndex(0) {}
@@ -8,7 +8,7 @@ const	Token&	Parser::currentToken() const
 {
 	if (_currentIndex >= _tokens.size())
 		return (_tokens.back());
-	return _tokens[_currentIndex];
+	return (_tokens[_currentIndex]);
 }
 
 void	Parser::advance()
@@ -20,9 +20,10 @@ void	Parser::advance()
 const Token&	Parser::peekToken(size_t offset) const
 {
 	size_t	peekingPos = _currentIndex + offset;
+
 	if (peekingPos >= _tokens.size())
-		return _tokens.back();	// Return EOF token if at the end
-	return _tokens[peekingPos];
+		return (_tokens.back());	// Return EOF token if at the end
+	return (_tokens[peekingPos]);
 }
 
 bool	Parser::isAtEnd()
@@ -34,8 +35,8 @@ void	Parser::expectToken(TokenType type, const std::string& errorMessage)
 {
 	if (currentToken().type != type)
 	{
-		throw ParseError(errorMessage + ", got '" + currentToken().value + "'",
-						currentToken().line, currentToken().column);
+		throw ConfigError::parsing(errorMessage + ", got '" + currentToken().value + "'",
+									currentToken().line, currentToken().column);
 	}
 }
 
@@ -52,7 +53,7 @@ std::unique_ptr<ConfigFile>	Parser::parse()
 			if (directive)
 				directives.push_back(std::move(directive));	// Move transfers ownership from the local directive to the config->directives vector. The local directive becomes nullptr.
 		}
-		catch (const ParseError& e)
+		catch (const ConfigError& e)
 		{
 			//throw ;  // Figure this out
 			return (nullptr) ;
@@ -67,8 +68,8 @@ std::unique_ptr<Directive>	Parser::parseDirective()
 {
 	if (currentToken().type != WORD)
 	{
-		throw ParseError("Expected directive name",
-						currentToken().line, currentToken().column);
+		throw ConfigError::parsing("Expected directive name",
+									currentToken().line, currentToken().column);
 	}
 
 	//	Skip all the words and numbers
@@ -83,8 +84,8 @@ std::unique_ptr<Directive>	Parser::parseDirective()
 		return (parseBlockDirective());
 	else
 	{
-		throw ParseError("Expected ';' or '{' after directive parameters",
-						peekToken(lookAhead).line, peekToken(lookAhead).column);
+		throw ConfigError::parsing("Expected ';' or '{' after directive parameters",
+									peekToken(lookAhead).line, peekToken(lookAhead).column);
 	}
 }
 
