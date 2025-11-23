@@ -1,4 +1,4 @@
-NAME = test_config_parser
+NAME = webserv
 
 CXX = c++
 CXXFLAGS = #-Wall -Wextra -Werror -std=c++11 -I./include -g

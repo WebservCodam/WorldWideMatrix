@@ -32,9 +32,11 @@ int	main(int argc, char *argv[])
 	Parser parser = Parser(tokenList);
 	std::unique_ptr<ConfigFile>	ast = parser.parse();
 
-	printAST(ast);
+	// printAST(ast);
 
 	Validator	validator(ast);
+
+	validator.validate();
 
 	return (0);
 

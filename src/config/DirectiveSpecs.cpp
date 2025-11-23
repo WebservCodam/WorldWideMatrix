@@ -4,7 +4,7 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 {
 	//	=== Main Context Directives ===
 	{"user", DirectiveDefinition{"user", false, 0, 2, {"main"}, {}, nullptr}},
-	{"worker_processes", DirectiveDefinition{"worker_processes", false, 1, 1, {"main"}, {}, validateWorkerProcessesDirective}},
+	// {"worker_processes", DirectiveDefinition{"worker_processes", false, 1, 1, {"main"}, {}, validateWorkerProcessesDirective}},
 
 	//	===	Block Directives ===
 	{"http", DirectiveDefinition{"http", true, 0, 0, {"main"}, {"server"}, validateHttpDirective}},
@@ -155,15 +155,24 @@ bool	validateRequiredChildren(const Directive* node)
 bool	validateHttpDirective(const Directive* node)
 {
 	if (node->getChildren().empty())
-		return (false);
+	{
+		throw (std::runtime_error(node->getName() + " expected children directives but didn't have any."));
+		// return (false);
+	}
 
 	// Validate required children are present
 	if (!validateRequiredChildren(node))
-		return (false);
+	{
+		throw (std::runtime_error(node->getName() + " didn't contain the necessary children directives."));
+		// return (false);
+	}
 
 	// Validate that each child is in the right context
 	if (!validateContext(node))
+	{
+		throw (std::runtime_error(node->getName() + " is in an invalid context."));
 		return (false);
+	}
 
 	return (true);
 }
@@ -171,14 +180,23 @@ bool	validateHttpDirective(const Directive* node)
 bool	validateServerDirective(const Directive* node)
 {
 	if (node->getChildren().empty())
-		return (false);
+	{
+		throw (std::runtime_error(node->getName() + " expected children directives but didn't have any."));
+		// return (false);
+	}
 
 	// Validate required children are present
 	if (!validateRequiredChildren(node))
-		return (false);
+	{
+		throw (std::runtime_error(node->getName() + " didn't contain the necessary children directives."));
+		// return (false);
+	}
 
 	if (!validateContext(node))
+	{
+		throw (std::runtime_error(node->getName() + " is in an invalid context."));
 		return (false);
+	}
 
 	return (true);
 }
@@ -186,14 +204,23 @@ bool	validateServerDirective(const Directive* node)
 bool	validateLocationDirective(const Directive* node)
 {
 	if (node->getChildren().empty())
-		return (false);
+	{
+		throw (std::runtime_error(node->getName() + " expected children directives but didn't have any."));
+		// return (false);
+	}
 
 	// Validate required children are present
 	if (!validateRequiredChildren(node))
-		return (false);
+	{
+		throw (std::runtime_error(node->getName() + " didn't contain the necessary children directives."));
+		// return (false);
+	}
 
 	if (!validateContext(node))
+	{
+		throw (std::runtime_error(node->getName() + " is in an invalid context."));
 		return (false);
+	}
 
 	return (true);
 }
