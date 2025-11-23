@@ -40,117 +40,8 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 };
 
 
-bool	validateAllowOrDeny(const Directive* node)
-{
-	const std::string&	address = node->getParameters().at(0);
-	size_t				cidrPos = 0;
-	std::string			addressPart;
-	std::string			cidrPart;
 
-	if (address.empty())
-		return (false);
-
-	if (address == "all")
-		return (true);
-	
-	cidrPos = address.find("/");
-	if (cidrPos != std::string::npos)
-	{
-		addressPart = address.substr(0, cidrPos);
-		cidrPart = address.substr(cidrPos + 1);
-		try
-		{
-			int	cidr = std::stoi(cidrPart);
-			if (cidrPart.length() != std::to_string(cidr).length())
-				return (false);
-			if (cidr < 0 || cidr > 32)
-				return (false);
-		}
-		catch(const std::exception& e)
-		{
-			return (false);
-		}
-		if (!validateAddress(addressPart))
-			return (false);
-	}
-	else
-		return (validateAddress(address));
-	return (true);
-}
-
-// Validation functions for specific directives
-
-//Why would we configure this?
-bool	validateWorkerProcessesDirective(const Directive* node)
-{
-	if (node->getParameter(0) == "auto")
-		return (true);
-	try
-	{
-		int processes = std::stoi(node->getParameter(0));
-		return (processes > 0 && processes <= 16);
-	}
-	catch (const std::exception& e)
-	{
-		return (false);
-	}
-}
-
-bool	validateContext(const Directive* node)
-{
-	for (const Directive* currentChild : node->getChildren())
-	{
-		// Look up the child directive in specs
-		std::map<std::string, DirectiveDefinition>::const_iterator it = 
-			NGINX_DIRECTIVE_SPECS.find(currentChild->getName());
-
-		if (it == NGINX_DIRECTIVE_SPECS.end())
-			return (false); // Unknown directive
-		
-		const DirectiveDefinition&	directiveSpec = it->second;
-		bool						validContext = false;
-
-		// Check if current context is valid for this directive
-		for (const std::string& context : directiveSpec.validContexts)
-		{
-			if (currentChild->getContext() == context)
-			{
-				validContext = true;
-				break ;
-			}
-		}
-		if (!validContext)
-			return (false); // Throw invalid context.
-	}
-	return (true);
-}
-
-bool	validateRequiredChildren(const Directive* node)
-{
-	// Find the directive specification
-	std::map<std::string, DirectiveDefinition>::const_iterator it = NGINX_DIRECTIVE_SPECS.find(node->getName());
-	if (it == NGINX_DIRECTIVE_SPECS.end())
-		return (false); // Directive not found in specs
-
-	const DirectiveDefinition& spec = it->second;
-
-	// Check each required child directive
-	for (const std::string& requiredChild : spec.requiredChildren)
-	{
-		bool found = false;
-		for (const Directive* child : node->getChildren())
-		{
-			if (child->getName() == requiredChild)
-			{
-				found = true;
-				break;
-			}
-		}
-		if (!found)
-			return (false); // Required child directive missing
-	}
-	return (true);
-}
+// ----- SPECIFIC VALIDATION FUNCTIONS -----
 
 bool	validateHttpDirective(const Directive* node)
 {
@@ -195,7 +86,7 @@ bool	validateServerDirective(const Directive* node)
 	if (!validateContext(node))
 	{
 		throw (std::runtime_error(node->getName() + " is in an invalid context."));
-		return (false);
+		// return (false);
 	}
 
 	return (true);
@@ -219,7 +110,7 @@ bool	validateLocationDirective(const Directive* node)
 	if (!validateContext(node))
 	{
 		throw (std::runtime_error(node->getName() + " is in an invalid context."));
-		return (false);
+		// return (false);
 	}
 
 	return (true);
@@ -252,6 +143,44 @@ bool	validateListenDirective(const Directive* node)
 	else if (addressAndPort.first.empty() && isValidPort)
 		return (true);
 	return (false);
+}
+
+bool	validateAllowOrDeny(const Directive* node)
+{
+	const std::string&	address = node->getParameters().at(0);
+	size_t				cidrPos = 0;
+	std::string			addressPart;
+	std::string			cidrPart;
+
+	if (address.empty())
+		return (false);
+
+	if (address == "all")
+		return (true);
+	
+	cidrPos = address.find("/");
+	if (cidrPos != std::string::npos)
+	{
+		addressPart = address.substr(0, cidrPos);
+		cidrPart = address.substr(cidrPos + 1);
+		try
+		{
+			int	cidr = std::stoi(cidrPart);
+			if (cidrPart.length() != std::to_string(cidr).length())
+				return (false);
+			if (cidr < 0 || cidr > 32)
+				return (false);
+		}
+		catch(const std::exception& e)
+		{
+			return (false);
+		}
+		if (!validateAddress(addressPart))
+			return (false);
+	}
+	else
+		return (validateAddress(address));
+	return (true);
 }
 
 //	Default root would be the root at the http block. (To do after validation)
@@ -528,4 +457,157 @@ bool	validateClientMaxBodySizeDirective(const Directive* node)
 	}
 	
 	return (false);
+}
+
+
+//	----- UTILITIES ------
+
+bool	validateContext(const Directive* node)
+{
+	for (const Directive* currentChild : node->getChildren())
+	{
+		// Look up the child directive in specs
+		std::map<std::string, DirectiveDefinition>::const_iterator it = 
+			NGINX_DIRECTIVE_SPECS.find(currentChild->getName());
+
+		if (it == NGINX_DIRECTIVE_SPECS.end())
+			return (false); // Unknown directive
+		
+		const DirectiveDefinition&	directiveSpec = it->second;
+		bool						validContext = false;
+
+		// Check if current context is valid for this directive
+		for (const std::string& context : directiveSpec.validContexts)
+		{
+			if (currentChild->getContext() == context)
+			{
+				validContext = true;
+				break ;
+			}
+		}
+		if (!validContext)
+			return (false); // Throw invalid context.
+	}
+	return (true);
+}
+
+bool	validateRequiredChildren(const Directive* node)
+{
+	// Find the directive specification
+	std::map<std::string, DirectiveDefinition>::const_iterator it = NGINX_DIRECTIVE_SPECS.find(node->getName());
+	if (it == NGINX_DIRECTIVE_SPECS.end())
+		return (false); // Directive not found in specs
+
+	const DirectiveDefinition& spec = it->second;
+
+	// Check each required child directive
+	for (const std::string& requiredChild : spec.requiredChildren)
+	{
+		bool found = false;
+		for (const Directive* child : node->getChildren())
+		{
+			if (child->getName() == requiredChild)
+			{
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+			return (false); // Required child directive missing
+	}
+	return (true);
+}
+
+std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address)
+{
+	std::pair<std::string, std::string>	addressAndPort = {"", ""};
+	std::string	addressPart;
+	std::string	portPart;
+	size_t		pos;
+
+	if (address.empty())
+		return (addressAndPort);
+	pos = address.find(":");
+	if (pos == address.npos)
+		return (addressAndPort);
+	else
+	{
+		addressPart = address.substr(0, pos);
+		portPart = address.substr(pos + 1, address.size() - (pos + 1));
+		addressAndPort = {std::move(addressPart), std::move(portPart)};
+	}
+	return (addressAndPort);
+}
+
+bool	validateAddress(const std::string& address)
+{
+	size_t		currentPos = 0;
+	size_t		nextPos;
+	size_t		iterations = 0;
+	std::string	currentChunk;
+
+	if (address.empty())
+		return (false);
+
+	if (address == "localhost")
+		return (true);
+
+	while (currentPos < address.length())
+	{
+		nextPos = address.find(".", currentPos);
+		if (nextPos == std::string::npos)
+			currentChunk = address.substr(currentPos);
+		else
+			currentChunk = address.substr(currentPos, nextPos - currentPos);
+
+		if (!isByte(currentChunk))
+			return (false);
+
+		iterations++;
+		if (nextPos == std::string::npos)
+			break;
+		currentPos = nextPos + 1;
+	}
+	if (iterations != 4)
+		return (false);
+	return (true);
+}
+
+bool	validatePort(const std::string& port)
+{
+	if (port.empty())
+		return (false);
+	try
+	{
+		int portNumber = std::stoi(port);
+		if (port.size() != std::to_string(portNumber).length())
+			throw (std::runtime_error("Wrong port"));
+		if (portNumber >= 1 && portNumber <= 65535)
+			return (true);
+	}
+	catch(const std::exception& e)
+	{
+		return (false);
+	}
+	return (false);
+}
+
+bool isByte(std::string &number)
+{
+	if (number.empty())
+		return (false);
+
+    try
+	{
+		int	num = std::stoi(number);
+		if (number.size() != std::to_string(num).length())
+			return (false);
+		if (num > 255 || num < 0)
+			return (false);
+	}
+	catch(const std::exception& e)
+	{
+		return (false);
+	}	
+    return (true);
 }
