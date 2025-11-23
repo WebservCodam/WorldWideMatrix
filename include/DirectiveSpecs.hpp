@@ -14,9 +14,9 @@ bool	validateErrorPageDirective(const Directive* node);
 // bool	validateFastcgiParamDirective(const Directive* node);
 // bool	validateFastcgiIndexDirective(const Directive* node);
 bool	validateReturnDirective(const Directive* node);
-bool	validateLimitExceptDirective(const Directive* node);
+bool	validateAllowMethodsDirective(const Directive* node);
 bool	validateClientMaxBodySizeDirective(const Directive* node);
-bool	validateAllowOrDeny(const Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
+bool	validateAllowOrDenyDirective(const Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
 
 std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address);
 bool 								isByte(std::string &number);

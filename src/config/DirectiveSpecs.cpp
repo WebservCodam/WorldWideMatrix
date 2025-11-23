@@ -11,8 +11,8 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 	{"server", DirectiveDefinition{"server", true, 0, 0, {"http"}, {"listen"}, validateServerDirective}},
 	{"location", DirectiveDefinition{"location", true, 1, 2, {"server", "location"}, {}, validateLocationDirective}},	// 2 parameters in case it's an equals
 
-	{"allow", DirectiveDefinition{"allow", false, 1, 1, {"http", "server", "location", "limit_except"}, {}, validateAllowOrDeny}},
-	{"deny", DirectiveDefinition{"deny", false, 1, 1, {"http", "server", "location", "limit_except"}, {}, validateAllowOrDeny}},
+	{"allow", DirectiveDefinition{"allow", false, 1, 1, {"http", "server", "location", "limit_except"}, {}, validateAllowOrDenyDirective}},
+	{"deny", DirectiveDefinition{"deny", false, 1, 1, {"http", "server", "location", "limit_except"}, {}, validateAllowOrDenyDirective}},
 
 	//	=== Server Basics ===
 	{"listen", DirectiveDefinition{"listen", false, 1, 1, {"server"}, {}, validateListenDirective}}, 
@@ -35,6 +35,7 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 	{"return", DirectiveDefinition{"return", false, 1, 2, {"server", "location"}, {}, validateReturnDirective}},	
 
 	//	=== Methods/Limits	===
+	{"allow_methods", DirectiveDefinition{"allow_methods", false, 1, 4, {"location"}, {}, validateAllowMethodsDirective}},
 	// {"limit_except", DirectiveDefinition{"limit_except", true, 1, 10, {"location"}, {}, validateLimitExceptDirective}},	
 	{"client_max_body_size", DirectiveDefinition{"client_max_body_size", false, 1, 1, {"http", "server", "location"}, {}, validateClientMaxBodySizeDirective}}
 };
@@ -96,7 +97,7 @@ bool	validateListenDirective(const Directive* node)
 	bool								isValidPort;
 
 	if (node->getParameters().empty())
-		throw ConfigError::validation("Directive 'listen' requires at least one parameter", node);
+		throw ConfigError::validation("Directive '" + node->getName() + "' requires at least one parameter", node);
 
 	addressAndPort = parseAddressAndPort(node->getParameter(0));
 	if (addressAndPort.first.empty() && addressAndPort.second.empty())
@@ -105,7 +106,7 @@ bool	validateListenDirective(const Directive* node)
 			return (true);
 		if (validatePort(node->getParameter(0)))
 			return (true);
-		throw ConfigError::validation("Invalid address or port format in 'listen' directive: '" + node->getParameter(0) + "'", node);
+		throw ConfigError::validation("Invalid address or port format in '" + node->getName() + "' directive: '" + node->getParameter(0) + "'", node);
 	}
 	isValidAddress = validateAddress(addressAndPort.first);
 	isValidPort = validatePort(addressAndPort.second);
@@ -115,10 +116,10 @@ bool	validateListenDirective(const Directive* node)
 		return (true);
 	else if (addressAndPort.first.empty() && isValidPort)
 		return (true);
-	throw ConfigError::validation("Invalid address:port combination in 'listen' directive: '" + node->getParameter(0) + "'", node);
+	throw ConfigError::validation("Invalid address:port combination in '" + node->getName() + "' directive: '" + node->getParameter(0) + "'", node);
 }
 
-bool	validateAllowOrDeny(const Directive* node)
+bool	validateAllowOrDenyDirective(const Directive* node)
 {
 	const std::string&	address = node->getParameters().at(0);
 	size_t				cidrPos = 0;
@@ -182,13 +183,13 @@ bool	validateRootDirective(const Directive* node)
 	{
 		// Extract the content between quotes
 		if (path.length() < 3 || path.back() != '"')
-			throw ConfigError::validation("Invalid quoted path in 'root' directive: path must be properly quoted", node);
+			throw ConfigError::validation("Invalid quoted path in '" + node->getName() + "' directive: path must be properly quoted", node);
 
 		std::string	quoted_content = path.substr(1, path.length() - 2);
 
 		// Must still start with '/' after removing quotes
 		if (quoted_content.empty() || quoted_content[0] != '/')
-			throw ConfigError::validation("Path in 'root' directive must be an absolute path starting with '/'", node);
+			throw ConfigError::validation("Path in '" + node->getName() + "' directive must be an absolute path starting with '/'", node);
 
 		return (true);
 	}
@@ -196,25 +197,25 @@ bool	validateRootDirective(const Directive* node)
 	// Would need to verify that it's a valid path.
 
 	// Invalid: doesn't start with '/', '"', or '$'
-	throw ConfigError::validation("Invalid path in 'root' directive: '" + path + "' must be an absolute path starting with '/'", node);
+	throw ConfigError::validation("Invalid path in " + node->getName() + " directive: '" + path + "' must be an absolute path starting with '/'", node);
 }
 
 bool	validateIndexDirective(const Directive* node)
 {
 	if (node->getParameters().empty())
-		throw ConfigError::validation("Directive 'index' requires at least one parameter", node);
+		throw ConfigError::validation("Directive " + node->getName() + " requires at least one parameter", node);
 	if (node->getParameter(0) == "index.html") //Hardcoded
 		return (true);
-	throw ConfigError::validation("Invalid index file in 'index' directive: '" + node->getParameter(0) + "' (only 'index.html' is currently supported)", node);
+	throw ConfigError::validation("Invalid index file in " + node->getName() + " directive: '" + node->getParameter(0) + "' (only 'index.html' is currently supported)", node);
 }
 
 bool	validateAutoIndexDirective(const Directive* node)
 {
 	if (node->getParameters().empty())
-		throw ConfigError::validation("Directive 'autoindex' requires a parameter", node);
+		throw ConfigError::validation("Directive " + node->getName() + " requires a parameter", node);
 	if (node->getParameter(0) == "on" || node->getParameter(0) == "off")
 		return (true);
-	throw ConfigError::validation("Invalid value in 'autoindex' directive: '" + node->getParameter(0) + "' (must be 'on' or 'off')", node);
+	throw ConfigError::validation("Invalid value in " + node->getName() + " directive: '" + node->getParameter(0) + "' (must be 'on' or 'off')", node);
 }
 
 bool	validateErrorPageDirective(const Directive* node)
@@ -224,14 +225,14 @@ bool	validateErrorPageDirective(const Directive* node)
 	// error_page 404 =200 /empty.gif;		An equals changes the code.
 
 	if (node->getParameters().size() < 2)
-		throw ConfigError::validation("Directive 'error_page' requires at least 2 parameters (error code and URI)", node);
+		throw ConfigError::validation("Directive " + node->getName() + " requires at least 2 parameters (error code and URI)", node);
 
 	// Last parameter is always the URI
 	const std::string& uri = node->getParameters().back();
 
 	// Check URI format (should start with / or be a valid URL)
 	if (uri.empty() || (uri[0] != '/' && uri.find("http") != 0))
-		throw ConfigError::validation("Invalid URI in 'error_page' directive: '" + uri + "' must start with '/' or 'http'", node);
+		throw ConfigError::validation("Invalid URI in " + node->getName() + " directive: '" + uri + "' must start with '/' or 'http'", node);
 
 	// All parameters except the last one are error codes
 	for (size_t i = 0; i < node->getParameters().size() - 1; ++i)
@@ -242,13 +243,13 @@ bool	validateErrorPageDirective(const Directive* node)
 		if (param[0] == '=')
 		{
 			if (param.length() < 2)
-				throw ConfigError::validation("Invalid response code change in 'error_page' directive: '" + param + "'", node);
+				throw ConfigError::validation("Invalid response code change in " + node->getName() + " directive: '" + param + "'", node);
 			try
 			{
 				int new_code = std::stoi(param.substr(1));
 				// Validate it's a valid HTTP status code
 				if (new_code < 100 || new_code > 599)
-					throw ConfigError::validation("Invalid HTTP status code in 'error_page' directive: '" + param + "' must be between 100-599", node);
+					throw ConfigError::validation("Invalid HTTP status code in " + node->getName() + " directive: '" + param + "' must be between 100-599", node);
 			}
 			catch (const ConfigError&)
 			{
@@ -256,7 +257,7 @@ bool	validateErrorPageDirective(const Directive* node)
 			}
 			catch (const std::exception&)
 			{
-				throw ConfigError::validation("Invalid response code change in 'error_page' directive: '" + param + "'", node);
+				throw ConfigError::validation("Invalid response code change in " + node->getName() + " directive: '" + param + "'", node);
 			}
 		}
 		else
@@ -267,7 +268,7 @@ bool	validateErrorPageDirective(const Directive* node)
 				int error_code = std::stoi(param);
 				// Must be a 4xx or 5xx error code
 				if (error_code < 400 || error_code > 599)
-					throw ConfigError::validation("Invalid error code in 'error_page' directive: '" + param + "' must be between 400-599", node);
+					throw ConfigError::validation("Invalid error code in " + node->getName() + " directive: '" + param + "' must be between 400-599", node);
 			}
 			catch (const ConfigError&)
 			{
@@ -275,7 +276,7 @@ bool	validateErrorPageDirective(const Directive* node)
 			}
 			catch (const std::exception&)
 			{
-				throw ConfigError::validation("Invalid error code in 'error_page' directive: '" + param + "'", node);
+				throw ConfigError::validation("Invalid error code in " + node->getName() + " directive: '" + param + "'", node);
 			}
 		}
 	}
@@ -317,7 +318,7 @@ bool	validateReturnDirective(const Directive* node)
 	// return 200 "some text";
 
 	if (node->getParameters().empty() || node->getParameters().size() > 2)
-		throw ConfigError::validation("Directive 'return' requires 1 or 2 parameters", node);
+		throw ConfigError::validation("Directive " + node->getName() + " requires 1 or 2 parameters", node);
 
 	// First parameter must be a valid HTTP status code
 	try
@@ -326,7 +327,7 @@ bool	validateReturnDirective(const Directive* node)
 
 		// Must be a valid HTTP status code (100-599)
 		if (status_code < 100 || status_code > 599)
-			throw ConfigError::validation("Invalid HTTP status code in 'return' directive: '" + node->getParameter(0) + "' must be between 100-599", node);
+			throw ConfigError::validation("Invalid HTTP status code in " + node->getName() + " directive: '" + node->getParameter(0) + "' must be between 100-599", node);
 	}
 	catch (const ConfigError&)
 	{
@@ -334,7 +335,7 @@ bool	validateReturnDirective(const Directive* node)
 	}
 	catch (const std::exception&)
 	{
-		throw ConfigError::validation("Invalid HTTP status code in 'return' directive: '" + node->getParameter(0) + "'", node);
+		throw ConfigError::validation("Invalid HTTP status code in " + node->getName() + " directive: '" + node->getParameter(0) + "'", node);
 	}
 
 	// If there's a second parameter, validate it as URL or text
@@ -343,21 +344,21 @@ bool	validateReturnDirective(const Directive* node)
 		const std::string& second_param = node->getParameter(1);
 
 		if (second_param.empty())
-			throw ConfigError::validation("Second parameter in 'return' directive cannot be empty", node);
+			throw ConfigError::validation("Second parameter in " + node->getName() + " directive cannot be empty", node);
 
 		// For URLs starting with http:// or https://
 		if (second_param.find("http://") == 0 || second_param.find("https://") == 0)
 		{
 			// Basic URL validation - must have something after protocol
 			if (second_param.length() <= 8) // "https://" is 8 chars
-				throw ConfigError::validation("Invalid URL in 'return' directive: '" + second_param + "'", node);
+				throw ConfigError::validation("Invalid URL in " + node->getName() + " directive: '" + second_param + "'", node);
 		}
 		// For quoted text
 		else if (second_param.front() == '"' && second_param.back() == '"')
 		{
 			// Must have content between quotes
 			if (second_param.length() < 3)
-				throw ConfigError::validation("Invalid quoted text in 'return' directive: must have content between quotes", node);
+				throw ConfigError::validation("Invalid quoted text in " + node->getName() + " directive: must have content between quotes", node);
 		}
 		// For relative URLs or paths
 		else if (second_param.front() == '/')
@@ -368,12 +369,12 @@ bool	validateReturnDirective(const Directive* node)
 				char c = second_param[i];
 				// Allow alphanumeric, slash, dash, underscore, dot, percent (for URL encoding)
 				if (!std::isalnum(c) && c != '/' && c != '-' && c != '_' && c != '.' && c != '%')
-					throw ConfigError::validation("Invalid path character in 'return' directive: '" + second_param + "'", node);
+					throw ConfigError::validation("Invalid path character in " + node->getName() + " directive: '" + second_param + "'", node);
 			}
 
 			// Check for consecutive slashes (except at start)
 			if (second_param.find("//") != std::string::npos)
-				throw ConfigError::validation("Invalid path in 'return' directive: '" + second_param + "' contains consecutive slashes", node);
+				throw ConfigError::validation("Invalid path in " + node->getName() + "  directive: '" + second_param + "' contains consecutive slashes", node);
 		}
 		else
 		{
@@ -384,42 +385,51 @@ bool	validateReturnDirective(const Directive* node)
 	return (true);
 }
 
-bool	validateLimitExceptDirective(const Directive* node)
+bool	validateAllowMethodsDirective(const Directive* node)
 {
-	// It should take a method as a parameter.
-	// If GET is allowed, so is HEAD.
-	// It allows these methods inside a location.
-	// Within, it should have directives 'allow' and/or 'deny'.
-
 	const std::vector<std::string> httpMethods = {"GET", "POST", "DELETE", "HEAD"};
 
 	if (node->getParameters().empty() || node->getChildren().empty())
-		throw ConfigError::validation("Directive 'limit_except' requires at least one HTTP method parameter and child directives", node);
-
-	for (const std::string& currentMethod : node->getParameters())
-	{
-		bool	isValidMethod = false;
-		for (const std::string& allowed : httpMethods)
-		{
-			if (currentMethod == allowed)
-			{
-				isValidMethod = true;
-				break ;
-			}
-		}
-		if (isValidMethod == false)
-			throw ConfigError::validation("Invalid HTTP method in 'limit_except' directive: '" + currentMethod + "' (must be GET, POST, DELETE, or HEAD)", node);
-	}
-	//	Validate children
-	for (const Directive*	currentChild : node->getChildren())
-	{
-		if (currentChild->getName() != "allow" && currentChild->getName() != "deny")
-			throw ConfigError::validation("Directive 'limit_except' can only contain 'allow' or 'deny' directives, found: '" + currentChild->getName() + "'", node);
-		if (!validateAllowOrDeny(currentChild))
-			throw ConfigError::validation("Invalid 'allow' or 'deny' directive inside 'limit_except'", node);
-	}
+		throw ConfigError::validation("Directive " + node->getName() + "  requires at least one HTTP method parameter and child directives", node);
 	return (true);
 }
+
+// bool	validateLimitExceptDirective(const Directive* node)
+// {
+// 	// It should take a method as a parameter.
+// 	// If GET is allowed, so is HEAD.
+// 	// It allows these methods inside a location.
+// 	// Within, it should have directives 'allow' and/or 'deny'.
+
+// 	const std::vector<std::string> httpMethods = {"GET", "POST", "DELETE", "HEAD"};
+
+// 	if (node->getParameters().empty() || node->getChildren().empty())
+// 		throw ConfigError::validation("Directive 'limit_except' requires at least one HTTP method parameter and child directives", node);
+
+// 	for (const std::string& currentMethod : node->getParameters())
+// 	{
+// 		bool	isValidMethod = false;
+// 		for (const std::string& allowed : httpMethods)
+// 		{
+// 			if (currentMethod == allowed)
+// 			{
+// 				isValidMethod = true;
+// 				break ;
+// 			}
+// 		}
+// 		if (isValidMethod == false)
+// 			throw ConfigError::validation("Invalid HTTP method in 'limit_except' directive: '" + currentMethod + "' (must be GET, POST, DELETE, or HEAD)", node);
+// 	}
+// 	//	Validate children
+// 	for (const Directive*	currentChild : node->getChildren())
+// 	{
+// 		if (currentChild->getName() != "allow" && currentChild->getName() != "deny")
+// 			throw ConfigError::validation("Directive 'limit_except' can only contain 'allow' or 'deny' directives, found: '" + currentChild->getName() + "'", node);
+// 		if (!validateAllowOrDeny(currentChild))
+// 			throw ConfigError::validation("Invalid 'allow' or 'deny' directive inside 'limit_except'", node);
+// 	}
+// 	return (true);
+// }
 
 bool	validateClientMaxBodySizeDirective(const Directive* node)
 {
@@ -429,33 +439,32 @@ bool	validateClientMaxBodySizeDirective(const Directive* node)
 	// It can also be a number
 
 	if (node->getParameters().empty())
-		throw ConfigError::validation("Directive 'client_max_body_size' requires a parameter", node);
+		throw ConfigError::validation("Directive '" + node->getName() + "' requires a parameter", node);
 	if (node->getParameter(0) == "0")
 		return (true);
 	try
 	{
 		const std::string& param = node->getParameter(0);
 		if (param.empty())
-			throw ConfigError::validation("Invalid size value in 'client_max_body_size' directive", node);
+			throw ConfigError::validation("Invalid size value in '" + node->getName() + "' directive", node);
 
 		char lastChar = param.back(); // IT CAN ALSO BE JUST A NUMBER!
 		if (lastChar != 'm' && lastChar != 'M')
-			throw ConfigError::validation("Invalid size unit in 'client_max_body_size' directive: '" + param + "' (must end with 'm' or 'M')", node);
+			throw ConfigError::validation("Invalid size unit in '" + node->getName() + "' directive: '" + param + "' (must end with 'm' or 'M')", node);
 
 		std::string numPart = param.substr(0, param.length() - 1);
 		int	size = std::stoi(numPart);
 		if (size < 1 || size > 10)
-			throw ConfigError::validation("Invalid size value in 'client_max_body_size' directive: '" + param + "' (must be between 1m and 10m)", node);
+			throw ConfigError::validation("Invalid size value in '" + node->getName() + "' directive: '" + param + "' (must be between 1m and 10m)", node);
 	}
 	catch(const ConfigError&)
 	{
-		throw;
+		throw ; // Rethrows the config error, outside of the function now.
 	}
 	catch(const std::exception& e)
 	{
-		throw ConfigError::validation("Invalid size format in 'client_max_body_size' directive: '" + node->getParameter(0) + "'", node);
+		throw ConfigError::validation("Invalid size format in '" + node->getName() + "' directive: '" + node->getParameter(0) + "'", node);
 	}
-
 	return (true);
 }
 
