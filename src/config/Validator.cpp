@@ -2,14 +2,14 @@
 #include "../../include/DirectiveSpecs.hpp"
 #include "../../include/ConfigError.hpp"
 
-Validator::Validator(std::unique_ptr<ConfigFile>& configFile) : _ConfigFile(std::move(configFile)), _directiveSpecs(NGINX_DIRECTIVE_SPECS)
+Validator::Validator(const ConfigFile* configFile) : _ConfigFile(configFile), _directiveSpecs(NGINX_DIRECTIVE_SPECS)
 {
 	
 }
 
 bool	Validator::validate()
 {
-	const std::vector<std::unique_ptr<Directive>>&	directives = _ConfigFile.get()->getDirectives();
+	const std::vector<std::unique_ptr<Directive>>&	directives = _ConfigFile->getDirectives();
 
 	for (const std::unique_ptr<Directive>& directive : directives)
 	{

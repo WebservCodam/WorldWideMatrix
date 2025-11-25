@@ -43,7 +43,7 @@ int	main(int argc, char *argv[])
 		// printAST(ast);
 
 		// Phase 3: Validation
-		Validator	validator(ast);
+		Validator	validator(ast.get());
 		if (validator.validate())
 		{
 			std::cout << "Configuration is valid!" << std::endl;

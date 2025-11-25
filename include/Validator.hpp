@@ -6,12 +6,12 @@
 class	Validator
 {
 	private:
-		std::unique_ptr<ConfigFile>					_ConfigFile;
+		const ConfigFile*							_ConfigFile;
 		std::map<std::string, DirectiveDefinition>	_directiveSpecs;
 
 	public:
 		Validator() = delete;
-		Validator(std::unique_ptr<ConfigFile>& configFile);
+		Validator(const ConfigFile* configFile);
 		~Validator() = default;
 
 		bool	validate();
