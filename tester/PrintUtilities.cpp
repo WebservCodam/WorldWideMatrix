@@ -128,3 +128,91 @@ void    printAST(const std::unique_ptr<ConfigFile>& config)
     }
     std::cout << "====================" << std::endl;
 }
+
+void	printServers(const std::vector<Server>& servers)
+{
+	std::cout << "\n========== SERVERS ==========" << std::endl;
+
+	if (servers.empty())
+	{
+		std::cout << "(no servers created)" << std::endl;
+		std::cout << "=============================" << std::endl;
+		return;
+	}
+
+	for (size_t i = 0; i < servers.size(); ++i)
+	{
+		const Server& server = servers[i];
+
+		std::cout << "Server " << (i + 1) << ":" << std::endl;
+		std::cout << "  Server Name: " << server.getServerName() << std::endl;
+
+		std::cout << "  Listen Addresses & Ports:" << std::endl;
+		const std::map<std::string, std::string>& addressesPorts = server.getAddressesAndPorts();
+		for (const auto& pair : addressesPorts)
+		{
+			std::cout << "    " << pair.first << ":" << pair.second << std::endl;
+		}
+
+		std::cout << "  Max Body Size: " << server.getMaxBodySize() << " bytes" << std::endl;
+
+		std::cout << "  Error Pages:" << std::endl;
+		const std::map<int, std::string>& errors = server.getErrors();
+		if (errors.empty())
+		{
+			std::cout << "    (none)" << std::endl;
+		}
+		else
+		{
+			for (const auto& error : errors)
+			{
+				std::cout << "    " << error.first << " -> " << error.second << std::endl;
+			}
+		}
+
+		std::cout << "  Locations:" << std::endl;
+		const std::vector<Location>& locations = server.getLocations();
+		if (locations.empty())
+		{
+			std::cout << "    (none)" << std::endl;
+		}
+		else
+		{
+			for (size_t j = 0; j < locations.size(); ++j)
+			{
+				const Location& location = locations[j];
+				std::cout << "    Location " << (j + 1) << ":" << std::endl;
+				std::cout << "      Path: " << location.getPath() << std::endl;
+				std::cout << "      Root: " << (location.getRoot().empty() ? "(default)" : location.getRoot()) << std::endl;
+				std::cout << "      Index: " << (location.getIndex().empty() ? "(default)" : location.getIndex()) << std::endl;
+				std::cout << "      Autoindex: " << (location.getAutoindex() ? "on" : "off") << std::endl;
+				std::cout << "      Allowed Methods: ";
+
+				std::vector<std::string> methods;
+				if (location.getGetMethod()) methods.push_back("GET");
+				if (location.getPostMethod()) methods.push_back("POST");
+				if (location.getDeleteMethod()) methods.push_back("DELETE");
+
+				if (methods.empty())
+				{
+					std::cout << "(none)";
+				}
+				else
+				{
+					for (size_t k = 0; k < methods.size(); ++k)
+					{
+						std::cout << methods[k];
+						if (k < methods.size() - 1)
+							std::cout << ", ";
+					}
+				}
+				std::cout << std::endl;
+			}
+		}
+
+		if (i < servers.size() - 1)
+			std::cout << std::endl;
+	}
+
+	std::cout << "=============================" << std::endl;
+}

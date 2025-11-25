@@ -71,6 +71,15 @@ class	ConfigFile
 
 		void	createServers();
 
+	private:
+		// Helper functions for processing server directives
+		void		processServerName(const Directive* directive, std::string& serverName);
+		void		processListen(const Directive* directive, std::map<std::string, std::string>& addressesAndPorts);
+		void		processClientMaxBodySize(const Directive* directive, size_t& maxBodySize);
+		void		processErrorPage(const Directive* directive, std::map<int, std::string>& errors);
+		Location	processLocation(const Directive* directive);
+
+	public:
 		// Query methods
 		const Directive*				findDirective(const std::string& name) const;
 		std::vector<const Directive*>	findAllDirectives(const std::string& name) const;

@@ -47,7 +47,7 @@ bool	Location::getDeleteMethod() const
 Server::Server(const std::string& serverName,
 				const std::map<std::string, std::string>& addressesAndPorts,
 				size_t maxBodySize,
-				const std::map<std::vector<int>, std::string>& errors,
+				const std::map<int, std::string>& errors,
 				const std::vector<Location>& locations)
 	: _serverName(serverName), _addressesAndPorts(addressesAndPorts), _maxBodySize(maxBodySize), _errors(errors), _locations(locations)
 {
@@ -68,7 +68,7 @@ size_t	Server::getMaxBodySize() const
 	return (this->_maxBodySize);
 }
 
-const std::map<std::vector<int>, std::string>&	Server::getErrors() const
+const std::map<int, std::string>&	Server::getErrors() const
 {
 	return (this->_errors);
 }

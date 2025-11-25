@@ -47,6 +47,11 @@ int	main(int argc, char *argv[])
 		if (validator.validate())
 		{
 			std::cout << "Configuration is valid!" << std::endl;
+
+			// Phase 4: Create servers and print them
+			ast->createServers();
+			printServers(ast->getServers());
+
 			return (EXIT_SUCCESS);
 		}
 		else

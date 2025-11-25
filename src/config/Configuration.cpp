@@ -46,7 +46,153 @@ const Server&	ConfigFile::getServer(const std::string& serverName)
 
 void	ConfigFile::createServers()
 {
+	std::vector<const Directive*> serverDirectives = this->findAllDirectives("server");
 
+	for (const Directive* serverDirective : serverDirectives)
+	{
+		if (serverDirective->getName() != "server")
+			continue;
+
+		std::string							serverName = "default_server";
+		std::map<std::string, std::string>	addressesAndPorts = {{"0.0.0.0", "80"}};
+		size_t								maxBodySize = 1048576;
+		std::map<int, std::string>			errors;
+		std::vector<Location>				locations;
+
+		std::vector<const Directive*> serverChildren = serverDirective->getChildren();
+
+		for (const Directive* directive : serverChildren)
+		{
+			if (directive->getName() == "server_name")
+				processServerName(directive, serverName);
+			else if (directive->getName() == "listen")
+				processListen(directive, addressesAndPorts);
+			else if (directive->getName() == "client_max_body_size")
+				processClientMaxBodySize(directive, maxBodySize);
+			else if (directive->getName() == "error_page")
+				processErrorPage(directive, errors);
+			else if (directive->getName() == "location")
+				locations.push_back(processLocation(directive));
+		}
+
+		Server server(serverName, addressesAndPorts, maxBodySize, errors, locations);
+		this->_servers.push_back(server);
+	}
+}
+
+void	ConfigFile::processServerName(const Directive* directive, std::string& serverName)
+{
+	if (!directive->getParameters().empty())
+		serverName = directive->getParameter(0);
+}
+
+void	ConfigFile::processListen(const Directive* directive, std::map<std::string, std::string>& addressesAndPorts)
+{
+	if (!directive->getParameters().empty())
+	{
+		std::string listenParam = directive->getParameter(0);
+		size_t colonPos = listenParam.find(':');
+
+		if (colonPos != std::string::npos)
+		{
+			std::string address = listenParam.substr(0, colonPos);
+			std::string port = listenParam.substr(colonPos + 1);
+			addressesAndPorts.clear();
+			addressesAndPorts[address] = port;
+		}
+		else
+		{
+			addressesAndPorts.clear();
+			addressesAndPorts["0.0.0.0"] = listenParam;
+		}
+	}
+}
+
+void	ConfigFile::processClientMaxBodySize(const Directive* directive, size_t& maxBodySize)
+{
+	if (!directive->getParameters().empty())
+	{
+		std::string sizeStr = directive->getParameter(0);
+		try {
+			maxBodySize = std::stoull(sizeStr);
+		} catch (const std::exception&) {
+			maxBodySize = 1048576;
+		}
+	}
+}
+
+void	ConfigFile::processErrorPage(const Directive* directive, std::map<int, std::string>& errors)
+{
+	if (directive->getParameters().size() >= 2)
+	{
+		std::string	errorPagePath = directive->getParameter(directive->getParameters().size() - 1);
+
+		for (size_t i = 0; i < directive->getParameters().size() - 1; ++i)
+		{
+			try {
+				int code = std::stoi(directive->getParameter(i));
+				errors[code] = errorPagePath;
+			} catch (const std::exception&) {
+				continue;
+			}
+		}
+	}
+}
+
+Location	ConfigFile::processLocation(const Directive* directive)
+{
+	if (directive->getParameters().empty())
+		return Location("/");
+
+	std::string		path = directive->getParameter(0);
+	std::string		root = "";
+	std::string		index = "";
+	bool			autoindex = false;
+	bool			getMethod = false;
+	bool			postMethod = false;
+	bool			deleteMethod = false;
+
+	std::vector<const Directive*> locationChildren = directive->getChildren();
+
+	for (const Directive* locationDirective : locationChildren)
+	{
+		if (locationDirective->getName() == "root")
+		{
+			if (!locationDirective->getParameters().empty())
+				root = locationDirective->getParameter(0);
+		}
+		else if (locationDirective->getName() == "index")
+		{
+			if (!locationDirective->getParameters().empty())
+				index = locationDirective->getParameter(0);
+		}
+		else if (locationDirective->getName() == "autoindex")
+		{
+			if (!locationDirective->getParameters().empty())
+			{
+				std::string autoindexParam = locationDirective->getParameter(0);
+				autoindex = (autoindexParam == "on" || autoindexParam == "true");
+			}
+		}
+		else if (locationDirective->getName() == "allow_methods")
+		{
+			getMethod = false;
+			postMethod = false;
+			deleteMethod = false;
+
+			for (const std::string& method : locationDirective->getParameters())
+			{
+				if (method == "GET")
+					getMethod = true;
+				else if (method == "POST")
+					postMethod = true;
+				else if (method == "DELETE")
+					deleteMethod = true;
+			}
+		}
+	}
+
+	return Location(path, root, index, autoindex, getMethod, postMethod, deleteMethod);
 }
 
 // --- DIRECTIVE CLASS ---

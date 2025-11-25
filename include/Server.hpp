@@ -33,22 +33,22 @@ class	Location
 class	Server
 {
 	private:
-		std::string								_serverName;
-		std::map<std::string, std::string>		_addressesAndPorts;	//Defaults to 0.0.0.0:80
-		size_t									_maxBodySize;
-		std::map<std::vector<int>, std::string>	_errors;	//	The idea is that different error codes can return the same error. But this might overcomplicate things.
-		std::vector<Location>					_locations;
+		std::string							_serverName;
+		std::map<std::string, std::string>	_addressesAndPorts;	//Defaults to 0.0.0.0:80
+		size_t								_maxBodySize;
+		std::map<int, std::string>			_errors;	//	The idea is that different error codes can return the same error. But this might overcomplicate things.
+		std::vector<Location>				_locations;
 
 	public:
 		Server() = delete;
-		Server(const std::string& serverName, const std::map<std::string, std::string>& addressesAndPorts = {{"0.0.0.0", "80"}}, size_t maxBodySize = 1048576, const std::map<std::vector<int>, std::string>& error = {}, const std::vector<Location>& location = {});
+		Server(const std::string& serverName, const std::map<std::string, std::string>& addressesAndPorts, size_t maxBodySize, const std::map<int, std::string>& errors, const std::vector<Location>& locations);
 		~Server() = default;
 
-		const std::string&								getServerName() const;
-		const std::map<std::string, std::string>&		getAddressesAndPorts() const;
-		size_t											getMaxBodySize() const;
-		const std::map<std::vector<int>, std::string>&	getErrors() const;
-		const std::vector<Location>&					getLocations() const;
+		const std::string&							getServerName() const;
+		const std::map<std::string, std::string>&	getAddressesAndPorts() const;
+		size_t										getMaxBodySize() const;
+		const std::map<int, std::string>&			getErrors() const;
+		const std::vector<Location>&				getLocations() const;
 
 
 };

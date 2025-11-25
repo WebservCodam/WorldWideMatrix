@@ -387,10 +387,31 @@ bool	validateReturnDirective(const Directive* node)
 
 bool	validateAllowMethodsDirective(const Directive* node)
 {
-	const std::vector<std::string> httpMethods = {"GET", "POST", "DELETE", "HEAD"};
+	const std::vector<std::string> validHttpMethods = {"GET", "POST", "DELETE", "HEAD"};
 
-	if (node->getParameters().empty() || node->getChildren().empty())
-		throw ConfigError::validation("Directive " + node->getName() + "  requires at least one HTTP method parameter and child directives", node);
+	if (node->getParameters().empty())
+		throw ConfigError::validation("Directive '" + node->getName() + "' requires at least one HTTP method parameter", node);
+
+	// allow_methods is a simple directive, it shouldn't have children
+	if (!node->getChildren().empty())
+		throw ConfigError::validation("Directive '" + node->getName() + "' should not contain child directives", node);
+
+	// Validate each HTTP method parameter
+	for (const std::string& method : node->getParameters())
+	{
+		bool isValidMethod = false;
+		for (const std::string& validMethod : validHttpMethods)
+		{
+			if (method == validMethod)
+			{
+				isValidMethod = true;
+				break;
+			}
+		}
+		if (!isValidMethod)
+			throw ConfigError::validation("Invalid HTTP method in '" + node->getName() + "' directive: '" + method + "' (must be GET, POST, DELETE, or HEAD)", node);
+	}
+
 	return (true);
 }
 
