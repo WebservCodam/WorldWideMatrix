@@ -2,11 +2,6 @@
 
 ConfigFile::ConfigFile(std::vector<std::unique_ptr<Directive>> directives) : _directives(std::move(directives)) {}
 
-const std::vector<std::unique_ptr<Directive>>&	ConfigFile::getDirectives() const
-{
-	return (this->_directives);
-}
-
 const Directive*	ConfigFile::findDirective(const std::string& name) const
 {
 	for (const std::unique_ptr<Directive>& directive : this->_directives)
@@ -27,6 +22,31 @@ std::vector<const Directive*>	ConfigFile::findAllDirectives(const std::string& n
             result.push_back(directive.get());
     }
     return (result);
+}
+
+const std::vector<std::unique_ptr<Directive>>&	ConfigFile::getDirectives() const
+{
+	return (this->_directives);
+}
+
+const std::vector<Server>&	ConfigFile::getServers() const
+{
+	return (this->_servers);
+}
+
+const Server&	ConfigFile::getServer(const std::string& serverName)
+{
+	for (const Server& server : this->_servers)
+	{
+		if (server.getServerName() == serverName)
+			return (server);
+	}
+	throw std::runtime_error("Server with name '" + serverName + "' not found");
+}
+
+void	ConfigFile::createServers()
+{
+
 }
 
 // --- DIRECTIVE CLASS ---
