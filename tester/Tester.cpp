@@ -48,8 +48,11 @@ int	main(int argc, char *argv[])
 		{
 			std::cout << "Configuration is valid!" << std::endl;
 
-			// Phase 4: Create servers and print them
+			// Phase 4: Create servers
 			ast->createServers();
+
+			std::cout << "Servers created" << std::endl;
+
 			printServers(ast->getServers());
 
 			return (EXIT_SUCCESS);
