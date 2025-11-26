@@ -189,9 +189,12 @@ void	printServers(const std::vector<Server>& servers)
 				std::cout << "      Allowed Methods: ";
 
 				std::vector<std::string> methods;
-				if (location.getGetMethod()) methods.push_back("GET");
-				if (location.getPostMethod()) methods.push_back("POST");
-				if (location.getDeleteMethod()) methods.push_back("DELETE");
+				if (location.getGetMethod())
+					methods.push_back("GET");
+				if (location.getPostMethod())
+					methods.push_back("POST");
+				if (location.getDeleteMethod())
+					methods.push_back("DELETE");
 
 				if (methods.empty())
 				{

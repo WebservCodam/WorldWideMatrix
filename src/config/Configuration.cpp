@@ -16,30 +16,16 @@ std::vector<const Directive*>	ConfigFile::findAllDirectives(const std::string& n
 {
 	std::vector<const Directive*>	result;
 
-	std::cerr << "DEBUG: findAllDirectives called for name: " << std::endl;
-	std::cerr << "DEBUG: findAllDirectives called for name: " << name << std::endl;
-	std::cerr << "DEBUG: _directives size: " << this->_directives.size() << std::endl;
-
     for (size_t i = 0; i < this->_directives.size(); ++i)
     {
-		std::cerr << "DEBUG: Processing directive " << i << std::endl;
-
 		const std::unique_ptr<Directive>& directive = this->_directives[i];
 
-		if (!directive) {
-			std::cerr << "DEBUG: Directive " << i << " is null, skipping" << std::endl;
-			continue;
-		}
+		if (!directive)
+			continue ;
 
-		std::cerr << "DEBUG: Directive " << i << " name: " << directive->getName() << std::endl;
-
-        if (directive->getName() == name) {
-			std::cerr << "DEBUG: Found matching directive " << i << std::endl;
+        if (directive->getName() == name)
             result.push_back(directive.get());
-		}
     }
-
-	std::cerr << "DEBUG: findAllDirectives returning " << result.size() << " results" << std::endl;
     return (result);
 }
 
@@ -65,19 +51,11 @@ const Server&	ConfigFile::getServer(const std::string& serverName)
 
 void	ConfigFile::createServers()
 {
-	if (!this)
-	{
-		std::cerr << "MAJOR ERROR! THIS POINTER IS NOT VALID!" << std::endl;
-	}
-
-	std::cerr << "DEBUG: _directives size: " << this->_directives.size() << std::endl;
-
-	std::vector<const Directive*> serverDirectives = this->findAllDirectives("server");	// Trying to find a segfault here
+	std::vector<const Directive*> serverDirectives = this->findAllDirectives("server");
 
 	for (const Directive* serverDirective : serverDirectives)
 	{
 		if (!serverDirective) {
-			std::cerr << "WARNING: Found null server directive, skipping" << std::endl;
 			continue;
 		}
 
@@ -95,7 +73,6 @@ void	ConfigFile::createServers()
 		for (const Directive* directive : serverChildren)
 		{
 			if (!directive) {
-				std::cerr << "WARNING: Found null server child directive, skipping" << std::endl;
 				continue;
 			}
 
@@ -118,21 +95,13 @@ void	ConfigFile::createServers()
 
 void	ConfigFile::processServerName(const Directive* directive, std::string& serverName)
 {
-	if (!directive) {
-		std::cerr << "WARNING: processServerName called with null directive" << std::endl;
-		return;
-	}
-	if (!directive->getParameters().empty())
+	if (directive && !directive->getParameters().empty())
 		serverName = directive->getParameter(0);
 }
 
 void	ConfigFile::processListen(const Directive* directive, std::map<std::string, std::string>& addressesAndPorts)
 {
-	if (!directive) {
-		std::cerr << "WARNING: processListen called with null directive" << std::endl;
-		return;
-	}
-	if (!directive->getParameters().empty())
+	if (directive && !directive->getParameters().empty())
 	{
 		std::string listenParam = directive->getParameter(0);
 		size_t colonPos = listenParam.find(':');
@@ -154,11 +123,7 @@ void	ConfigFile::processListen(const Directive* directive, std::map<std::string,
 
 void	ConfigFile::processClientMaxBodySize(const Directive* directive, size_t& maxBodySize)
 {
-	if (!directive) {
-		std::cerr << "WARNING: processClientMaxBodySize called with null directive" << std::endl;
-		return;
-	}
-	if (!directive->getParameters().empty())
+	if (directive && !directive->getParameters().empty())
 	{
 		std::string sizeStr = directive->getParameter(0);
 		try {
@@ -171,11 +136,7 @@ void	ConfigFile::processClientMaxBodySize(const Directive* directive, size_t& ma
 
 void	ConfigFile::processErrorPage(const Directive* directive, std::map<int, std::string>& errors)
 {
-	if (!directive) {
-		std::cerr << "WARNING: processErrorPage called with null directive" << std::endl;
-		return;
-	}
-	if (directive->getParameters().size() >= 2)
+	if (directive && directive->getParameters().size() >= 2)
 	{
 		std::string	errorPagePath = directive->getParameter(directive->getParameters().size() - 1);
 
@@ -193,11 +154,7 @@ void	ConfigFile::processErrorPage(const Directive* directive, std::map<int, std:
 
 Location	ConfigFile::processLocation(const Directive* directive)
 {
-	if (!directive) {
-		std::cerr << "WARNING: processLocation called with null directive" << std::endl;
-		return Location("/");
-	}
-	if (directive->getParameters().empty())
+	if (!directive || directive->getParameters().empty())
 		return Location("/");
 
 	std::string		path = directive->getParameter(0);
@@ -212,10 +169,8 @@ Location	ConfigFile::processLocation(const Directive* directive)
 
 	for (const Directive* locationDirective : locationChildren)
 	{
-		if (!locationDirective) {
-			std::cerr << "WARNING: Found null location child directive, skipping" << std::endl;
-			continue;
-		}
+		if (!locationDirective)
+			continue ;
 
 		if (locationDirective->getName() == "root")
 		{
@@ -237,18 +192,29 @@ Location	ConfigFile::processLocation(const Directive* directive)
 		}
 		else if (locationDirective->getName() == "allow_methods")
 		{
+			// std::cout << "DEBUG: enters elseif statement 'allow_methods'" << std::endl;
 			getMethod = false;
 			postMethod = false;
 			deleteMethod = false;
 
 			for (const std::string& method : locationDirective->getParameters())
 			{
+				// std::cout << "DEBUG: method is " << method << std::endl;
 				if (method == "GET")
+				{
 					getMethod = true;
+					// std::cout << "DEBUG: GET set to true" << std::endl;
+				}
 				else if (method == "POST")
+				{
 					postMethod = true;
+					// std::cout << "DEBUG: POST set to true" << std::endl;
+				}
 				else if (method == "DELETE")
+				{
 					deleteMethod = true;
+					// std::cout << "DEBUG: DELETE set to true" << std::endl;
+				}
 			}
 		}
 	}
