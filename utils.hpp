@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/15 13:53:29 by vknape            #+#    #+#             */
-/*   Updated: 2025/11/03 14:48:07 by vknape           ###   ########.fr       */
+/*   Updated: 2025/11/28 13:57:00 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,4 +38,4 @@
 
 int set_non_blocking(int fd);
 void init_server(int& server_fd, int& epfd);
-int createSocket(const char* ip, int port);
+int createSocket(const char* ip, const char* port);

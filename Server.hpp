@@ -6,13 +6,13 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/15 15:04:10 by vknape            #+#    #+#             */
-/*   Updated: 2025/11/27 11:59:28 by vknape           ###   ########.fr       */
+/*   Updated: 2025/11/28 13:36:51 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "utils.hpp"
 #include "parser/HttpParser.hpp"
-
+#include "configparser/include/ServerConfig.hpp"
 #pragma once
 
 class Client;
@@ -28,6 +28,7 @@ class Server
 		std::vector<int> server_fds;
 		const int epfd;
 		std::map<int, Client> list;
+		std::vector<ServerConfig> servers;
 		
 		void init_server();
 		void add_servers_to_epoll(int server_fd);

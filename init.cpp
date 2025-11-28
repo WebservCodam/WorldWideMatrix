@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/15 14:20:54 by vknape            #+#    #+#             */
-/*   Updated: 2025/11/03 14:57:50 by vknape           ###   ########.fr       */
+/*   Updated: 2025/11/28 13:58:36 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@
 // 		throw std::runtime_error("Server add to epoll failed");
 // }
 
-int createSocket(const char* ip, int port)
+int createSocket(const char* ip, const char* port)
 {
 	struct addrinfo hints, *res;
 	
@@ -42,10 +42,10 @@ int createSocket(const char* ip, int port)
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 	
-	std::string portstr = std::to_string(port);
-	const char* port_str = portstr.c_str();
+	// std::string portstr = std::to_string(port);
+	// const char* port_str = portstr.c_str();
 
-	int status = getaddrinfo(ip, port_str, &hints, &res);
+	int status = getaddrinfo(ip, port, &hints, &res);
 	if (status != 0)
 		throw std::runtime_error("Server socket addrinfo failed");
 
@@ -79,6 +79,6 @@ int createSocket(const char* ip, int port)
 		close(server_fd);
 		throw std::runtime_error("Server socket listen failed");
 	}
-
+	std::cout << "Server with address: " << ip << " at port: " << port << " created" << std::endl;
 	return (server_fd);
 }

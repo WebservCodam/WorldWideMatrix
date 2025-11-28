@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/15 14:47:31 by vknape            #+#    #+#             */
-/*   Updated: 2025/11/27 11:31:46 by vknape           ###   ########.fr       */
+/*   Updated: 2025/11/28 13:40:12 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,108 @@
 #include "utils.hpp"
 #include "Server.hpp"
 
+#include "configparser/include/ConfigError.hpp"
+#include "configparser/include/Configuration.hpp"
+#include "configparser/include/DirectiveSpecs.hpp"
+#include "configparser/include/Lexer.hpp"
+#include "configparser/include/Parser.hpp"
+#include "configparser/include/ServerConfig.hpp"
+#include "configparser/include/Validator.hpp"
+
 // void	start_server(int server_fd, int epfd);
 
-int main()
+int main(int argc, char** argv)
 {
+
+	if (argc != 2)
+	{
+		std::cerr << "Error: Expecting an input file." << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	
+	std::ifstream file(argv[1]);
+	if (!file)
+	{
+		std::cerr << "Error: Could not open file" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+	std::stringstream	buffer;
+	buffer << file.rdbuf();
+	std::string input = buffer.str();
+	
+	std::unique_ptr<ConfigFile>	ast = NULL;
+	
+	try
+	{
+		// Phase 1: Lexing
+		std::vector<Token> tokenList = Lexer::tokenize(input);
+		// printTokensList(tokenList);
+
+		// Phase 2: Parsing
+		Parser parser = Parser(tokenList);
+		ast = parser.parse();
+
+		if (!ast)
+		{
+			std::cerr << "Error: Failed to parse configuration" << std::endl;
+			return (EXIT_FAILURE);
+		}
+
+		// printAST(ast);
+
+		// Phase 3: Validation
+		Validator	validator(ast.get());
+		if (validator.validate())
+		{
+			std::cout << "Configuration is valid!" << std::endl;
+
+			// Phase 4: Create servers
+			ast->createServers();
+
+			std::cout << "Servers created" << std::endl;
+
+			// printServers(ast->getServers());
+
+			// return (EXIT_SUCCESS);
+		}
+		else
+		{
+			std::cerr << "Error: Configuration validation failed" << std::endl;
+			return (EXIT_FAILURE);
+		}
+	}
+	catch (const ConfigError& e)
+	{
+		std::cerr << e.what() << std::endl;
+		return (EXIT_FAILURE);
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "Unexpected error: " << e.what() << std::endl;
+		return (EXIT_FAILURE);
+	}
+
+	// if (ast)
+	// 	std::cout << ast->_servers.at(0).getServerName() << std::endl;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
 	while (true)
 	{
 		try {
@@ -27,6 +125,8 @@ int main()
 			if (epfd < 0)
 				throw std::runtime_error("Failed to create epoll fd");
 			Server server(epfd);
+			server.servers = ast->getServers();
+			std::cout << server.servers.at(0).getServerName() << std::endl;
 			server.init_server();
 			server.start_server();
 		}	catch (const std::runtime_error& e) {

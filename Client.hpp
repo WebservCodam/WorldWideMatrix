@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/12 14:00:27 by vknape            #+#    #+#             */
-/*   Updated: 2025/10/16 13:00:25 by vknape           ###   ########.fr       */
+/*   Updated: 2025/11/28 11:08:53 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ class Client
 		int	parseready = 0;
 		int content_length = 0;
 		std::string _buf;
+		std::string response;
 		
 		Client(int fd);
 		~Client();

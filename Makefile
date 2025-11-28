@@ -1,4 +1,5 @@
 NAME		=		server
+CONFIG_SRC = 		configparser/src/config
 SRC			=		Client.cpp\
 					init.cpp\
 					main.cpp\
@@ -8,10 +9,17 @@ SRC			=		Client.cpp\
 					parser/Headers.cpp\
 					parser/HttpParser.cpp\
 					parser/RequestLine.cpp\
-					parser/utils2.cpp
+					parser/utils2.cpp\
+					$(CONFIG_SRC)/ConfigError.cpp \
+					$(CONFIG_SRC)/Configuration.cpp \
+					$(CONFIG_SRC)/DirectiveSpecs.cpp \
+					$(CONFIG_SRC)/Lexer.cpp \
+					$(CONFIG_SRC)/Parser.cpp \
+					$(CONFIG_SRC)/ServerConfig.cpp \
+					$(CONFIG_SRC)/Validator.cpp
 OBJ			=		$(SRC:.cpp=.o)
 CC			=		c++
-FLAGS		=		-Wall -Wextra -Werror -g
+# FLAGS		=		-Wall -Wextra -Werror -g
 # FLAGS		+=		-fsanitize=thread
 # FLAGS		+=		-fsanitize=address
 ARGS		=	

@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/01 10:59:15 by vknape            #+#    #+#             */
-/*   Updated: 2025/11/27 15:15:32 by vknape           ###   ########.fr       */
+/*   Updated: 2025/11/28 14:05:05 by vknape           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,10 +19,12 @@ Server::~Server() {close(epfd);};
 
 void Server::init_server()
 {
-	while (true)
+	for (auto server: servers)
 	{
-		server_fds.push_back(createSocket(NULL, 8080));
-		break ;
+		std::map<std::string, std::string> addresses = server.getAddressesAndPorts();
+		auto it = addresses.begin();
+		server_fds.push_back(createSocket(it->first.c_str(), it->second.c_str()));
+		// break ;
 	}
 
 	for (auto fd: server_fds)
