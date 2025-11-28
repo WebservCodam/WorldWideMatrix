@@ -8,12 +8,14 @@ OBJDIR = obj
 CONFIG_SRC = $(SRCDIR)/config
 CONFIG_FILES_DIR = config_files
 
+MAKEFLAGS= -j
+
 SOURCES = $(CONFIG_SRC)/ConfigError.cpp \
 		$(CONFIG_SRC)/Configuration.cpp \
 		$(CONFIG_SRC)/DirectiveSpecs.cpp \
 		$(CONFIG_SRC)/Lexer.cpp \
 		$(CONFIG_SRC)/Parser.cpp \
-		$(CONFIG_SRC)/Server.cpp \
+		$(CONFIG_SRC)/ServerConfig.cpp \
 		$(CONFIG_SRC)/Validator.cpp
 
 TESTER = tester/Tester.cpp tester/PrintUtilities.cpp

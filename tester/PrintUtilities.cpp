@@ -129,7 +129,7 @@ void    printAST(const std::unique_ptr<ConfigFile>& config)
     std::cout << "====================" << std::endl;
 }
 
-void	printServers(const std::vector<Server>& servers)
+void	printServers(const std::vector<ServerConfig>& servers)
 {
 	std::cout << "\n========== SERVERS ==========" << std::endl;
 
@@ -142,10 +142,10 @@ void	printServers(const std::vector<Server>& servers)
 
 	for (size_t i = 0; i < servers.size(); ++i)
 	{
-		const Server& server = servers[i];
+		const ServerConfig& server = servers[i];
 
-		std::cout << "Server " << (i + 1) << ":" << std::endl;
-		std::cout << "  Server Name: " << server.getServerName() << std::endl;
+		std::cout << "ServerConfig " << (i + 1) << ":" << std::endl;
+		std::cout << "  ServerConfig Name: " << server.getServerName() << std::endl;
 
 		std::cout << "  Listen Addresses & Ports:" << std::endl;
 		const std::map<std::string, std::string>& addressesPorts = server.getAddressesAndPorts();

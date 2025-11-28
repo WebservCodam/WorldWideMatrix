@@ -11,7 +11,7 @@
 #include <set>
 #include <map>
 #include <unordered_map>
-#include "Server.hpp"
+#include "ServerConfig.hpp"
 
 class	Directive
 {
@@ -58,7 +58,7 @@ class	ConfigFile
 {
 	private:
 		std::vector<std::unique_ptr<Directive>>	_directives;
-		std::vector<Server>						_servers;
+		std::vector<ServerConfig>						_servers;
 
 	public:
 		ConfigFile() = delete;
@@ -66,8 +66,8 @@ class	ConfigFile
 		~ConfigFile() = default;
 
 		const std::vector<std::unique_ptr<Directive>>&	getDirectives() const;
-		const std::vector<Server>&						getServers() const;
-		const Server&									getServer(const std::string& serverName);
+		const std::vector<ServerConfig>&						getServers() const;
+		const ServerConfig&									getServer(const std::string& serverName);
 
 		void	createServers();
 

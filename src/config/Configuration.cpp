@@ -34,19 +34,19 @@ const std::vector<std::unique_ptr<Directive>>&	ConfigFile::getDirectives() const
 	return (this->_directives);
 }
 
-const std::vector<Server>&	ConfigFile::getServers() const
+const std::vector<ServerConfig>&	ConfigFile::getServers() const
 {
 	return (this->_servers);
 }
 
-const Server&	ConfigFile::getServer(const std::string& serverName)
+const ServerConfig&	ConfigFile::getServer(const std::string& serverName)
 {
-	for (const Server& server : this->_servers)
+	for (const ServerConfig& server : this->_servers)
 	{
 		if (server.getServerName() == serverName)
 			return (server);
 	}
-	throw std::runtime_error("Server with name '" + serverName + "' not found");
+	throw std::runtime_error("ServerConfig with name '" + serverName + "' not found");
 }
 
 void	ConfigFile::createServers()
@@ -88,7 +88,7 @@ void	ConfigFile::createServers()
 				locations.push_back(processLocation(directive));
 		}
 
-		Server server(serverName, addressesAndPorts, maxBodySize, errors, locations);
+		ServerConfig server(serverName, addressesAndPorts, maxBodySize, errors, locations);
 		this->_servers.push_back(server);
 	}
 }

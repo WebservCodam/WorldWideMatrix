@@ -30,7 +30,7 @@ class	Location
 
 };
 
-class	Server
+class	ServerConfig
 {
 	private:
 		std::string							_serverName;
@@ -40,9 +40,9 @@ class	Server
 		std::vector<Location>				_locations;
 
 	public:
-		Server() = delete;
-		Server(const std::string& serverName, const std::map<std::string, std::string>& addressesAndPorts, size_t maxBodySize, const std::map<int, std::string>& errors, const std::vector<Location>& locations);
-		~Server() = default;
+		ServerConfig() = delete;
+		ServerConfig(const std::string& serverName, const std::map<std::string, std::string>& addressesAndPorts, size_t maxBodySize, const std::map<int, std::string>& errors, const std::vector<Location>& locations);
+		~ServerConfig() = default;
 
 		const std::string&							getServerName() const;
 		const std::map<std::string, std::string>&	getAddressesAndPorts() const;

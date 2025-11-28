@@ -1,5 +1,5 @@
 #include "../../include/Configuration.hpp"
-#include "../../include/Server.hpp"
+#include "../../include/ServerConfig.hpp"
 
 
 //	----- LOCATION -----
@@ -46,7 +46,7 @@ bool	Location::getDeleteMethod() const
 
 //	----- SERVER -----
 
-Server::Server(const std::string& serverName,
+ServerConfig::ServerConfig(const std::string& serverName,
 				const std::map<std::string, std::string>& addressesAndPorts,
 				size_t maxBodySize,
 				const std::map<int, std::string>& errors,
@@ -55,27 +55,27 @@ Server::Server(const std::string& serverName,
 {
 }
 
-const std::string&	Server::getServerName() const
+const std::string&	ServerConfig::getServerName() const
 {
 	return (this->_serverName);
 }
 
-const std::map<std::string, std::string>&	Server::getAddressesAndPorts() const
+const std::map<std::string, std::string>&	ServerConfig::getAddressesAndPorts() const
 {
 	return (this->_addressesAndPorts);
 }
 
-size_t	Server::getMaxBodySize() const
+size_t	ServerConfig::getMaxBodySize() const
 {
 	return (this->_maxBodySize);
 }
 
-const std::map<int, std::string>&	Server::getErrors() const
+const std::map<int, std::string>&	ServerConfig::getErrors() const
 {
 	return (this->_errors);
 }
 
-const std::vector<Location>&	Server::getLocations() const
+const std::vector<Location>&	ServerConfig::getLocations() const
 {
 	return (this->_locations);
 }

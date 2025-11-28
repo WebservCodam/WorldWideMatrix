@@ -82,7 +82,7 @@ static const char* toString(int code)
 		case 403: return "403 Forbidden";
 		case 404: return "404 Not Found";
 		case 405: return "405 Method Not Allowed";
-		case 500: return "500 Internal Server Error";
+		case 500: return "500 Internal ServerConfig Error";
 		case 501: return "501 Not Implemented";
 		case 502: return "502 Bad Gateway";
 		case 503: return "503 Service Unavailable";
