@@ -1,4 +1,4 @@
-NAME		=		server
+NAME		=		webserver
 CONFIG_SRC = 		configparser/src/config
 SRC			=		Client.cpp\
 					init.cpp\
