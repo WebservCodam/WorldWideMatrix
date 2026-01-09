@@ -15,6 +15,7 @@ class	Parser
 		bool			isAtEnd();
 		void			expectToken(TokenType type, const std::string& errorMessage);
 
+		std::unique_ptr<Directive>			initializeDirective();
 		std::unique_ptr<Directive>			parseDirective();
 		std::unique_ptr<Directive>			parseSimpleDirective();
 		std::unique_ptr<Directive>			parseBlockDirective();

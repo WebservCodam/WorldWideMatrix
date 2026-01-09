@@ -89,20 +89,24 @@ std::unique_ptr<Directive>	Parser::parseDirective()
 	}
 }
 
-std::unique_ptr<Directive>	Parser::parseSimpleDirective()
+std::unique_ptr<Directive>	Parser::initializeDirective()
 {
-	std::unique_ptr<Directive>	directive(new Directive());
+	std::unique_ptr<Directive>	directive(new Directive());	//Add safeguards
 
 	directive->setLine(currentToken().line);
 	directive->setColumn(currentToken().column);
+	directive->setContext("main");
 
 	expectToken(WORD, "Expected directive name");
 	directive->setName(currentToken().value);
 	advance();
 
-	// If it already exists it was created by a block directive with a context. Otherwise it should be the main. (Double check that)
-	if (directive->getContext().empty())
-		directive->setContext("main");
+	return (directive);
+}
+
+std::unique_ptr<Directive>	Parser::parseSimpleDirective()
+{
+	std::unique_ptr<Directive>	directive = initializeDirective();
 
 	size_t	lookAhead = 1;
 	while (peekToken(lookAhead).type != SEMICOLON)
@@ -118,21 +122,7 @@ std::unique_ptr<Directive>	Parser::parseSimpleDirective()
 
 std::unique_ptr<Directive>	Parser::parseBlockDirective()
 {
-	std::unique_ptr<Directive>	directive(new Directive);
-
-	directive->setLine(currentToken().line);
-	directive->setColumn(currentToken().column);
-
-	expectToken(WORD, "Expected directive name");
-	directive->setName(currentToken().value);
-	advance();
-
-	if (directive->getContext().empty())
-		directive->setContext("main");
-
-	size_t	lookAhead = 1;
-	while (peekToken(lookAhead).type != SEMICOLON)
-		lookAhead++;
+	std::unique_ptr<Directive>	directive = initializeDirective();
 
 	directive->setParameters(std::move(parseParameters()));
 
@@ -142,9 +132,11 @@ std::unique_ptr<Directive>	Parser::parseBlockDirective()
 	while (!isAtEnd() && currentToken().type != RBRACE)
 	{
 		std::unique_ptr<Directive>	child = parseDirective();
-		child->setContext(directive->getName());
 		if (child)
+		{
+			child->setContext(directive->getName());
 			directive->addChild(std::move(child));
+		}
 	}
 
 	expectToken(RBRACE, "Expected '}' to close block");
