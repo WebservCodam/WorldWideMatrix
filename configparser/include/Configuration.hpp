@@ -64,7 +64,7 @@ class	ConfigFile
 {
 	private:
 		std::vector<std::unique_ptr<Directive>>	_directives;
-		std::vector<ServerConfig>						_servers;
+		std::vector<ServerConfig>				_servers;
 		
 	public:
 		ConfigFile() = delete;
@@ -72,8 +72,8 @@ class	ConfigFile
 		~ConfigFile() = default;
 
 		const std::vector<std::unique_ptr<Directive>>&	getDirectives() const;
-		const std::vector<ServerConfig>&						getServers() const;
-		const ServerConfig&									getServer(const std::string& serverName);
+		const std::vector<ServerConfig>&				getServers() const;
+		const ServerConfig&								getServer(const std::string& serverName);
 
 		void	createServers();
 
@@ -98,12 +98,8 @@ enum TokenType
 	LBRACE,		// {
 	RBRACE,		// }
 	SEMICOLON,	// ;
-	EQUALS,		// =
-	STRING,		// "quoted string" or 'single quoted'
-	LBRACKET,	// [
-	RBRACKET,	// ]
 	COMMA,		// ,
-	COMMENT,	// # ...
+	STRING,		// "quoted string" or 'single quoted'
 	END_OF_FILE	// Special token for the end of the input
 };
 

@@ -9,7 +9,6 @@ class	Location
 		std::string					_root;
 		std::string					_index;
 		bool						_autoindex;
-		// std::vector<std::string>	_allowedMethods;
 		bool						_getMethod;
 		bool						_postMethod;
 		bool						_deleteMethod;

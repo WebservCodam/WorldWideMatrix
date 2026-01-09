@@ -15,7 +15,7 @@ std::string	Lexer::consumeNumber(const std::string& input, size_t& pos)
 
 bool	Lexer::isValidWordChar(char c)
 {
-	if (isspace(c) || c == '{' || c == '}' || c == ';' || c == '#') //There are more tokens now
+	if (isspace(c) || c == '{' || c == '}' || c == ';'|| c == ',' || c == '#')
 		return (false);
 	return (true);
 }
@@ -53,6 +53,7 @@ std::vector<Token>	Lexer::tokenize(const std::string& input)
 	std::vector<Token>	tokens;			// These can be in the object
 	size_t				line_num = 1;	//	"
 	size_t				col_num = 1;	//	"
+
 	size_t				pos = 0;		// This can be indeed a function's variable. 
 
 	while (pos < input.length())
@@ -101,30 +102,6 @@ std::vector<Token>	Lexer::tokenize(const std::string& input)
 		else if (current_char == ';')
 		{
 			tokens.push_back({SEMICOLON, ";", line_num, col_num});
-			pos++;
-			col_num++;
-			continue ;
-		}
-
-		else if (current_char == '=')
-		{
-			tokens.push_back({EQUALS, "=", line_num, col_num});
-			pos++;
-			col_num++;
-			continue ;
-		}
-
-		else if (current_char == '[')
-		{
-			tokens.push_back({LBRACKET, "[", line_num, col_num});
-			pos++;
-			col_num++;
-			continue ;
-		}
-
-		else if (current_char == ']')
-		{
-			tokens.push_back({RBRACKET, "]", line_num, col_num});
 			pos++;
 			col_num++;
 			continue ;

@@ -105,7 +105,7 @@ std::unique_ptr<Directive>	Parser::parseSimpleDirective()
 		directive->setContext("main");
 
 	size_t	lookAhead = 1;
-	while (peekToken(lookAhead).type != SEMICOLON && peekToken(lookAhead).type != EQUALS)
+	while (peekToken(lookAhead).type != SEMICOLON)
 		lookAhead++;
 
 	directive->setParameters(std::move(parseParameters()));
@@ -131,7 +131,7 @@ std::unique_ptr<Directive>	Parser::parseBlockDirective()
 		directive->setContext("main");
 
 	size_t	lookAhead = 1;
-	while (peekToken(lookAhead).type != SEMICOLON && peekToken(lookAhead).type != EQUALS)
+	while (peekToken(lookAhead).type != SEMICOLON)
 		lookAhead++;
 
 	directive->setParameters(std::move(parseParameters()));
@@ -157,13 +157,10 @@ std::vector<std::string>	Parser::parseParameters()
 {
 	std::vector<std::string>	parameters;
 
-	while (currentToken().type == EQUALS
-		|| currentToken().type == WORD
+	while (currentToken().type == WORD
 		|| currentToken().type == NUMBER
 		|| currentToken().type == STRING
-		|| currentToken().type == LBRACKET
-		|| currentToken().type == COMMA
-		|| currentToken().type == RBRACKET)
+		|| currentToken().type == COMMA)
 	{
 		parameters.push_back(currentToken().value);
 		advance();
