@@ -101,6 +101,8 @@ std::unique_ptr<Directive>	Parser::initializeDirective()
 	directive->setName(currentToken().value);
 	advance();
 
+	directive->setParameters(std::move(parseParameters()));
+
 	return (directive);
 }
 
@@ -108,13 +110,7 @@ std::unique_ptr<Directive>	Parser::parseSimpleDirective()
 {
 	std::unique_ptr<Directive>	directive = initializeDirective();
 
-	size_t	lookAhead = 1;
-	while (peekToken(lookAhead).type != SEMICOLON)
-		lookAhead++;
-
-	directive->setParameters(std::move(parseParameters()));
-
-	expectToken(SEMICOLON, "Expected ';' after simple directive");
+	expectToken(SEMICOLON, "Expected ';' to close simple directive");
 	advance();
 
 	return (directive);
@@ -123,8 +119,6 @@ std::unique_ptr<Directive>	Parser::parseSimpleDirective()
 std::unique_ptr<Directive>	Parser::parseBlockDirective()
 {
 	std::unique_ptr<Directive>	directive = initializeDirective();
-
-	directive->setParameters(std::move(parseParameters()));
 
 	expectToken(LBRACE, "Expected '{' to start block");
 	advance();
