@@ -74,8 +74,7 @@ std::unique_ptr<Directive>	Parser::parseDirective()
 
 	//	Skip all the words and numbers
 	size_t	lookAhead = 1;
-	while (peekToken(lookAhead).type != SEMICOLON
-		&& peekToken(lookAhead).type != LBRACE)
+	while (peekToken(lookAhead).type != SEMICOLON && peekToken(lookAhead).type != LBRACE)
 		lookAhead++;
 
 	if (peekToken(lookAhead).type == SEMICOLON)

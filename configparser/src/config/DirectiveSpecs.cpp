@@ -44,7 +44,7 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 
 // ----- SPECIFIC VALIDATION FUNCTIONS -----
 
-bool	validateHttpDirective(const Directive* node)
+bool	validateBlockDirective(const Directive* node)
 {
 	if (node->getChildren().empty())
 		throw ConfigError::validation("Directive '" + node->getName() + "' expected children directives but didn't have any", node);
@@ -60,34 +60,19 @@ bool	validateHttpDirective(const Directive* node)
 	return (true);
 }
 
+bool	validateHttpDirective(const Directive* node)
+{
+	return (validateBlockDirective(node));
+}
+
 bool	validateServerDirective(const Directive* node)
 {
-	if (node->getChildren().empty())
-		throw ConfigError::validation("Directive '" + node->getName() + "' expected children directives but didn't have any", node);
-
-	// Validate required children are present
-	if (!validateRequiredChildren(node))
-		throw ConfigError::validation("Directive '" + node->getName() + "' didn't contain the necessary children directives", node);
-
-	if (!validateContext(node))
-		throw ConfigError::validation("Directive '" + node->getName() + "' is in an invalid context", node);
-
-	return (true);
+	return (validateBlockDirective(node));
 }
 
 bool	validateLocationDirective(const Directive* node)
 {
-	if (node->getChildren().empty())
-		throw ConfigError::validation("Directive '" + node->getName() + "' expected children directives but didn't have any", node);
-
-	// Validate required children are present
-	if (!validateRequiredChildren(node))
-		throw ConfigError::validation("Directive '" + node->getName() + "' didn't contain the necessary children directives", node);
-
-	if (!validateContext(node))
-		throw ConfigError::validation("Directive '" + node->getName() + "' is in an invalid context", node);
-
-	return (true);
+	return (validateBlockDirective(node));
 }
 
 bool	validateListenDirective(const Directive* node)
