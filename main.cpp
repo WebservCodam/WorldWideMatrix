@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/15 14:47:31 by vknape            #+#    #+#             */
-/*   Updated: 2025/11/28 13:40:12 by vknape           ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   main.cpp                                           :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vknape <vknape@student.codam.nl>             +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
+/*   Updated: 2026/01/16 15:35:46 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,11 +49,12 @@ int main(int argc, char** argv)
 	try
 	{
 		// Phase 1: Lexing
-		std::vector<Token> tokenList = Lexer::tokenize(input);
+		Lexer	lexer(input);
+		lexer.tokenize();
 		// printTokensList(tokenList);
 
 		// Phase 2: Parsing
-		Parser parser = Parser(tokenList);
+		Parser parser = Parser(lexer);
 		ast = parser.parse();
 
 		if (!ast)

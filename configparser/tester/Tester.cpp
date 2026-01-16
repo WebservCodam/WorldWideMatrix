@@ -27,11 +27,12 @@ int	main(int argc, char *argv[])
 	try
 	{
 		// Phase 1: Lexing
-		std::vector<Token> tokenList = Lexer::tokenize(input);
+		Lexer lexer(input);
+		lexer.tokenize();
 		// printTokensList(tokenList);
 
 		// Phase 2: Parsing
-		Parser parser = Parser(tokenList);
+		Parser parser = Parser(lexer);
 		std::unique_ptr<ConfigFile>	ast = parser.parse();
 
 		if (!ast)

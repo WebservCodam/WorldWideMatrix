@@ -2,7 +2,7 @@
 #include "../../include/ConfigError.hpp"
 
 // Very basic for now.
-Parser::Parser(std::vector<Token>& tokens) : _tokens(tokens), _currentIndex(0) {}
+Parser::Parser(Lexer& lexer) : _tokens(std::move(lexer.getTokens())), _currentIndex(0) {}
 
 const	Token&	Parser::currentToken() const
 {

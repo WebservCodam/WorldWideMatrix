@@ -63,7 +63,7 @@ void	ConfigFile::createServers()
 			continue;
 
 		std::string							serverName = "default_server";
-		std::map<std::string, std::string>	addressesAndPorts = {{"0.0.0.0", "80"}};
+		std::vector<ListenDirective>		listenDirectives = {{"0.0.0.0", "80"}};
 		size_t								maxBodySize = 1048576;
 		std::map<int, std::string>			errors;
 		std::vector<Location>				locations;
@@ -79,7 +79,7 @@ void	ConfigFile::createServers()
 			if (directive->getName() == "server_name")
 				processServerName(directive, serverName);
 			else if (directive->getName() == "listen")
-				processListen(directive, addressesAndPorts);
+				processListen(directive, listenDirectives);
 			else if (directive->getName() == "client_max_body_size")
 				processClientMaxBodySize(directive, maxBodySize);
 			else if (directive->getName() == "error_page")
@@ -88,7 +88,7 @@ void	ConfigFile::createServers()
 				locations.push_back(processLocation(directive));
 		}
 
-		ServerConfig server(serverName, addressesAndPorts, maxBodySize, errors, locations);
+		ServerConfig server(serverName, listenDirectives, maxBodySize, errors, locations);
 		this->_servers.push_back(server);
 	}
 }
@@ -99,27 +99,29 @@ void	ConfigFile::processServerName(const Directive* directive, std::string& serv
 		serverName = directive->getParameter(0);
 }
 
-void	ConfigFile::processListen(const Directive* directive, std::map<std::string, std::string>& addressesAndPorts)
-{
-	if (directive && !directive->getParameters().empty())
-	{
-		std::string listenParam = directive->getParameter(0);
-		size_t colonPos = listenParam.find(':');
+// Modify function because now it's a vector of ListenDirectives
 
-		if (colonPos != std::string::npos)
-		{
-			std::string address = listenParam.substr(0, colonPos);
-			std::string port = listenParam.substr(colonPos + 1);
-			addressesAndPorts.clear();
-			addressesAndPorts[address] = port;
-		}
-		else
-		{
-			addressesAndPorts.clear();
-			addressesAndPorts["0.0.0.0"] = listenParam;
-		}
-	}
-}
+// void	ConfigFile::processListen(const Directive* directive, std::vector<ListenDirective>& listenDirectives)
+// {
+// 	if (directive && !directive->getParameters().empty())
+// 	{
+// 		std::string listenParam = directive->getParameter(0);
+// 		size_t colonPos = listenParam.find(':');
+
+// 		if (colonPos != std::string::npos)
+// 		{
+// 			std::string address = listenParam.substr(0, colonPos);
+// 			std::string port = listenParam.substr(colonPos + 1);
+// 			addressesAndPorts.clear();
+// 			addressesAndPorts[address] = port;
+// 		}
+// 		else
+// 		{
+// 			addressesAndPorts.clear();
+// 			addressesAndPorts["0.0.0.0"] = listenParam;
+// 		}
+// 	}
+// }
 
 void	ConfigFile::processClientMaxBodySize(const Directive* directive, size_t& maxBodySize)
 {

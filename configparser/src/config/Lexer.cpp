@@ -1,6 +1,16 @@
 #include "../../include/Lexer.hpp"
 #include "../../include/ConfigError.hpp"
 
+Lexer::Lexer(const std::string& input)
+{
+	this->_input = input;
+}
+
+std::vector<Token>	Lexer::getTokens()
+{
+	return (this->_tokens);
+}
+
 std::string	Lexer::consumeNumber(const std::string& input, size_t& pos)
 {
 	std::string	number;
@@ -48,28 +58,24 @@ std::string	Lexer::consumeString(const std::string& input, size_t& pos, size_t l
 }
 
 
-std::vector<Token>	Lexer::tokenize(const std::string& input)
+void	Lexer::tokenize()
 {
-	std::vector<Token>	tokens;			// These can be in the object
-	size_t				line_num = 1;	//	"
-	size_t				col_num = 1;	//	"
+	size_t	pos = 0;
 
-	size_t				pos = 0;		// This can be indeed a function's variable. 
-
-	while (pos < input.length())
+	while (pos < _input.length())
 	{
-		char	current_char = input[pos];	// Should it be reference or simply a new char?
+		char	current_char = _input[pos];	// Should it be reference or simply a new char?
 
 		//	--- Rule 1: Handle Whitespace
 		if (isspace(current_char))
 		{
 			if (current_char == '\n')
 			{
-				line_num++;
-				col_num = 1;
+				_line_num++;
+				_col_num = 1;
 			}
 			else
-				col_num++;
+				_col_num++;
 			pos++; // Consume the whitespace and continue to the next loop iteration.
 			continue;
 		}
@@ -77,7 +83,7 @@ std::vector<Token>	Lexer::tokenize(const std::string& input)
 		//	--- Rule 2: Handle Comments
 		else if (current_char == '#')
 		{
-			while (pos < input.length() && input[pos] != '\n')
+			while (pos < _input.length() && _input[pos] != '\n')
 				pos++;
 			continue ;
 		}
@@ -85,60 +91,60 @@ std::vector<Token>	Lexer::tokenize(const std::string& input)
 		//	--- Rule 3: Handle Single-Character Tokens
 		else if (current_char == '{')
 		{
-			tokens.push_back({LBRACE, "{", line_num, col_num}); // Replace with addToken(LBRACE, "{");
+			_tokens.push_back({LBRACE, "{", _line_num, _col_num}); // Replace with addToken(LBRACE, "{");
 			pos++;		// Replace with advancePosition(1)
-			col_num++;	// Replace with advancePosition (just one, the one from the previous comment).
+			_col_num++;	// Replace with advancePosition (just one, the one from the previous comment).
 			continue ;
 		}
 
 		else if (current_char == '}')
 		{
-			tokens.push_back({RBRACE, "}", line_num, col_num});
+			_tokens.push_back({RBRACE, "}", _line_num, _col_num});
 			pos++;
-			col_num++;
+			_col_num++;
 			continue ;
 		}
 
 		else if (current_char == ';')
 		{
-			tokens.push_back({SEMICOLON, ";", line_num, col_num});
+			_tokens.push_back({SEMICOLON, ";", _line_num, _col_num});
 			pos++;
-			col_num++;
+			_col_num++;
 			continue ;
 		}
 
 		else if (current_char == ',')
 		{
-			tokens.push_back({COMMA, ",", line_num, col_num});
+			_tokens.push_back({COMMA, ",", _line_num, _col_num});
 			pos++;
-			col_num++;
+			_col_num++;
 			continue ;
 		}
 
 		else if (current_char == '"' || current_char == '\'')
 		{
-			std::string stringValue = consumeString(input, pos, line_num, col_num);
-			tokens.push_back({STRING, stringValue, line_num, col_num});
-			col_num += stringValue.length();
+			std::string stringValue = consumeString(_input, pos, _line_num, _col_num);
+			_tokens.push_back({STRING, stringValue, _line_num, _col_num});
+			_col_num += stringValue.length();
 			continue ;
 		}
 
 		//	--- Rule 4: Handle Numbers
 		else if (isdigit(current_char))
 		{
-			std::string	numberValue = consumeNumber(input, pos);
+			std::string	numberValue = consumeNumber(_input, pos);
 			// addToken(NUMBER, numberValue);
-			tokens.push_back({NUMBER, numberValue, line_num, col_num});
-			col_num += numberValue.length();
+			_tokens.push_back({NUMBER, numberValue, _line_num, _col_num});
+			_col_num += numberValue.length();
 			continue ;
 		}
 
 		//	--- Rule 5: Handle Words
 		else if (isValidWordChar(current_char))
 		{
-			std::string	wordValue = consumeWord(input, pos);
-			tokens.push_back({WORD, wordValue, line_num, col_num});
-			col_num += wordValue.length();
+			std::string	wordValue = consumeWord(_input, pos);
+			_tokens.push_back({WORD, wordValue, _line_num, _col_num});
+			_col_num += wordValue.length();
 		}
 
 		//	Rule 6: Handle Errors
@@ -146,10 +152,10 @@ std::vector<Token>	Lexer::tokenize(const std::string& input)
 		{
 			throw ConfigError(ErrorType::LEXER,
 							"Unexpected character '" + std::string(1, current_char) + "'",
-							line_num, col_num);
+							_line_num, _col_num);
 			pos++;	// Just advance to avoid an infinite loop
 		}
 	}
-	tokens.push_back({END_OF_FILE, "", line_num, col_num});
-	return (tokens);
+	_tokens.push_back({END_OF_FILE, "", _line_num, _col_num});
+	return ;
 }

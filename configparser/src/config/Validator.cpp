@@ -22,6 +22,7 @@ bool	Validator::validate()
 bool	Validator::validateDirective(const Directive* node)
 {
 	std::map<std::string, DirectiveDefinition>::iterator	it = _directiveSpecs.find(node->getName());
+
 	if (it == _directiveSpecs.end())
 		throw ConfigError::validation("Unknown directive '" + node->getName() + "'", node);
 

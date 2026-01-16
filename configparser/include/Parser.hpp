@@ -2,6 +2,7 @@
 
 #include "Configuration.hpp"
 #include "ConfigError.hpp"
+#include "Lexer.hpp"
 
 class	Parser
 {
@@ -23,7 +24,7 @@ class	Parser
 
 	public:
 		Parser() = delete;
-		Parser(std::vector<Token>& tokens);
+		Parser(Lexer& lexer);
 		~Parser() = default;
 
 		std::unique_ptr<ConfigFile>	parse();

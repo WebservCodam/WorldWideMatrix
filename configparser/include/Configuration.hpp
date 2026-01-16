@@ -80,7 +80,7 @@ class	ConfigFile
 	private:
 		// Helper functions for processing server directives
 		void		processServerName(const Directive* directive, std::string& serverName);
-		void		processListen(const Directive* directive, std::map<std::string, std::string>& addressesAndPorts);
+		void		processListen(const Directive* directive, std::vector<ListenDirective>& listenDirectives);
 		void		processClientMaxBodySize(const Directive* directive, size_t& maxBodySize);
 		void		processErrorPage(const Directive* directive, std::map<int, std::string>& errors);
 		Location	processLocation(const Directive* directive);

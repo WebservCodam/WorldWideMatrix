@@ -47,11 +47,11 @@ bool	Location::getDeleteMethod() const
 //	----- SERVER -----
 
 ServerConfig::ServerConfig(const std::string& serverName,
-				const std::map<std::string, std::string>& addressesAndPorts,
+				const std::vector<ListenDirective>	listenDirectives,
 				size_t maxBodySize,
 				const std::map<int, std::string>& errors,
 				const std::vector<Location>& locations)
-	: _serverName(serverName), _addressesAndPorts(addressesAndPorts), _maxBodySize(maxBodySize), _errors(errors), _locations(locations)
+	: _serverName(serverName), _listenDirectives(listenDirectives), _maxBodySize(maxBodySize), _errors(errors), _locations(locations)
 {
 }
 
@@ -60,9 +60,9 @@ const std::string&	ServerConfig::getServerName() const
 	return (this->_serverName);
 }
 
-const std::map<std::string, std::string>&	ServerConfig::getAddressesAndPorts() const
+const std::vector<ListenDirective>&	ServerConfig::getListenDirectives() const
 {
-	return (this->_addressesAndPorts);
+	return (this->_listenDirectives);
 }
 
 size_t	ServerConfig::getMaxBodySize() const
