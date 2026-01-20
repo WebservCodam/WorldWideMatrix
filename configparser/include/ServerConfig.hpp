@@ -5,9 +5,9 @@
 struct ListenDirective
 {
 	std::string	address;	// defaults to "0.0.0.0"
-	std::string	port;		// defaults to 80
+	std::string	port;		// defaults to 8080
     
-	ListenDirective(const std::string& addr = "0.0.0.0", std::string p = "80") : address(addr), port(p) {}
+	ListenDirective(const std::string& addr = "0.0.0.0", std::string p = "8080") : address(addr), port(p) {}
 };
 
 class	Location

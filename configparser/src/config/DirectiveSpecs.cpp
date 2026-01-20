@@ -77,7 +77,7 @@ bool	validateLocationDirective(const Directive* node)
 
 bool	validateListenDirective(const Directive* node)
 {
-	std::pair<std::string, std::string>	addressAndPort;	//127.0.0.0:8080
+	std::pair<std::string, std::string>	addressAndPort;	//127.0.0.0:8080?
 	bool								isValidAddress;
 	bool								isValidPort;
 

@@ -21,9 +21,9 @@ void Server::init_server()
 {
 	for (auto server: servers)
 	{
-		std::map<std::string, std::string> addresses = server.getAddressesAndPorts();
+		std::vector<ListenDirective> addresses = server.getListenDirectives();
 		auto it = addresses.begin();
-		server_fds.push_back(createSocket(it->first.c_str(), it->second.c_str()));
+		server_fds.push_back(createSocket(it->address.c_str(), it->port.c_str()));
 		// break ;
 	}
 

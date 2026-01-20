@@ -6,6 +6,10 @@ Lexer::Lexer(const std::string& input)
 	this->_input = input;
 }
 
+Lexer::~Lexer()
+{
+}
+
 std::vector<Token>	Lexer::getTokens()
 {
 	return (this->_tokens);
