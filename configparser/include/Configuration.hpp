@@ -75,7 +75,7 @@ class	ConfigFile
 		const std::vector<ServerConfig>&				getServers() const;
 		const ServerConfig&								getServer(const std::string& serverName);
 
-		void	createServers();
+		std::vector<ServerConfig>	createServers();
 
 	private:
 		// Helper functions for processing server directives

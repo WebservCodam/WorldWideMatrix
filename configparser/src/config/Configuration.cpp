@@ -49,7 +49,7 @@ const ServerConfig&	ConfigFile::getServer(const std::string& serverName)
 	throw std::runtime_error("ServerConfig with name '" + serverName + "' not found");
 }
 
-void	ConfigFile::createServers()
+std::vector<ServerConfig>	ConfigFile::createServers()
 {
 	std::vector<const Directive*> serverDirectives = this->findAllDirectives("server");
 
@@ -63,7 +63,7 @@ void	ConfigFile::createServers()
 			continue;
 
 		std::string							serverName = "default_server";
-		std::vector<ListenDirective>		listenDirectives;
+		std::vector<ListenDirective>		listenDirectives;	//The structure already defaults to 0.0.0.0:8080
 		size_t								maxBodySize = 1048576;
 		std::map<int, std::string>			errors;
 		std::vector<Location>				locations;
@@ -91,6 +91,8 @@ void	ConfigFile::createServers()
 		ServerConfig server(serverName, listenDirectives, maxBodySize, errors, locations);
 		this->_servers.push_back(server);
 	}
+
+	return (this->_servers);
 }
 
 void	ConfigFile::processServerName(const Directive* directive, std::string& serverName)

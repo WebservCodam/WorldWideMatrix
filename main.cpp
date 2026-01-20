@@ -24,16 +24,15 @@
 
 // void	start_server(int server_fd, int epfd);
 
-int main(int argc, char** argv)
+void	initialize(int argc, char **argv, std::unique_ptr<ConfigFile>& ast)
 {
-
 	if (argc != 2)
 	{
 		std::cerr << "Error: Expecting an input file." << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	
-	std::ifstream file(argv[1]);
+
+	std::ifstream	file(argv[1]);
 	if (!file)
 	{
 		std::cerr << "Error: Could not open file" << std::endl;
@@ -43,8 +42,6 @@ int main(int argc, char** argv)
 	std::stringstream	buffer;
 	buffer << file.rdbuf();
 	std::string input = buffer.str();
-	
-	std::unique_ptr<ConfigFile>	ast = NULL;
 	
 	try
 	{
@@ -60,7 +57,7 @@ int main(int argc, char** argv)
 		if (!ast)
 		{
 			std::cerr << "Error: Failed to parse configuration" << std::endl;
-			return (EXIT_FAILURE);
+			exit(EXIT_FAILURE);
 		}
 
 		// printAST(ast);
@@ -75,48 +72,30 @@ int main(int argc, char** argv)
 			ast->createServers();
 
 			std::cout << "Servers created" << std::endl;
-
-			// printServers(ast->getServers());
-
-			// return (EXIT_SUCCESS);
 		}
 		else
 		{
 			std::cerr << "Error: Configuration validation failed" << std::endl;
-			return (EXIT_FAILURE);
+			exit(EXIT_FAILURE);
 		}
 	}
 	catch (const ConfigError& e)
 	{
 		std::cerr << e.what() << std::endl;
-		return (EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 	catch (const std::exception& e)
 	{
 		std::cerr << "Unexpected error: " << e.what() << std::endl;
-		return (EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
+}
 
-	// if (ast)
-	// 	std::cout << ast->_servers.at(0).getServerName() << std::endl;
+int main(int argc, char** argv)
+{
+	std::unique_ptr<ConfigFile>	ast = NULL;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
+	initialize(argc, argv, ast);
 	while (true)
 	{
 		try {
