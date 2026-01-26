@@ -1,5 +1,4 @@
-#include "../../include/Lexer.hpp"
-#include "../../include/ConfigError.hpp"
+#include "../../include/Configuration.hpp"
 
 Lexer::Lexer(const std::string& input)
 {

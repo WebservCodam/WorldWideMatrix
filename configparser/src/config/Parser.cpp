@@ -1,5 +1,4 @@
-#include "../../include/Parser.hpp"
-#include "../../include/ConfigError.hpp"
+#include "../../include/Configuration.hpp"
 
 // Very basic for now.
 Parser::Parser(Lexer& lexer) : _tokens(std::move(lexer.getTokens())), _currentIndex(0) {}

@@ -1,18 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/15 15:04:10 by vknape            #+#    #+#             */
-/*   Updated: 2025/11/28 13:36:51 by vknape           ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Server.hpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vknape <vknape@student.codam.nl>             +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/09/15 15:04:10 by vknape        #+#    #+#                 */
+/*   Updated: 2026/01/26 13:17:10 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "utils.hpp"
 #include "parser/HttpParser.hpp"
-#include "configparser/include/ServerConfig.hpp"
+#include "configparser/include/Configuration.hpp"
 #pragma once
 
 class Client;

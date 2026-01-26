@@ -1,6 +1,4 @@
-#include "../../include/Validator.hpp"
-#include "../../include/DirectiveSpecs.hpp"
-#include "../../include/ConfigError.hpp"
+#include "../../include/Configuration.hpp"
 
 Validator::Validator(const ConfigFile* configFile) : _ConfigFile(configFile), _directiveSpecs(NGINX_DIRECTIVE_SPECS)
 {

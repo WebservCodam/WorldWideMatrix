@@ -1,5 +1,4 @@
-#include "../../include/DirectiveSpecs.hpp"
-#include "../../include/ConfigError.hpp"
+#include "../../include/Configuration.hpp"
 
 const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 {

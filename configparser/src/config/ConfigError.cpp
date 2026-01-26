@@ -1,4 +1,4 @@
-#include "../../include/ConfigError.hpp"
+#include "../../include/Configuration.hpp"
 
 std::string ConfigError::buildMessage(ErrorType type, const std::string& message,
 									size_t line, size_t column, const std::string& context)

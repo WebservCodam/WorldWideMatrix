@@ -1,5 +1,4 @@
 #include "../../include/Configuration.hpp"
-#include "../../include/ServerConfig.hpp"
 
 
 //	----- LOCATION -----

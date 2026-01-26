@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/01/16 15:35:46 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/01/26 13:17:26 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,7 @@
 #include "utils.hpp"
 #include "Server.hpp"
 
-#include "configparser/include/ConfigError.hpp"
 #include "configparser/include/Configuration.hpp"
-#include "configparser/include/DirectiveSpecs.hpp"
-#include "configparser/include/Lexer.hpp"
-#include "configparser/include/Parser.hpp"
-#include "configparser/include/ServerConfig.hpp"
-#include "configparser/include/Validator.hpp"
 
 // void	start_server(int server_fd, int epfd);
 
