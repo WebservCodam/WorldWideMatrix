@@ -222,9 +222,9 @@ class	Lexer
 		Lexer(const std::string& input);
 		~Lexer();
 
-		void	tokenize();
+		std::vector<Token>	tokenize();
 
-		std::vector<Token>	getTokens();
+		// std::vector<Token>	getTokens();
 };
 
 // --- PARSER ---
@@ -232,6 +232,7 @@ class	Lexer
 class	Parser
 {
 	private:
+		std::string			_input;
 		std::vector<Token>	_tokens;
 		size_t				_currentIndex;
 
@@ -249,7 +250,7 @@ class	Parser
 
 	public:
 		Parser() = delete;
-		Parser(Lexer& lexer);
+		Parser(const std::string& input);
 		~Parser() = default;
 
 		std::unique_ptr<ConfigFile>	parse();

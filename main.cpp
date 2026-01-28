@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/01/26 13:17:26 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/01/28 16:51:31 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,15 +38,9 @@ void	initialize(int argc, char **argv, std::unique_ptr<ConfigFile>& ast)
 	std::string input = buffer.str();
 	
 	try
-	{
-		// Phase 1: Lexing
-		Lexer	lexer(input);
-		lexer.tokenize();
-		// printTokensList(tokenList);
-
-		// Phase 2: Parsing
-		Parser parser = Parser(lexer);
-		ast = parser.parse();
+	{		
+		// Parser calls the tokenizer internally.
+		ast = Parser(input).parse();
 
 		if (!ast)
 		{

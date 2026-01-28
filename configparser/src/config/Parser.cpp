@@ -1,7 +1,7 @@
 #include "../../include/Configuration.hpp"
 
 // Very basic for now.
-Parser::Parser(Lexer& lexer) : _tokens(std::move(lexer.getTokens())), _currentIndex(0) {}
+Parser::Parser(const std::string& input) : _input(input), _currentIndex(0) {}
 
 const	Token&	Parser::currentToken() const
 {
@@ -43,6 +43,13 @@ std::unique_ptr<ConfigFile>	Parser::parse()
 {
 	std::unique_ptr<ConfigFile>				config;
 	std::vector<std::unique_ptr<Directive>>	directives;
+
+	this->_tokens = Lexer(_input).tokenize();
+	if (this->_tokens.empty())
+	{
+		std::cerr << "Parsing error: Empty list of tokens" << std::endl;
+		exit(EXIT_FAILURE);
+	}
 
 	while (!isAtEnd())
 	{

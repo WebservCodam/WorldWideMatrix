@@ -9,10 +9,10 @@ Lexer::~Lexer()
 {
 }
 
-std::vector<Token>	Lexer::getTokens()
-{
-	return (this->_tokens);
-}
+// std::vector<Token>	Lexer::getTokens()
+// {
+// 	return (this->_tokens);
+// }
 
 std::string	Lexer::consumeNumber(const std::string& input, size_t& pos)
 {
@@ -61,7 +61,7 @@ std::string	Lexer::consumeString(const std::string& input, size_t& pos, size_t l
 }
 
 
-void	Lexer::tokenize()
+std::vector<Token>	Lexer::tokenize()
 {
 	size_t	pos = 0;
 
@@ -160,5 +160,5 @@ void	Lexer::tokenize()
 		}
 	}
 	_tokens.push_back({END_OF_FILE, "", _line_num, _col_num});
-	return ;
+	return (this->_tokens);
 }
