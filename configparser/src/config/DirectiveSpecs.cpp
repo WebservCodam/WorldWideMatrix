@@ -1,5 +1,18 @@
 #include "../../include/Configuration.hpp"
 
+/**
+ * The MAP contains the directive name and a DirectiveDefinition object.
+ * 
+ * A DirectiveDefinition contains:
+ * - A name,
+ * - Whether the directive is a block or not.
+ * - The minimum amount of arguments for the directive to be valid.
+ * - The maximum amount of valid arguments.
+ * - In what context is the directive valid? I.e. the names of the parent directive (which is a block). If no parent then defaults to 'main'.
+ * - What sub-directives does it require to be valid? I.e. the names of the necessary children directives.
+ * - A pointer to the function that validates the directive.
+ */
+
 const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 {
 	//	=== Main Context Directives ===
