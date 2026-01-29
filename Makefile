@@ -54,9 +54,9 @@ test:
 			siege -t $(V1)s -c $(V2) http://localhost:8080
 
 teststart:
-			./server && siege -t $(V1)s -c $(V2) http://localhost:8080
+			./webserver example5.conf && siege -t $(V1)s -c $(V2) http://localhost:8080
 
 o:
-			./server > output.txt 2>&1
+			./webserver example5.conf > output.txt 2>&1
 
 .PHONY:		all clean fclean re test teststart o
