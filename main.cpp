@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/01/28 16:51:31 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/01/30 16:15:51 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,32 +38,11 @@ void	initialize(int argc, char **argv, std::unique_ptr<ConfigFile>& ast)
 	std::string input = buffer.str();
 	
 	try
-	{		
-		// Parser calls the tokenizer internally.
+	{
 		ast = Parser(input).parse();
-
 		if (!ast)
 		{
 			std::cerr << "Error: Failed to parse configuration" << std::endl;
-			exit(EXIT_FAILURE);
-		}
-
-		// printAST(ast);
-
-		// Phase 3: Validation
-		Validator	validator(ast.get());
-		if (validator.validate())
-		{
-			std::cout << "Configuration is valid!" << std::endl;
-
-			// Phase 4: Create servers
-			ast->createServers();
-
-			std::cout << "Servers created" << std::endl;
-		}
-		else
-		{
-			std::cerr << "Error: Configuration validation failed" << std::endl;
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -77,6 +56,11 @@ void	initialize(int argc, char **argv, std::unique_ptr<ConfigFile>& ast)
 		std::cerr << "Unexpected error: " << e.what() << std::endl;
 		exit(EXIT_FAILURE);
 	}
+
+	// Phase 4: Create servers
+	ast->createServers();
+
+	std::cout << "Servers created" << std::endl;
 }
 
 int main(int argc, char** argv)

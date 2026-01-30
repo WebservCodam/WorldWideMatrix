@@ -14,7 +14,7 @@ echo "------------------------------------------------"
 echo "Running Tests against $HOST:$PORT"
 echo "------------------------------------------------"
 
-run_tests_in_dir() {
+run_tests_in_dir() { 
     directory=$1
     echo "Checking directory: $directory"
     

@@ -232,9 +232,10 @@ class	Lexer
 class	Parser
 {
 	private:
-		std::string			_input;
-		std::vector<Token>	_tokens;
-		size_t				_currentIndex;
+		std::string					_input;
+		std::vector<Token>			_tokens;
+		size_t						_currentIndex;
+		std::unique_ptr<ConfigFile>	_configFile;
 
 		const Token&	currentToken() const;
 		void			advance();
@@ -248,6 +249,9 @@ class	Parser
 		std::unique_ptr<Directive>			parseBlockDirective();
 		std::vector<std::string>			parseParameters();
 
+		bool	validateSemantics();
+		bool	validateDirective(const Directive* node);
+
 	public:
 		Parser() = delete;
 		Parser(const std::string& input);
@@ -258,22 +262,22 @@ class	Parser
 
 // --- VALIDATOR --- 
 
-class	Validator
-{
-	private:
-		const ConfigFile*							_ConfigFile;
-		std::map<std::string, DirectiveDefinition>	_directiveSpecs;
+// class	Validator
+// {
+// 	private:
+// 		const ConfigFile*							_ConfigFile;
+// 		std::map<std::string, DirectiveDefinition>	_directiveSpecs;
 
-	public:
-		Validator() = delete;
-		Validator(const ConfigFile* configFile);
-		~Validator() = default;
+// 	public:
+// 		Validator() = delete;
+// 		Validator(const ConfigFile* configFile);
+// 		~Validator() = default;
 
-		bool	validate();
+// 		bool	validate();
 
-	private:
-		bool	validateDirective(const Directive* node);
-};
+// 	private:
+// 		bool	validateDirective(const Directive* node);
+// };
 
 // --- SERVER CONFIG ---
 
