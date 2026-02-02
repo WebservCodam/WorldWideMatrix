@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   init.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/15 14:20:54 by vknape            #+#    #+#             */
-/*   Updated: 2025/11/28 13:58:36 by vknape           ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   init.cpp                                           :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vknape <vknape@student.codam.nl>             +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/09/15 14:20:54 by vknape        #+#    #+#                 */
+/*   Updated: 2026/02/02 14:10:08 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ int createSocket(const char* ip, const char* port)
 	set_non_blocking(server_fd);
 	freeaddrinfo(res);
 
-	if(listen(server_fd, 1000) < 0)
+	if (listen(server_fd, 1000) < 0)
 	{
 		close(server_fd);
 		throw std::runtime_error("Server socket listen failed");

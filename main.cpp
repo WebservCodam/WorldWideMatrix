@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/01/30 16:15:51 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/01/30 16:22:17 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,18 +74,23 @@ int main(int argc, char** argv)
 			int epfd;
 
 			epfd = epoll_create(1000);
+			
 			if (epfd < 0)
 				throw std::runtime_error("Failed to create epoll fd");
+				
 			Server server(epfd);
 			server.servers = ast->getServers();
 			std::cout << server.servers.at(0).getServerName() << std::endl;
+			
 			server.init_server();
 			server.start_server();
+			
 		}	catch (const std::runtime_error& e) {
 			std::cout << "Runtime error: " << e.what() << std::endl;
 		}	catch (const std::exception& e) {
 			std::cout << "Exception: " << e.what() << std::endl;
 		}
+		
 		exit(0);
 	}
 	
