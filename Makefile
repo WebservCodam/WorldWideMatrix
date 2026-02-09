@@ -15,8 +15,7 @@ SRC			=		Client.cpp\
 					$(CONFIG_SRC)/DirectiveSpecs.cpp \
 					$(CONFIG_SRC)/Lexer.cpp \
 					$(CONFIG_SRC)/Parser.cpp \
-					$(CONFIG_SRC)/ServerConfig.cpp \
-					$(CONFIG_SRC)/Validator.cpp
+					$(CONFIG_SRC)/ServerConfig.cpp 
 OBJ			=		$(SRC:.cpp=.o)
 CC			=		c++
 # FLAGS		=		-Wall -Wextra -Werror -g

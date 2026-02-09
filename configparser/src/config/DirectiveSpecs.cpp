@@ -48,7 +48,6 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 
 	//	=== Methods/Limits	===
 	{"allow_methods", DirectiveDefinition{"allow_methods", false, 1, 4, {"location"}, {}, validateAllowMethodsDirective}},
-	// {"limit_except", DirectiveDefinition{"limit_except", true, 1, 10, {"location"}, {}, validateLimitExceptDirective}},	
 	{"client_max_body_size", DirectiveDefinition{"client_max_body_size", false, 1, 1, {"http", "server", "location"}, {}, validateClientMaxBodySizeDirective}}
 };
 
@@ -89,6 +88,9 @@ bool	validateLocationDirective(const Directive* node)
 
 bool	validateListenDirective(const Directive* node)
 {
+
+	std::cout << "DEBUG: In validateListenDirective" << std::endl;
+
 	std::pair<std::string, std::string>	addressAndPort;	//127.0.0.0:8080?
 	bool								isValidAddress;
 	bool								isValidPort;
@@ -114,6 +116,83 @@ bool	validateListenDirective(const Directive* node)
 	else if (addressAndPort.first.empty() && isValidPort)
 		return (true);
 	throw ConfigError::validation("Invalid address:port combination in '" + node->getName() + "' directive: '" + node->getParameter(0) + "'", node);
+}
+
+std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address)
+{
+	std::pair<std::string, std::string>	addressAndPort = {"", ""};
+	std::string	addressPart;
+	std::string	portPart;
+	size_t		pos;
+
+	if (address.empty())
+		return (addressAndPort);
+	pos = address.find(":");
+	if (pos == address.npos)
+		return (addressAndPort);
+	else
+	{
+		addressPart = address.substr(0, pos);
+		portPart = address.substr(pos + 1, address.size() - (pos + 1));
+		addressAndPort = {std::move(addressPart), std::move(portPart)};
+	}
+
+	std::cout << "DEBUG in parserAddressAndPort - Address: " << addressAndPort.first << " Port: " << addressAndPort.second << std::endl;
+
+	return (addressAndPort);
+}
+
+bool	validateAddress(const std::string& address)
+{
+	size_t		currentPos = 0;
+	size_t		nextPos;
+	size_t		iterations = 0;
+	std::string	currentChunk;
+
+	if (address.empty())
+		return (false);
+
+	if (address == "localhost")
+		return (true);
+
+	while (currentPos < address.length())
+	{
+		nextPos = address.find(".", currentPos);
+		if (nextPos == std::string::npos)
+			currentChunk = address.substr(currentPos);
+		else
+			currentChunk = address.substr(currentPos, nextPos - currentPos);
+
+		if (!isByte(currentChunk))
+			return (false);
+
+		iterations++;
+		if (nextPos == std::string::npos)
+			break;
+		currentPos = nextPos + 1;
+	}
+	if (iterations != 4)
+		return (false);
+	return (true);
+}
+
+bool	validatePort(const std::string& port)
+{
+	if (port.empty())
+		return (false);
+	try
+	{
+		int portNumber = std::stoi(port);
+		if (port.size() != std::to_string(portNumber).length())
+			throw (std::runtime_error("Wrong port"));
+		if (portNumber >= 1 && portNumber <= 65535)
+			return (true);
+	}
+	catch(const std::exception& e)
+	{
+		return (false);
+	}
+	return (false);
 }
 
 bool	validateAllowOrDenyDirective(const Directive* node)
@@ -468,6 +547,47 @@ bool	validateClientMaxBodySizeDirective(const Directive* node)
 
 //	----- UTILITIES ------
 
+bool	validateDirective(const Directive* node)
+{
+	std::map<std::string, DirectiveDefinition>::const_iterator	it = NGINX_DIRECTIVE_SPECS.find(node->getName());
+
+	if (it == NGINX_DIRECTIVE_SPECS.end())
+		throw ConfigError::validation("Unknown directive '" + node->getName() + "'", node);
+
+	const DirectiveDefinition&	spec = it->second;
+
+	// Check if context is valid
+	if (spec.validContexts.find(node->getContext()) == spec.validContexts.end())
+		throw ConfigError::validation("Directive '" + node->getName() + "' is not allowed in '" + node->getContext() + "' context", node);
+
+	// Check parameter count
+	if (node->getParameters().size() < spec.minArgs || node->getParameters().size() > spec.maxArgs)
+	{
+
+		std::cout << "DEBUG in validateDirective - The parameters are: " << std::endl;
+
+		for (int i = 0; i < node->getParameters().size(); i++)
+		{
+			std::cout << "DEBUG: " << node->getParameter(i) << std::endl;
+		}
+
+		throw ConfigError::validation("Invalid parameter count for '" + node->getName() + "': expected min:"
+									+ std::to_string(spec.minArgs) + " & max: " + std::to_string(spec.maxArgs)
+									+ ", got " + std::to_string(node->getParameters().size()), node);
+		// return (false);
+	}
+
+	// Call specific validation function if it exists
+	if (spec.validateArgs && !spec.validateArgs(node))
+	{
+		throw ConfigError::validation("Invalid parameter value(s) for '" + node->getName() + "'", node);
+		// return (false);
+	}
+
+	// If no specific validation, basic checks passed
+	return (true);
+}
+
 bool	validateContext(const Directive* node)
 {
 	for (const Directive* currentChild : node->getChildren())
@@ -510,92 +630,27 @@ bool	validateRequiredChildren(const Directive* node)
 	for (const std::string& requiredChild : spec.requiredChildren)
 	{
 		bool found = false;
+		bool valid = false;
 		for (const Directive* child : node->getChildren())
 		{
 			if (child->getName() == requiredChild)
 			{
 				found = true;
+				valid = validateDirective(child);
 				break;
 			}
+
 		}
 		if (!found)
 			throw ConfigError::validation("Directive '" + node->getName() + "' is missing required child directive '" + requiredChild + "'", node);
-	}
-	return (true);
-}
 
-std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address)
-{
-	std::pair<std::string, std::string>	addressAndPort = {"", ""};
-	std::string	addressPart;
-	std::string	portPart;
-	size_t		pos;
-
-	if (address.empty())
-		return (addressAndPort);
-	pos = address.find(":");
-	if (pos == address.npos)
-		return (addressAndPort);
-	else
-	{
-		addressPart = address.substr(0, pos);
-		portPart = address.substr(pos + 1, address.size() - (pos + 1));
-		addressAndPort = {std::move(addressPart), std::move(portPart)};
-	}
-	return (addressAndPort);
-}
-
-bool	validateAddress(const std::string& address)
-{
-	size_t		currentPos = 0;
-	size_t		nextPos;
-	size_t		iterations = 0;
-	std::string	currentChunk;
-
-	if (address.empty())
-		return (false);
-
-	if (address == "localhost")
-		return (true);
-
-	while (currentPos < address.length())
-	{
-		nextPos = address.find(".", currentPos);
-		if (nextPos == std::string::npos)
-			currentChunk = address.substr(currentPos);
-		else
-			currentChunk = address.substr(currentPos, nextPos - currentPos);
-
-		if (!isByte(currentChunk))
+		if (!valid)
+		{
+			std::cerr << "Directive '" + node->getName() + "' is failing validation." << std::endl;
 			return (false);
-
-		iterations++;
-		if (nextPos == std::string::npos)
-			break;
-		currentPos = nextPos + 1;
+		}
 	}
-	if (iterations != 4)
-		return (false);
 	return (true);
-}
-
-bool	validatePort(const std::string& port)
-{
-	if (port.empty())
-		return (false);
-	try
-	{
-		int portNumber = std::stoi(port);
-		if (port.size() != std::to_string(portNumber).length())
-			throw (std::runtime_error("Wrong port"));
-		if (portNumber >= 1 && portNumber <= 65535)
-			return (true);
-	}
-	catch(const std::exception& e)
-	{
-		return (false);
-	}
-	return (false);
 }
 
 bool isByte(std::string &number)

@@ -132,15 +132,15 @@ std::vector<Token>	Lexer::tokenize()
 			continue ;
 		}
 
-		//	--- Rule 4: Handle Numbers
-		else if (isdigit(current_char))
-		{
-			std::string	numberValue = consumeNumber(_input, pos);
-			// addToken(NUMBER, numberValue);
-			_tokens.push_back({NUMBER, numberValue, _line_num, _col_num});
-			_col_num += numberValue.length();
-			continue ;
-		}
+		//	--- Rule 4: Handle Numbers	// It's messing with the addresses
+		// else if (isdigit(current_char))
+		// {
+		// 	std::string	numberValue = consumeNumber(_input, pos);
+		// 	// addToken(NUMBER, numberValue);
+		// 	_tokens.push_back({NUMBER, numberValue, _line_num, _col_num});
+		// 	_col_num += numberValue.length();
+		// 	continue ;
+		// }
 
 		//	--- Rule 5: Handle Words
 		else if (isValidWordChar(current_char))

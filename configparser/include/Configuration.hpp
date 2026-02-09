@@ -147,6 +147,7 @@ class	ConfigFile
 
 // --- DIRECTIVE SPECS ---
 
+bool	validateDirective(const Directive* node);
 bool	validateHttpDirective(const Directive* node);
 bool	validateServerDirective(const Directive* node);
 bool	validateLocationDirective(const Directive* node);
@@ -250,7 +251,7 @@ class	Parser
 		std::vector<std::string>			parseParameters();
 
 		bool	validateSemantics();
-		bool	validateDirective(const Directive* node);
+		// bool	validateDirective(const Directive* node);
 
 	public:
 		Parser() = delete;
@@ -286,7 +287,7 @@ struct ListenDirective
 	std::string	address;	// defaults to "0.0.0.0"
 	std::string	port;		// defaults to 8080
     
-	ListenDirective(const std::string& addr = "0.0.0.0", std::string p = "8080") : address(addr), port(p) {}
+	ListenDirective(const std::string& addr = "0.0.0.0", const std::string& p = "8080") : address(addr), port(p) {}
 };
 
 class	Location
