@@ -148,6 +148,11 @@ class	ConfigFile
 // --- DIRECTIVE SPECS ---
 
 bool	validateDirective(const Directive* node);
+bool	validateBlockDirective(const Directive* node);
+bool	validateContext(const Directive* node);
+bool	validateRequiredChildren(const Directive* node);
+
+
 bool	validateHttpDirective(const Directive* node);
 bool	validateServerDirective(const Directive* node);
 bool	validateLocationDirective(const Directive* node);
@@ -160,7 +165,7 @@ bool	validateErrorPageDirective(const Directive* node);
 // bool	validateFastcgiParamDirective(const Directive* node);
 // bool	validateFastcgiIndexDirective(const Directive* node);
 bool	validateReturnDirective(const Directive* node);
-bool	validateAllowMethodsDirective(const Directive* node);
+bool	validateMethodsDirective(const Directive* node);
 bool	validateClientMaxBodySizeDirective(const Directive* node);
 bool	validateAllowOrDenyDirective(const Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
 
@@ -168,8 +173,6 @@ std::pair<std::string, std::string>	parseAddressAndPort(const std::string& addre
 bool 								isByte(std::string &number);
 bool								validateAddress(const std::string& address);
 bool								validatePort(const std::string& port);
-bool								validateContext(const Directive* node);
-bool								validateRequiredChildren(const Directive* node);
 
 // --- CONFIG ERROR ---
 

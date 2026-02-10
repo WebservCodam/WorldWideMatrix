@@ -1,4 +1,4 @@
-#include "../../include/Configuration.hpp"
+#include "../include/Configuration.hpp"
 
 // Very basic for now.
 Parser::Parser(const std::string& input) : _input(input), _currentIndex(0) {}

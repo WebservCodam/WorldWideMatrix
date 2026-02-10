@@ -1,4 +1,4 @@
-#include "../../../include/Configuration.hpp"
+#include "../../include/Configuration.hpp"
 
 bool	validateListenDirective(const Directive* node)
 {

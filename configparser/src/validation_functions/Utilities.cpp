@@ -1,4 +1,5 @@
-#include "../../../include/Configuration.hpp"
+#include "../../include/Configuration.hpp"
+
 
 std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address)
 {
@@ -75,4 +76,24 @@ bool	validatePort(const std::string& port)
 		return (false);
 	}
 	return (false);
+}
+
+bool isByte(std::string &number)
+{
+	if (number.empty())
+		return (false);
+
+    try
+	{
+		int	num = std::stoi(number);
+		if (number.size() != std::to_string(num).length())
+			return (false);
+		if (num > 255 || num < 0)
+			return (false);
+	}
+	catch(const std::exception& e)
+	{
+		return (false);
+	}	
+    return (true);
 }
