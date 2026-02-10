@@ -191,9 +191,9 @@ Location	ConfigFile::processLocation(Directive* directive)
 				autoindex = (autoindexParam == "on" || autoindexParam == "true");
 			}
 		}
-		else if (locationDirective->getName() == "allow_methods")
+		else if (locationDirective->getName() == "methods")
 		{
-			// std::cout << "DEBUG: enters elseif statement 'allow_methods'" << std::endl;
+			// std::cout << "DEBUG: enters elseif statement 'methods'" << std::endl;
 			getMethod = false;
 			postMethod = false;
 			deleteMethod = false;
