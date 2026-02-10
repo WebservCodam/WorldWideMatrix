@@ -19,7 +19,7 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 
 	//	===	Block Directives ===
 	{"http", DirectiveDefinition{"http", true, 0, 0, {"main"}, {"server"}, validateHttpDirective}},
-	{"server", DirectiveDefinition{"server", true, 0, 0, {"main", "http"}, {"listen"}, validateServerDirective}},
+	{"server", DirectiveDefinition{"server", true, 0, 0, {"main", "http"}, {"listen", "client_max_body_size", "location"}, validateServerDirective}},
 	{"location", DirectiveDefinition{"location", true, 1, 2, {"server", "location"}, {}, validateLocationDirective}},	// 2 parameters in case it's an equals
 
 	// {"allow", DirectiveDefinition{"allow", false, 1, 1, {"http", "server", "location", "limit_except"}, {}, validateAllowOrDenyDirective}},

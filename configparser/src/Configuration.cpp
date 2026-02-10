@@ -29,7 +29,7 @@ std::vector<Directive*>	ConfigFile::findAllDirectives(const std::string& name) c
     return (result);
 }
 
-const std::vector<std::unique_ptr<Directive>>&	ConfigFile::getDirectives() const
+std::vector<std::unique_ptr<Directive>>&	ConfigFile::getDirectives()
 {
 	return (this->_directives);
 }

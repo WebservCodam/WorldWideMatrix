@@ -159,7 +159,7 @@ std::vector<std::string>	Parser::parseParameters()
 		|| currentToken().type == STRING
 		|| currentToken().type == COMMA)
 	{
-		std::cout << "DEBUG in parseParameters - Current token is: " << currentToken().value << std::endl;
+		// std::cout << "DEBUG in parseParameters - Current token is: " << currentToken().value << std::endl;
 		parameters.push_back(currentToken().value);
 		advance();
 	}
@@ -169,11 +169,11 @@ std::vector<std::string>	Parser::parseParameters()
 
 bool	Parser::validateSemantics()
 {
-	const std::vector<std::unique_ptr<Directive>>&	directives = _configFile->getDirectives();
+	std::vector<std::unique_ptr<Directive>>&	directives = _configFile->getDirectives();
 
 	std::cout << "DEBUG: In validateSemantics" << std::endl;
 
-	for (const std::unique_ptr<Directive>& directive : directives)
+	for (std::unique_ptr<Directive>& directive : directives)
 	{
 
 		std::cout << "DEBUG: directive name: " << directive.get()->getName() << std::endl;

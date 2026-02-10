@@ -18,7 +18,7 @@ std::string	Lexer::consumeNumber(const std::string& input, size_t& pos)
 {
 	std::string	number;
 
-	while (pos < input.length() && isdigit(input[pos]))
+	while (pos < input.length() && std::isdigit(input[pos]))
 	{
 		number += input[pos];
 		pos++;
@@ -28,7 +28,7 @@ std::string	Lexer::consumeNumber(const std::string& input, size_t& pos)
 
 bool	Lexer::isValidWordChar(char c)
 {
-	if (isspace(c) || c == '{' || c == '}' || c == ';'|| c == ',' || c == '#')
+	if (std::isspace(c) || c == '{' || c == '}' || c == ';'|| c == ',' || c == '#')
 		return (false);
 	return (true);
 }

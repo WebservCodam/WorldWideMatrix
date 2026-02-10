@@ -126,7 +126,7 @@ class	ConfigFile
 		ConfigFile(std::vector<std::unique_ptr<Directive>> directives);
 		~ConfigFile() = default;
 
-		const std::vector<std::unique_ptr<Directive>>&	getDirectives() const;
+		std::vector<std::unique_ptr<Directive>>&		getDirectives();	// Non-constant so validation can set defaults.
 		const std::vector<ServerConfig>&				getServers() const;
 		const ServerConfig&								getServer(const std::string& serverName);
 

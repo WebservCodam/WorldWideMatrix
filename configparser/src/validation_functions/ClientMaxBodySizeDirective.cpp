@@ -8,19 +8,30 @@ bool	validateClientMaxBodySizeDirective(Directive* node)
 	// It can also be a number
 
 	if (node->getParameters().empty())
-		throw ConfigError::validation("Directive '" + node->getName() + "' requires a parameter", node);
+		throw ConfigError::validation("Directive '" + node->getName() + "' requires a parameter", node);	// I belive this is checked in requiredArguments, so it should never enter this condition.
 	if (node->getParameter(0) == "0")
 		return (true);
-
-	std::cout << "DEBUG in validateClientBodySize - Parameter is: " << node->getParameter(0) << std::endl;
-	node->setParameter(0, "20");
-	std::cout << "DEBUG in validateClientBodySize - the new Parameter is: " << node->getParameter(0) << std::endl;
 
 	try
 	{
 		const std::string& param = node->getParameter(0);
 		if (param.empty())
 			throw ConfigError::validation("Invalid size value in '" + node->getName() + "' directive", node);
+
+		// Check if the string is purely a number.
+		bool	isNumber = false;
+		for (char c : param)
+		{
+			if (!std::isdigit(c))
+				break ;
+			if (c == param.back())
+				isNumber = true;
+		}
+
+		if (isNumber)
+		{
+			
+		}
 
 		char lastChar = param.back(); // IT CAN ALSO BE JUST A NUMBER!
 		if (lastChar != 'm' && lastChar != 'M')
