@@ -66,7 +66,7 @@ struct	DirectiveDefinition
 	std::set<std::string>					validContexts;
 	std::set<std::string>					requiredChildren;
 
-	bool (*validateArgs)(const Directive*);
+	bool (*validateArgs)(Directive*);
 };
 
 // --- DIRECTIVE ---
@@ -100,16 +100,17 @@ class	Directive
 		const std::string&				getContext() const;
 		const std::string&				getParameter(size_t i) const;
 		const std::vector<std::string>&	getParameters() const;
-		const Directive*				getChild(size_t i) const;
-		std::vector<const Directive*>	getChildren() const;
+		Directive*						getChild(size_t i);
+		std::vector<Directive*>			getChildren();
 
 		// Setters
-		void setLine(size_t line);
-		void setColumn(size_t column);
-		void setName(const std::string& name);
-		void setContext(const std::string& context);
-		void setParameters(const std::vector<std::string>& parameters);
-		void addChild(std::unique_ptr<Directive> child);
+		void	setLine(size_t line);
+		void	setColumn(size_t column);
+		void	setName(const std::string& name);
+		void	setContext(const std::string& context);
+		void	setParameter(int index, const std::string& new_parameter);
+		void	setParameters(const std::vector<std::string>& parameters);
+		void	addChild(std::unique_ptr<Directive> child);
 };
 
 // --- CONFIG FILE ---
@@ -137,37 +138,37 @@ class	ConfigFile
 		void		processListen(const Directive* directive, std::vector<ListenDirective>& listenDirectives);
 		void		processClientMaxBodySize(const Directive* directive, size_t& maxBodySize);
 		void		processErrorPage(const Directive* directive, std::map<int, std::string>& errors);
-		Location	processLocation(const Directive* directive);
+		Location	processLocation(Directive* directive);
 
 	public:
 		// Query methods
-		const Directive*				findDirective(const std::string& name) const;
-		std::vector<const Directive*>	findAllDirectives(const std::string& name) const;
+		const Directive*			findDirective(const std::string& name) const;
+		std::vector<Directive*>		findAllDirectives(const std::string& name) const;
 };
 
 // --- DIRECTIVE SPECS ---
 
-bool	validateDirective(const Directive* node);
-bool	validateBlockDirective(const Directive* node);
-bool	validateContext(const Directive* node);
-bool	validateRequiredChildren(const Directive* node);
+bool	validateDirective(Directive* node);
+bool	validateBlockDirective(Directive* node);
+bool	validateContext(Directive* node);
+bool	validateRequiredChildren(Directive* node);
 
 
-bool	validateHttpDirective(const Directive* node);
-bool	validateServerDirective(const Directive* node);
-bool	validateLocationDirective(const Directive* node);
-bool	validateListenDirective(const Directive* node);
-bool	validateRootDirective(const Directive* node);
-bool	validateIndexDirective(const Directive* node);
-bool	validateAutoIndexDirective(const Directive* node);
-bool	validateErrorPageDirective(const Directive* node);
-// bool	validateFastcgiPassDirective(const Directive* node);
-// bool	validateFastcgiParamDirective(const Directive* node);
-// bool	validateFastcgiIndexDirective(const Directive* node);
-bool	validateReturnDirective(const Directive* node);
-bool	validateMethodsDirective(const Directive* node);
-bool	validateClientMaxBodySizeDirective(const Directive* node);
-bool	validateAllowOrDenyDirective(const Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
+bool	validateHttpDirective(Directive* node);
+bool	validateServerDirective(Directive* node);
+bool	validateLocationDirective(Directive* node);
+bool	validateListenDirective(Directive* node);
+bool	validateRootDirective(Directive* node);
+bool	validateIndexDirective(Directive* node);
+bool	validateAutoIndexDirective(Directive* node);
+bool	validateErrorPageDirective(Directive* node);
+// bool	validateFastcgiPassDirective(Directive* node);
+// bool	validateFastcgiParamDirective(Directive* node);
+// bool	validateFastcgiIndexDirective(Directive* node);
+bool	validateReturnDirective(Directive* node);
+bool	validateMethodsDirective(Directive* node);
+bool	validateClientMaxBodySizeDirective(Directive* node);
+bool	validateAllowOrDenyDirective(Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
 
 std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address);
 bool 								isByte(std::string &number);
@@ -254,7 +255,7 @@ class	Parser
 		std::vector<std::string>			parseParameters();
 
 		bool	validateSemantics();
-		// bool	validateDirective(const Directive* node);
+		// bool	validateDirective(Directive* node);
 
 	public:
 		Parser() = delete;
@@ -280,7 +281,7 @@ class	Parser
 // 		bool	validate();
 
 // 	private:
-// 		bool	validateDirective(const Directive* node);
+// 		bool	validateDirective(Directive* node);
 // };
 
 // --- SERVER CONFIG ---

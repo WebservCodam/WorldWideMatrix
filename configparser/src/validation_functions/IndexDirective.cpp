@@ -1,6 +1,6 @@
 #include "../../include/Configuration.hpp"
 
-bool	validateIndexDirective(const Directive* node)
+bool	validateIndexDirective(Directive* node)
 {
 	if (node->getParameters().empty())
 		throw ConfigError::validation("Directive " + node->getName() + " requires at least one parameter", node);

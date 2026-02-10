@@ -1,6 +1,6 @@
 #include "../../include/Configuration.hpp"
 
-bool	validateAutoIndexDirective(const Directive* node)
+bool	validateAutoIndexDirective(Directive* node)
 {
 	if (node->getParameters().empty())
 		throw ConfigError::validation("Directive " + node->getName() + " requires a parameter", node);

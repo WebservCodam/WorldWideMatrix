@@ -1,6 +1,6 @@
 #include "../../include/Configuration.hpp"
 
-bool	validateReturnDirective(const Directive* node)
+bool	validateReturnDirective(Directive* node)
 {
 	// return 301 http://example.com;
 	// return 404;

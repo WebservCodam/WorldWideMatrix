@@ -1,6 +1,6 @@
 #include "../../include/Configuration.hpp"
 
-bool	validateMethodsDirective(const Directive* node)
+bool	validateMethodsDirective(Directive* node)
 {
 	const std::vector<std::string> httpMethods = {"GET", "POST", "DELETE", "HEAD"};
 

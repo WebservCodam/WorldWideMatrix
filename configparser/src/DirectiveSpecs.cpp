@@ -58,24 +58,24 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 
 // ----- BLOCK VALIDATION FUNCTIONS -----
 
-bool	validateHttpDirective(const Directive* node)
+bool	validateHttpDirective(Directive* node)
 {
 	return (validateBlockDirective(node));
 }
 
-bool	validateServerDirective(const Directive* node)
+bool	validateServerDirective(Directive* node)
 {
 	return (validateBlockDirective(node));
 }
 
-bool	validateLocationDirective(const Directive* node)
+bool	validateLocationDirective(Directive* node)
 {
 	return (validateBlockDirective(node));
 }
 
 //	----- GENERAL VALIDATION FUNCTIONS ------
 
-bool	validateDirective(const Directive* node)
+bool	validateDirective(Directive* node)
 {
 	std::map<std::string, DirectiveDefinition>::const_iterator	it = NGINX_DIRECTIVE_SPECS.find(node->getName());
 
@@ -116,7 +116,7 @@ bool	validateDirective(const Directive* node)
 	return (true);
 }
 
-bool	validateBlockDirective(const Directive* node)
+bool	validateBlockDirective(Directive* node)
 {
 	if (node->getChildren().empty())
 		throw ConfigError::validation("Directive '" + node->getName() + "' expected children directives but didn't have any", node);
@@ -132,9 +132,9 @@ bool	validateBlockDirective(const Directive* node)
 	return (true);
 }
 
-bool	validateContext(const Directive* node)
+bool	validateContext(Directive* node)
 {
-	for (const Directive* currentChild : node->getChildren())
+	for (Directive* currentChild : node->getChildren())
 	{
 		// Look up the child directive in specs
 		std::map<std::string, DirectiveDefinition>::const_iterator it =
@@ -161,7 +161,7 @@ bool	validateContext(const Directive* node)
 	return (true);
 }
 
-bool	validateRequiredChildren(const Directive* node)
+bool	validateRequiredChildren(Directive* node)
 {
 	// Find the directive specification
 	std::map<std::string, DirectiveDefinition>::const_iterator it = NGINX_DIRECTIVE_SPECS.find(node->getName());
@@ -175,7 +175,7 @@ bool	validateRequiredChildren(const Directive* node)
 	{
 		bool found = false;
 		bool valid = false;
-		for (const Directive* child : node->getChildren())
+		for (Directive* child : node->getChildren())
 		{
 			if (child->getName() == requiredChild)
 			{

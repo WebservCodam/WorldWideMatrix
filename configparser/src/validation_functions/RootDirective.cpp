@@ -1,7 +1,7 @@
 #include "../../include/Configuration.hpp"
 
 //	Default root would be the root at the http block. (To do after validation)
-bool	validateRootDirective(const Directive* node)
+bool	validateRootDirective(Directive* node)
 {
 	// If quoted it's because it may contain a space. But same rules apply:
 	// If a variable is inside quotes it doesn't expand, otherwise it does.

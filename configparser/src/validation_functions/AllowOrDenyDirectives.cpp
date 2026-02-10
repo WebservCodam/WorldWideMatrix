@@ -1,6 +1,6 @@
 #include "../../include/Configuration.hpp"
 
-bool	validateAllowOrDenyDirective(const Directive* node)
+bool	validateAllowOrDenyDirective(Directive* node)
 {
 	const std::string&	address = node->getParameters().at(0);
 	size_t				cidrPos = 0;

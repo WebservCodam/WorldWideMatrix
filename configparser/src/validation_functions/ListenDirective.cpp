@@ -1,6 +1,6 @@
 #include "../../include/Configuration.hpp"
 
-bool	validateListenDirective(const Directive* node)
+bool	validateListenDirective(Directive* node)
 {
 
 	std::cout << "DEBUG: In validateListenDirective" << std::endl;
