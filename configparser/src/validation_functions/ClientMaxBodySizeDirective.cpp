@@ -9,7 +9,7 @@ bool	validateClientMaxBodySizeDirective(Directive* node)
 
 	// The default max size could be 2MB, and then perhaps a single location /uploads/largefileupload could handle a bigger client_max_body_size.
 
-	std::cout << "DEBUG in clientMaxBodySize - Param: " << node->getParameter(0) << std::endl;
+	// std::cout << "DEBUG in clientMaxBodySize - Param: " << node->getParameter(0) << std::endl;
 
 	const long	DEFAULT_SIZE = 2000000;
 
@@ -66,7 +66,7 @@ bool	validateClientMaxBodySizeDirective(Directive* node)
 			node->setParameter(0, std::to_string(size));
 		}
 
-		std::cout << "DEBUG in clientMaxBodySize - Param: " << node->getParameter(0) << std::endl;
+		// std::cout << "DEBUG in clientMaxBodySize - Param: " << node->getParameter(0) << std::endl;
 		
 		if (size <= DEFAULT_SIZE)
 			return (true);
