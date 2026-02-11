@@ -37,7 +37,8 @@ bool	validateClientMaxBodySizeDirective(Directive* node)
 		}
 
 		// Check if the string is purely a number.
-		if (std::to_string(size).length() == param.length())
+		int	num_len = std::to_string(size).length();
+		if (num_len == param.length())
 		{
 			if (size < DEFAULT_SIZE)
 				return (true);
@@ -48,37 +49,31 @@ bool	validateClientMaxBodySizeDirective(Directive* node)
 		// Check if the ending is a valid.
 		std::string	ending = param.substr(param.size() - 2);
 		char		lastChar = param.back();
-		if (ending == "kb" || ending == "KB")
+		if (((ending == "kb" || ending == "KB") && num_len == param.length() - 2)
+			|| ((lastChar == 'k' || lastChar == 'K') && num_len == param.length() - 1))
 		{
 			size *= 1000;
 			node->setParameter(0, std::to_string(size));
 		}
-		else if (ending == "mb" || ending == "MB")
+		else if (((ending == "mb" || ending == "MB") && num_len == param.length() - 2)
+				|| ((lastChar == 'm' || lastChar == 'M') && num_len == param.length() - 1))
 		{
 			size *= 1000000;
 			node->setParameter(0, std::to_string(size));
 		}
-		else if (lastChar == 'b' || lastChar == 'B' )
+		else if ((lastChar == 'b' || lastChar == 'B') && num_len == param.length() - 1)
 		{
-			node->setParameter(0, std::to_string(size));
-		}
-		else if (lastChar == 'k' || lastChar == 'K' )
-		{
-			size *= 1000;
-			node->setParameter(0, std::to_string(size));
-		}
-		else if (lastChar == 'm' || lastChar == 'M' )
-		{
-			size *= 1000000;
 			node->setParameter(0, std::to_string(size));
 		}
 
 		std::cout << "DEBUG in clientMaxBodySize - Param: " << node->getParameter(0) << std::endl;
 		
-		if (size < DEFAULT_SIZE)
+		if (size <= DEFAULT_SIZE)
 			return (true);
 		else
-			throw ConfigError::validation("Directive '" + node->getName() + "' exceeds the allowed limit.", node);
+			throw ConfigError::validation("Directive '" + node->getName() + "' exceeds the allowed limit.\n"
+										+ "The limit is: " + std::to_string(DEFAULT_SIZE) + " and the parameter value is: "
+										+ node->getParameter(0), node);
 	}
 	catch(const ConfigError&)
 	{

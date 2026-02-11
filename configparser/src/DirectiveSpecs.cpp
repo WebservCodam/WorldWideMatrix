@@ -77,8 +77,8 @@ bool	validateLocationDirective(Directive* node)
 
 bool	validateDirective(Directive* node)
 {
+	// Check that the directive name is valid
 	std::map<std::string, DirectiveDefinition>::const_iterator	it = NGINX_DIRECTIVE_SPECS.find(node->getName());
-
 	if (it == NGINX_DIRECTIVE_SPECS.end())
 		throw ConfigError::validation("Unknown directive '" + node->getName() + "'", node);
 
@@ -92,28 +92,25 @@ bool	validateDirective(Directive* node)
 	if (node->getParameters().size() < spec.minArgs || node->getParameters().size() > spec.maxArgs)
 	{
 
-		std::cout << "DEBUG in validateDirective - The parameters are: " << std::endl;
+		// std::cout << "DEBUG in validateDirective - The parameters are: " << std::endl;
 
-		for (int i = 0; i < node->getParameters().size(); i++)
-		{
-			std::cout << "DEBUG: " << node->getParameter(i) << std::endl;
-		}
+		// for (int i = 0; i < node->getParameters().size(); i++)
+		// {
+		// 	std::cout << "DEBUG: " << node->getParameter(i) << std::endl;
+		// }
 
 		throw ConfigError::validation("Invalid parameter count for '" + node->getName() + "': expected min:"
 									+ std::to_string(spec.minArgs) + " & max: " + std::to_string(spec.maxArgs)
 									+ ", got " + std::to_string(node->getParameters().size()), node);
-		// return (false);
 	}
 
 	// Call specific validation function if it exists
 	if (spec.validateArgs && !spec.validateArgs(node))
 	{
 		throw ConfigError::validation("Invalid parameter value(s) for '" + node->getName() + "'", node);
-		// return (false);
 	}
 
-	// If no specific validation, basic checks passed
-	return (true);
+	return (true); // If it's in a try-catch block, then no boolean should be returned.
 }
 
 bool	validateBlockDirective(Directive* node)
