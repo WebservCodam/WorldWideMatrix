@@ -1,0 +1,4 @@
+Configuration is valid!
+Servers created
+server1
+Runtime error: Server socket bind failed
