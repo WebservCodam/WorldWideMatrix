@@ -325,7 +325,7 @@ class	ServerConfig
 {
 	private:
 		std::string						_serverName;
-		std::vector<ListenDirective>	_listenDirectives;
+		std::vector<ListenDirective>	_listenDirectives; // This should be a single object.
 		size_t							_maxBodySize;
 		std::map<int, std::string>		_errors;	//	The idea is that different error codes can return the same error. But this might overcomplicate things.
 		std::vector<Location>			_locations;

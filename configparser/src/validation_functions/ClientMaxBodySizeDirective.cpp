@@ -49,13 +49,13 @@ bool	validateClientMaxBodySizeDirective(Directive* node)
 		// Check if the ending is a valid.
 		std::string	ending = param.substr(param.size() - 2);
 		char		lastChar = param.back();
-		if (((ending == "kb" || ending == "KB") && num_len == param.length() - 2)
+		if (((ending == "kb" || ending == "KB" || ending == "Kb") && num_len == param.length() - 2)
 			|| ((lastChar == 'k' || lastChar == 'K') && num_len == param.length() - 1))
 		{
 			size *= 1000;
 			node->setParameter(0, std::to_string(size));
 		}
-		else if (((ending == "mb" || ending == "MB") && num_len == param.length() - 2)
+		else if (((ending == "mb" || ending == "MB" || ending == "Mb") && num_len == param.length() - 2)
 				|| ((lastChar == 'm' || lastChar == 'M') && num_len == param.length() - 1))
 		{
 			size *= 1000000;
