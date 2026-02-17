@@ -49,8 +49,9 @@ ServerConfig::ServerConfig(const std::string& serverName,
 				const std::vector<ListenDirective>	listenDirectives,
 				size_t maxBodySize,
 				const std::map<int, std::string>& errors,
-				const std::vector<Location>& locations)
-	: _serverName(serverName), _listenDirectives(listenDirectives), _maxBodySize(maxBodySize), _errors(errors), _locations(locations)
+				const std::vector<Location>& locations,
+				int keepalive_timeout)
+	: _serverName(serverName), _listenDirectives(listenDirectives), _maxBodySize(maxBodySize), _errors(errors), _locations(locations), _keepalive_timeout(keepalive_timeout)
 {
 }
 
@@ -77,4 +78,9 @@ const std::map<int, std::string>&	ServerConfig::getErrors() const
 const std::vector<Location>&	ServerConfig::getLocations() const
 {
 	return (this->_locations);
+}
+
+int	ServerConfig::getKeepaliveTimeout() const
+{
+	return (this->_keepalive_timeout);
 }

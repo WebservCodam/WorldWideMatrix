@@ -67,6 +67,7 @@ std::vector<ServerConfig>	ConfigFile::createServers()
 		unsigned long long					maxBodySize;
 		std::map<int, std::string>			errors;
 		std::vector<Location>				locations;
+		int									keepalive_timeout;
 
 		std::vector<Directive*> serverChildren = serverDirective->getChildren();
 
@@ -86,9 +87,11 @@ std::vector<ServerConfig>	ConfigFile::createServers()
 				processErrorPage(directive, errors);
 			else if (directive->getName() == "location")
 				locations.push_back(processLocation(directive));
+			else if (directive->getName() == "keepalive_timeout")
+				processKeepaliveTimeout(directive, keepalive_timeout);
 		}
 
-		ServerConfig server(serverName, listenDirectives, maxBodySize, errors, locations);
+		ServerConfig server(serverName, listenDirectives, maxBodySize, errors, locations, keepalive_timeout);
 		this->_servers.push_back(server);
 	}
 
@@ -221,6 +224,20 @@ Location	ConfigFile::processLocation(Directive* directive)
 	}
 
 	return Location(path, root, index, autoindex, getMethod, postMethod, deleteMethod);
+}
+
+void	ConfigFile::processKeepaliveTimeout(Directive* directive, int& keepalive_timeout)
+{
+	if (directive && !directive->getParameters().empty())
+	{
+		std::string sizeStr = directive->getParameter(0);
+		try {
+			keepalive_timeout = std::stoi(sizeStr);
+		} catch (const std::exception&) {
+			keepalive_timeout = 30; // Defaults to 30
+		}
+	}
+
 }
 
 // ----- DIRECTIVE CLASS -----

@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/01/30 16:22:17 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/02/17 14:44:57 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,6 @@ int main(int argc, char** argv)
 		
 		exit(0);
 	}
-	
 }
 
 // void	start_server(int server_fd, int epfd)

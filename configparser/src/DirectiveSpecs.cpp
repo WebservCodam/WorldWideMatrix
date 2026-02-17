@@ -47,7 +47,8 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 
 	//	=== Methods/Limits	===
 	{"methods", DirectiveDefinition{"methods", false, 1, 4, {"location"}, {}, validateMethodsDirective}},
-	{"client_max_body_size", DirectiveDefinition{"client_max_body_size", false, 1, 1, {"http", "server", "location"}, {}, validateClientMaxBodySizeDirective}}
+	{"client_max_body_size", DirectiveDefinition{"client_max_body_size", false, 1, 1, {"http", "server", "location"}, {}, validateClientMaxBodySizeDirective}},
+	{"keepalive_timeout", DirectiveDefinition{"keepalive_timeout", false, 1, 1, {"http", "server"}, {}, validateKeepaliveTimeoutDirective}}
 };
 
 /**

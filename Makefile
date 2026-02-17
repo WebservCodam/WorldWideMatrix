@@ -23,6 +23,7 @@ SRC			=		Client.cpp\
 					$(VALIDATION_SRC)/ClientMaxBodySizeDirective.cpp \
 					$(VALIDATION_SRC)/ErrorPageDirective.cpp \
 					$(VALIDATION_SRC)/IndexDirective.cpp \
+					$(VALIDATION_SRC)/KeepaliveTimeout.cpp \
 					$(VALIDATION_SRC)/ListenDirective.cpp \
 					$(VALIDATION_SRC)/MethodsDirective.cpp \
 					$(VALIDATION_SRC)/ReturnDirective.cpp \

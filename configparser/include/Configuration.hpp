@@ -138,6 +138,7 @@ class	ConfigFile
 		void		processClientMaxBodySize(const Directive* directive, unsigned long long& maxBodySize);
 		void		processErrorPage(const Directive* directive, std::map<int, std::string>& errors);
 		Location	processLocation(Directive* directive);
+		void		processKeepaliveTimeout(Directive* directive, int& keepalive_timeout);
 
 	public:
 		// Query methods
@@ -168,6 +169,7 @@ bool	validateReturnDirective(Directive* node);
 bool	validateMethodsDirective(Directive* node);
 bool	validateClientMaxBodySizeDirective(Directive* node);
 bool	validateAllowOrDenyDirective(Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
+bool	validateKeepaliveTimeoutDirective(Directive* node);
 
 std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address);
 bool 								isByte(std::string &number);
@@ -328,10 +330,11 @@ class	ServerConfig
 		unsigned long long				_maxBodySize;
 		std::map<int, std::string>		_errors;	//	The idea is that different error codes can return the same error. But this might overcomplicate things.
 		std::vector<Location>			_locations;
+		int								_keepalive_timeout;
 
 	public:
 		ServerConfig() = delete;
-		ServerConfig(const std::string& serverName, const std::vector<ListenDirective>	listenDirectives, size_t maxBodySize, const std::map<int, std::string>& errors, const std::vector<Location>& locations);
+		ServerConfig(const std::string& serverName, const std::vector<ListenDirective>	listenDirectives, size_t maxBodySize, const std::map<int, std::string>& errors, const std::vector<Location>& locations, int keepalive_timeout);
 		~ServerConfig() = default;
 
 		const std::string&						getServerName() const;
@@ -339,4 +342,5 @@ class	ServerConfig
 		unsigned long long						getMaxBodySize() const;
 		const std::map<int, std::string>&		getErrors() const;
 		const std::vector<Location>&			getLocations() const;
+		int										getKeepaliveTimeout() const;
 };
