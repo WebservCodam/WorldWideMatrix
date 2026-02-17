@@ -1,4 +1,0 @@
-DELETE /remove/item123 HTTP/1.1
-Ho:st: api.service.com
-Connection: close
-
