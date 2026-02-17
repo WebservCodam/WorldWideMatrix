@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/02/17 13:09:29 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/02/17 14:05:44 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -239,6 +239,7 @@ void Server::print_buffers()
 	}
 }
 
+// 
 void Server::parse(int client_fd)
 {
 	HttpParser parser;

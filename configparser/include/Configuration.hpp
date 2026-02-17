@@ -135,7 +135,7 @@ class	ConfigFile
 		// Helper functions for processing server directives
 		void		processServerName(const Directive* directive, std::string& serverName);
 		void		processListen(const Directive* directive, std::vector<ListenDirective>& listenDirectives);
-		void		processClientMaxBodySize(const Directive* directive, size_t& maxBodySize);
+		void		processClientMaxBodySize(const Directive* directive, unsigned long long& maxBodySize);
 		void		processErrorPage(const Directive* directive, std::map<int, std::string>& errors);
 		Location	processLocation(Directive* directive);
 
@@ -325,7 +325,7 @@ class	ServerConfig
 	private:
 		std::string						_serverName;
 		std::vector<ListenDirective>	_listenDirectives; // This should be a single object.
-		size_t							_maxBodySize;
+		unsigned long long				_maxBodySize;
 		std::map<int, std::string>		_errors;	//	The idea is that different error codes can return the same error. But this might overcomplicate things.
 		std::vector<Location>			_locations;
 

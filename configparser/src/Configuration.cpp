@@ -64,7 +64,7 @@ std::vector<ServerConfig>	ConfigFile::createServers()
 
 		std::string							serverName = "default_server";
 		std::vector<ListenDirective>		listenDirectives;	//The structure already defaults to 0.0.0.0:8080
-		size_t								maxBodySize = 1048576;
+		unsigned long long					maxBodySize;
 		std::map<int, std::string>			errors;
 		std::vector<Location>				locations;
 
@@ -122,7 +122,7 @@ void	ConfigFile::processListen(const Directive* directive, std::vector<ListenDir
 	}
 }
 
-void	ConfigFile::processClientMaxBodySize(const Directive* directive, size_t& maxBodySize)
+void	ConfigFile::processClientMaxBodySize(const Directive* directive, unsigned long long& maxBodySize)
 {
 	if (directive && !directive->getParameters().empty())
 	{
@@ -130,7 +130,7 @@ void	ConfigFile::processClientMaxBodySize(const Directive* directive, size_t& ma
 		try {
 			maxBodySize = std::stoull(sizeStr);
 		} catch (const std::exception&) {
-			maxBodySize = 1048576;
+			maxBodySize = 2000000; // Defaults to 2MB
 		}
 	}
 }
