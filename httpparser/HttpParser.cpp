@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   HttpParser.cpp                                     :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/25 15:36:17 by rkaras            #+#    #+#             */
-/*   Updated: 2025/11/21 11:31:24 by vknape           ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   HttpParser.cpp                                     :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vknape <vknape@student.codam.nl>             +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/09/25 15:36:17 by rkaras        #+#    #+#                 */
+/*   Updated: 2026/02/17 17:03:48 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 		if (line.empty())
 			break ;
 		if (line[0] == ' ' || line[0] == '\t')
-			throw std::runtime_error("Malformed header: leading whitespace");
+			throw HttpException(400, "Malformed header: leading whitespace");
 		parseHeaderLine(line, ctx.request);
 	}
 
@@ -58,12 +58,12 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 		return (parseChunkedBody(ctx, bodyStart));
 	else if (hasContentLength)
 	{
-		size_t expectedBody = bodyLength(ctx.request);
+		size_t expectedBody = bodyLength(ctx.request, ctx.maxBodySize);
 		if (availableBody < expectedBody)
 			return ParseStatus::INCOMPLETE;
 
 		if (availableBody > expectedBody)
-			throw std::runtime_error("Body size exceeds Content-Length");
+			throw HttpException(400, "Body larger than Content-Length");
 			
 		ctx.request.body = ctx.buffer.substr(bodyStart, expectedBody);
 		ctx.buffer.erase(0, bodyStart + expectedBody);
@@ -84,31 +84,43 @@ ParseStatus HttpParser::initParser(Client &client)
 {
 	ConnectionContext ctx;
 	ctx.buffer = client._buf;
-	
-	ParseStatus status = parseRequest(ctx);
-	
-	if (status == ParseStatus::COMPLETE)
-	{		
-		std::map<std::string, std::string>::iterator it = ctx.request.headers.find("connection");
-		if (it != ctx.request.headers.end())
-		{
-			std::string value = it->second;
-			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
-			if (value == "keep-alive")
-				client._alive = true;
-		}
-		else
-			client._alive = false;
-			
-		client._buf.clear();
+	ctx.maxBodySize = client._maxBodySize;
 
+	Responder responder;
+	
+	try
+	{
+		ParseStatus status = parseRequest(ctx);
+		
+		if (status == ParseStatus::COMPLETE)
+		{		
+			std::map<std::string, std::string>::iterator it = ctx.request.headers.find("connection");
+			if (it != ctx.request.headers.end())
+			{
+				std::string value = it->second;
+				std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+				if (value == "keep-alive")
+					client._alive = true;
+			}
+			else
+				client._alive = false;
+
+				
+			client.response = responder.buildResponse(ctx.request, client._alive);
+			client._buf.clear();
+
+			
+		}
+		else if (status == ParseStatus::ERROR)
+		{
+			client._alive = false;
+			client._buf.clear();
+		}
+
+		return (status);
+	}
+	catch (HttpException &e)
+	{
 		
 	}
-	else if (status == ParseStatus::ERROR)
-	{
-		client._alive = false;
-		client._buf.clear();
-	}
-
-	return (status);
 }
