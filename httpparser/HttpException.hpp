@@ -1,35 +1,38 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   Responder.hpp                                      :+:    :+:            */
+/*   HttpException.hpp                                  :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
-/*   Created: 2025/10/31 15:37:05 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/17 16:47:37 by rkaras        ########   odam.nl         */
+/*   Created: 2026/02/17 15:55:14 by rkaras        #+#    #+#                 */
+/*   Updated: 2026/02/17 16:02:22 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef RESPONDER_H
-#define RESPONDER_H
+#ifndef HTTPEXCEPTION_H
+#define HTTPEXCEPTION_H
 
 #pragma once
-
+#include <exception>
 #include <string>
-#include <sstream>
-#include <fstream>
-#include "../httpparser/HttpParser.hpp"
 
-class Responder
+
+class HttpException
 {
 	private:
-		std::string handleGet(const HttpRequest &req, bool keepAlive);
-		std::string statusText(int status);
+		int			_status;
+		std::string	_message;
+	
+		public:
+		HttpException(int status, const std::string &message);
 		
-	public:
-		std::string buildResponse(const HttpRequest &req, bool keepAlive);
-		std::string buildErrorResponse(int status, bool keepAlive);
-		
+		int getStatus() const;
+
+		const char * what() const throw()
+		{
+			return _message.c_str();
+		}
 };
 
-#endif /* !RESPONDER_H */
+#endif /* !HTTPEXCEPTION_H */

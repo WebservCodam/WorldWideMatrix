@@ -1,13 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   Responder.cpp                                      :+:    :+:            */
+/*   HttpException.cpp                                  :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
-/*   Created: 2025/10/31 15:36:59 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/17 16:48:03 by rkaras        ########   odam.nl         */
+/*   Created: 2026/02/17 15:59:44 by rkaras        #+#    #+#                 */
+/*   Updated: 2026/02/17 16:01:38 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Responder.hpp"
+#include "HttpException.hpp"
+
+HttpException::HttpException(int status, const std::string &message) : _status(status), _message(message) {}
+
+int HttpException::getStatus() const
+{
+	return _status;
+}
+
