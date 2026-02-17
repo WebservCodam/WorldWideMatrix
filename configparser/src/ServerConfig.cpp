@@ -64,7 +64,7 @@ const std::vector<ListenDirective>&	ServerConfig::getListenDirectives() const
 	return (this->_listenDirectives);
 }
 
-size_t	ServerConfig::getMaxBodySize() const
+unsigned long long	ServerConfig::getMaxBodySize() const
 {
 	return (this->_maxBodySize);
 }

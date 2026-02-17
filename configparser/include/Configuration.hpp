@@ -336,7 +336,7 @@ class	ServerConfig
 
 		const std::string&						getServerName() const;
 		const std::vector<ListenDirective>&		getListenDirectives() const;	// Create function to get a port from an address and viceversa
-		size_t									getMaxBodySize() const;
+		unsigned long long						getMaxBodySize() const;
 		const std::map<int, std::string>&		getErrors() const;
 		const std::vector<Location>&			getLocations() const;
 };

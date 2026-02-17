@@ -170,12 +170,12 @@ bool	Parser::validateSemantics()
 {
 	std::vector<std::unique_ptr<Directive>>&	directives = _configFile->getDirectives();
 
-	std::cout << "DEBUG: In validateSemantics" << std::endl;
+	// std::cout << "DEBUG: In validateSemantics" << std::endl;
 
 	for (std::unique_ptr<Directive>& directive : directives)
 	{
 
-		std::cout << "DEBUG: directive name: " << directive.get()->getName() << std::endl;
+		// std::cout << "DEBUG: directive name: " << directive.get()->getName() << std::endl;
 
 		if (!validateDirective(directive.get()))
 		{
