@@ -1,4 +1,4 @@
-#include "../../include/Configuration.hpp"
+#include "../include/Configuration.hpp"
 
 Lexer::Lexer(const std::string& input)
 {
@@ -14,21 +14,21 @@ Lexer::~Lexer()
 // 	return (this->_tokens);
 // }
 
-std::string	Lexer::consumeNumber(const std::string& input, size_t& pos)
-{
-	std::string	number;
+// std::string	Lexer::consumeNumber(const std::string& input, size_t& pos)
+// {
+// 	std::string	number;
 
-	while (pos < input.length() && isdigit(input[pos]))
-	{
-		number += input[pos];
-		pos++;
-	}
-	return (number);
-}
+// 	while (pos < input.length() && std::isdigit(input[pos]))
+// 	{
+// 		number += input[pos];
+// 		pos++;
+// 	}
+// 	return (number);
+// }
 
 bool	Lexer::isValidWordChar(char c)
 {
-	if (isspace(c) || c == '{' || c == '}' || c == ';'|| c == ',' || c == '#')
+	if (std::isspace(c) || c == '{' || c == '}' || c == ';'|| c == ',' || c == '#')
 		return (false);
 	return (true);
 }
@@ -132,15 +132,15 @@ std::vector<Token>	Lexer::tokenize()
 			continue ;
 		}
 
-		//	--- Rule 4: Handle Numbers
-		else if (isdigit(current_char))
-		{
-			std::string	numberValue = consumeNumber(_input, pos);
-			// addToken(NUMBER, numberValue);
-			_tokens.push_back({NUMBER, numberValue, _line_num, _col_num});
-			_col_num += numberValue.length();
-			continue ;
-		}
+		//	--- Rule 4: Handle Numbers	// It's messing with the addresses
+		// else if (isdigit(current_char))
+		// {
+		// 	std::string	numberValue = consumeNumber(_input, pos);
+		// 	// addToken(NUMBER, numberValue);
+		// 	_tokens.push_back({NUMBER, numberValue, _line_num, _col_num});
+		// 	_col_num += numberValue.length();
+		// 	continue ;
+		// }
 
 		//	--- Rule 5: Handle Words
 		else if (isValidWordChar(current_char))

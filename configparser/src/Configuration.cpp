@@ -1,4 +1,4 @@
-#include "../../include/Configuration.hpp"
+#include "../include/Configuration.hpp"
 
 ConfigFile::ConfigFile(std::vector<std::unique_ptr<Directive>> directives) : _directives(std::move(directives)) {}
 
@@ -12,9 +12,9 @@ const Directive*	ConfigFile::findDirective(const std::string& name) const
 	return (nullptr);
 }
 
-std::vector<const Directive*>	ConfigFile::findAllDirectives(const std::string& name) const
+std::vector<Directive*>	ConfigFile::findAllDirectives(const std::string& name) const
 {
-	std::vector<const Directive*>	result;
+	std::vector<Directive*>	result;
 
     for (size_t i = 0; i < this->_directives.size(); ++i)
     {
@@ -29,7 +29,7 @@ std::vector<const Directive*>	ConfigFile::findAllDirectives(const std::string& n
     return (result);
 }
 
-const std::vector<std::unique_ptr<Directive>>&	ConfigFile::getDirectives() const
+std::vector<std::unique_ptr<Directive>>&	ConfigFile::getDirectives()
 {
 	return (this->_directives);
 }
@@ -51,9 +51,9 @@ const ServerConfig&	ConfigFile::getServer(const std::string& serverName)
 
 std::vector<ServerConfig>	ConfigFile::createServers()
 {
-	std::vector<const Directive*> serverDirectives = this->findAllDirectives("server");
+	std::vector<Directive*> serverDirectives = this->findAllDirectives("server");
 
-	for (const Directive* serverDirective : serverDirectives)
+	for (Directive* serverDirective : serverDirectives)
 	{
 		if (!serverDirective) {
 			continue;
@@ -68,9 +68,9 @@ std::vector<ServerConfig>	ConfigFile::createServers()
 		std::map<int, std::string>			errors;
 		std::vector<Location>				locations;
 
-		std::vector<const Directive*> serverChildren = serverDirective->getChildren();
+		std::vector<Directive*> serverChildren = serverDirective->getChildren();
 
-		for (const Directive* directive : serverChildren)
+		for (Directive* directive : serverChildren)
 		{
 			if (!directive) {
 				continue;
@@ -153,7 +153,7 @@ void	ConfigFile::processErrorPage(const Directive* directive, std::map<int, std:
 	}
 }
 
-Location	ConfigFile::processLocation(const Directive* directive)
+Location	ConfigFile::processLocation(Directive* directive)
 {
 	if (!directive || directive->getParameters().empty())
 		return Location("/");
@@ -166,9 +166,9 @@ Location	ConfigFile::processLocation(const Directive* directive)
 	bool			postMethod = false;
 	bool			deleteMethod = false;
 
-	std::vector<const Directive*> locationChildren = directive->getChildren();
+	std::vector<Directive*> locationChildren = directive->getChildren();
 
-	for (const Directive* locationDirective : locationChildren)
+	for (Directive* locationDirective : locationChildren)
 	{
 		if (!locationDirective)
 			continue ;
@@ -191,9 +191,9 @@ Location	ConfigFile::processLocation(const Directive* directive)
 				autoindex = (autoindexParam == "on" || autoindexParam == "true");
 			}
 		}
-		else if (locationDirective->getName() == "allow_methods")
+		else if (locationDirective->getName() == "methods")
 		{
-			// std::cout << "DEBUG: enters elseif statement 'allow_methods'" << std::endl;
+			// std::cout << "DEBUG: enters elseif statement 'methods'" << std::endl;
 			getMethod = false;
 			postMethod = false;
 			deleteMethod = false;
@@ -223,7 +223,7 @@ Location	ConfigFile::processLocation(const Directive* directive)
 	return Location(path, root, index, autoindex, getMethod, postMethod, deleteMethod);
 }
 
-// --- DIRECTIVE CLASS ---
+// ----- DIRECTIVE CLASS -----
 
 Directive::Directive(
     size_t line,
@@ -240,7 +240,7 @@ Directive::Directive(
       _children(std::move(children))
 {}
 
-// Getters
+// ----- GETTERS ------
 
 size_t	Directive::getLine() const
 {
@@ -275,7 +275,7 @@ const std::vector<std::string>&	Directive::getParameters() const
 	return (this->_parameters);
 }
 
-const Directive*	Directive::getChild(size_t i) const
+Directive*	Directive::getChild(size_t i)
 {
 	if (i < 0 || i >= _children.size())
 		return (nullptr); // Throw exception
@@ -283,9 +283,9 @@ const Directive*	Directive::getChild(size_t i) const
 	return (_children[i].get());
 }
 
-std::vector<const Directive*>	Directive::getChildren() const
+std::vector<Directive*>	Directive::getChildren()
 {
-	std::vector<const Directive*>	result;
+	std::vector<Directive*>	result;
 
 	result.reserve(_children.size());
 	for (const std::unique_ptr<Directive>& child : _children)
@@ -295,31 +295,37 @@ std::vector<const Directive*>	Directive::getChildren() const
 	return (result);
 }
 
-// Setters
+// ----- SETTERS -----
 
-void Directive::setLine(size_t line)
+void	Directive::setLine(size_t line)
 {
 	this->_line = line;
 }
 
-void Directive::setColumn(size_t column)
+void	Directive::setColumn(size_t column)
 {
 	this->_column = column;
 }
-void Directive::setName(const std::string& name)
+void	Directive::setName(const std::string& name)
 {
 	this->_name = name;
 }
-void Directive::setContext(const std::string& context)
+void	Directive::setContext(const std::string& context)
 {
 	this->_context = context;
 }
-void Directive::setParameters(const std::vector<std::string>& parameters)
+
+void	Directive::setParameter(int index, const std::string& new_parameter)
+{
+	this->_parameters.at(index) = new_parameter;
+}
+
+void	Directive::setParameters(const std::vector<std::string>& parameters)
 {
 	this->_parameters = parameters;
 }
 
-void Directive::addChild(std::unique_ptr<Directive> child)
+void	Directive::addChild(std::unique_ptr<Directive> child)
 {
 	this->_children.push_back(std::move(child));
 }

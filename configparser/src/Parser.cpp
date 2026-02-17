@@ -1,4 +1,4 @@
-#include "../../include/Configuration.hpp"
+#include "../include/Configuration.hpp"
 
 // Very basic for now.
 Parser::Parser(const std::string& input) : _input(input), _currentIndex(0) {}
@@ -41,7 +41,6 @@ void	Parser::expectToken(TokenType type, const std::string& errorMessage)
 
 std::unique_ptr<ConfigFile>	Parser::parse()
 {
-	std::unique_ptr<ConfigFile>				config;
 	std::vector<std::unique_ptr<Directive>>	directives;
 
 	this->_tokens = Lexer(_input).tokenize();
@@ -66,8 +65,15 @@ std::unique_ptr<ConfigFile>	Parser::parse()
 		}
 	}
 
-	config = std::make_unique<ConfigFile>(std::move(directives));
-	return (config);
+	this->_configFile = std::make_unique<ConfigFile>(std::move(directives));
+
+	if (validateSemantics() == false)
+	{
+		std::cerr << "Parsing error: The directives have invalid semantics" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+	return (std::move(this->_configFile));
 }
 
 std::unique_ptr<Directive>	Parser::parseDirective()
@@ -149,13 +155,33 @@ std::vector<std::string>	Parser::parseParameters()
 	std::vector<std::string>	parameters;
 
 	while (currentToken().type == WORD
-		|| currentToken().type == NUMBER
 		|| currentToken().type == STRING
 		|| currentToken().type == COMMA)
 	{
+		// std::cout << "DEBUG in parseParameters - Current token is: " << currentToken().value << std::endl;
 		parameters.push_back(currentToken().value);
 		advance();
 	}
 
 	return (parameters);
+}
+
+bool	Parser::validateSemantics()
+{
+	std::vector<std::unique_ptr<Directive>>&	directives = _configFile->getDirectives();
+
+	std::cout << "DEBUG: In validateSemantics" << std::endl;
+
+	for (std::unique_ptr<Directive>& directive : directives)
+	{
+
+		std::cout << "DEBUG: directive name: " << directive.get()->getName() << std::endl;
+
+		if (!validateDirective(directive.get()))
+		{
+			std::cerr << "Directive failed validation: " << directive.get()->getName() << std::endl;
+			return (false);
+		}
+	}
+	return (true);
 }

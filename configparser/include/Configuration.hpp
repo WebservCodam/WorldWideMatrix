@@ -15,7 +15,6 @@
 enum	TokenType
 {
 	WORD,
-	NUMBER,
 	LBRACE,		// {
 	RBRACE,		// }
 	SEMICOLON,	// ;
@@ -66,7 +65,7 @@ struct	DirectiveDefinition
 	std::set<std::string>					validContexts;
 	std::set<std::string>					requiredChildren;
 
-	bool (*validateArgs)(const Directive*);
+	bool (*validateArgs)(Directive*);
 };
 
 // --- DIRECTIVE ---
@@ -100,16 +99,17 @@ class	Directive
 		const std::string&				getContext() const;
 		const std::string&				getParameter(size_t i) const;
 		const std::vector<std::string>&	getParameters() const;
-		const Directive*				getChild(size_t i) const;
-		std::vector<const Directive*>	getChildren() const;
+		Directive*						getChild(size_t i);
+		std::vector<Directive*>			getChildren();
 
 		// Setters
-		void setLine(size_t line);
-		void setColumn(size_t column);
-		void setName(const std::string& name);
-		void setContext(const std::string& context);
-		void setParameters(const std::vector<std::string>& parameters);
-		void addChild(std::unique_ptr<Directive> child);
+		void	setLine(size_t line);
+		void	setColumn(size_t column);
+		void	setName(const std::string& name);
+		void	setContext(const std::string& context);
+		void	setParameter(int index, const std::string& new_parameter);
+		void	setParameters(const std::vector<std::string>& parameters);
+		void	addChild(std::unique_ptr<Directive> child);
 };
 
 // --- CONFIG FILE ---
@@ -125,7 +125,7 @@ class	ConfigFile
 		ConfigFile(std::vector<std::unique_ptr<Directive>> directives);
 		~ConfigFile() = default;
 
-		const std::vector<std::unique_ptr<Directive>>&	getDirectives() const;
+		std::vector<std::unique_ptr<Directive>>&		getDirectives();	// Non-constant so validation can set defaults.
 		const std::vector<ServerConfig>&				getServers() const;
 		const ServerConfig&								getServer(const std::string& serverName);
 
@@ -137,38 +137,42 @@ class	ConfigFile
 		void		processListen(const Directive* directive, std::vector<ListenDirective>& listenDirectives);
 		void		processClientMaxBodySize(const Directive* directive, size_t& maxBodySize);
 		void		processErrorPage(const Directive* directive, std::map<int, std::string>& errors);
-		Location	processLocation(const Directive* directive);
+		Location	processLocation(Directive* directive);
 
 	public:
 		// Query methods
-		const Directive*				findDirective(const std::string& name) const;
-		std::vector<const Directive*>	findAllDirectives(const std::string& name) const;
+		const Directive*			findDirective(const std::string& name) const;
+		std::vector<Directive*>		findAllDirectives(const std::string& name) const;
 };
 
 // --- DIRECTIVE SPECS ---
 
-bool	validateHttpDirective(const Directive* node);
-bool	validateServerDirective(const Directive* node);
-bool	validateLocationDirective(const Directive* node);
-bool	validateListenDirective(const Directive* node);
-bool	validateRootDirective(const Directive* node);
-bool	validateIndexDirective(const Directive* node);
-bool	validateAutoIndexDirective(const Directive* node);
-bool	validateErrorPageDirective(const Directive* node);
-// bool	validateFastcgiPassDirective(const Directive* node);
-// bool	validateFastcgiParamDirective(const Directive* node);
-// bool	validateFastcgiIndexDirective(const Directive* node);
-bool	validateReturnDirective(const Directive* node);
-bool	validateAllowMethodsDirective(const Directive* node);
-bool	validateClientMaxBodySizeDirective(const Directive* node);
-bool	validateAllowOrDenyDirective(const Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
+bool	validateDirective(Directive* node);
+bool	validateBlockDirective(Directive* node);
+bool	validateContext(Directive* node);
+bool	validateRequiredChildren(Directive* node);
+
+
+bool	validateHttpDirective(Directive* node);
+bool	validateServerDirective(Directive* node);
+bool	validateLocationDirective(Directive* node);
+bool	validateListenDirective(Directive* node);
+bool	validateRootDirective(Directive* node);
+bool	validateIndexDirective(Directive* node);
+bool	validateAutoIndexDirective(Directive* node);
+bool	validateErrorPageDirective(Directive* node);
+// bool	validateFastcgiPassDirective(Directive* node);
+// bool	validateFastcgiParamDirective(Directive* node);
+// bool	validateFastcgiIndexDirective(Directive* node);
+bool	validateReturnDirective(Directive* node);
+bool	validateMethodsDirective(Directive* node);
+bool	validateClientMaxBodySizeDirective(Directive* node);
+bool	validateAllowOrDenyDirective(Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
 
 std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address);
 bool 								isByte(std::string &number);
 bool								validateAddress(const std::string& address);
 bool								validatePort(const std::string& port);
-bool								validateContext(const Directive* node);
-bool								validateRequiredChildren(const Directive* node);
 
 // --- CONFIG ERROR ---
 
@@ -232,9 +236,10 @@ class	Lexer
 class	Parser
 {
 	private:
-		std::string			_input;
-		std::vector<Token>	_tokens;
-		size_t				_currentIndex;
+		std::string					_input;
+		std::vector<Token>			_tokens;
+		size_t						_currentIndex;
+		std::unique_ptr<ConfigFile>	_configFile;
 
 		const Token&	currentToken() const;
 		void			advance();
@@ -248,6 +253,9 @@ class	Parser
 		std::unique_ptr<Directive>			parseBlockDirective();
 		std::vector<std::string>			parseParameters();
 
+		bool	validateSemantics();
+		// bool	validateDirective(Directive* node);
+
 	public:
 		Parser() = delete;
 		Parser(const std::string& input);
@@ -258,31 +266,31 @@ class	Parser
 
 // --- VALIDATOR --- 
 
-class	Validator
-{
-	private:
-		const ConfigFile*							_ConfigFile;
-		std::map<std::string, DirectiveDefinition>	_directiveSpecs;
+// class	Validator
+// {
+// 	private:
+// 		const ConfigFile*							_ConfigFile;
+// 		std::map<std::string, DirectiveDefinition>	_directiveSpecs;
 
-	public:
-		Validator() = delete;
-		Validator(const ConfigFile* configFile);
-		~Validator() = default;
+// 	public:
+// 		Validator() = delete;
+// 		Validator(const ConfigFile* configFile);
+// 		~Validator() = default;
 
-		bool	validate();
+// 		bool	validate();
 
-	private:
-		bool	validateDirective(const Directive* node);
-};
+// 	private:
+// 		bool	validateDirective(Directive* node);
+// };
 
 // --- SERVER CONFIG ---
 
 struct ListenDirective
 {
-	std::string	address;	// defaults to "0.0.0.0"
+	std::string	address;	// defaults to "127.0.0.1"
 	std::string	port;		// defaults to 8080
     
-	ListenDirective(const std::string& addr = "0.0.0.0", std::string p = "8080") : address(addr), port(p) {}
+	ListenDirective(const std::string& addr = "127.0.0.1", const std::string& p = "8080") : address(addr), port(p) {}
 };
 
 class	Location
@@ -316,7 +324,7 @@ class	ServerConfig
 {
 	private:
 		std::string						_serverName;
-		std::vector<ListenDirective>	_listenDirectives;
+		std::vector<ListenDirective>	_listenDirectives; // This should be a single object.
 		size_t							_maxBodySize;
 		std::map<int, std::string>		_errors;	//	The idea is that different error codes can return the same error. But this might overcomplicate things.
 		std::vector<Location>			_locations;

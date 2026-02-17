@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/01 10:59:15 by vknape            #+#    #+#             */
-/*   Updated: 2025/11/28 14:05:05 by vknape           ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Server.cpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vknape <vknape@student.codam.nl>             +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
+/*   Updated: 2026/02/17 13:09:29 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,12 +42,14 @@ void Server::add_servers_to_epoll(int server_fd)
 	if (epoll_ctl(epfd, EPOLL_CTL_ADD, server_fd, &event) == -1)
 		throw std::runtime_error("Server add to epoll failed");
 }
+
 void Server::start_server()
 {
-	Server server(epfd);
-	epoll_event events[1000];
-	int num_events = 0;
-	int connections = 0;
+	Server		server(epfd);
+	epoll_event	events[1000];
+	int			num_events = 0;
+	int			connections = 0;
+
 	while (true)
 	{
 		// printf("Connections made = %d\n", connections);
@@ -87,7 +89,7 @@ void Server::close_client(int fd)
 }
 void Server::add_fd_map(int client_fd)
 {
-	list.emplace(client_fd, client_fd);
+	list.emplace(client_fd, client_fd);	// Client fd as second argument?
 }
 
 void Server::connect_new(int server_fd)

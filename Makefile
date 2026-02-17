@@ -1,5 +1,6 @@
 NAME		=		webserver
-CONFIG_SRC = 		configparser/src/config
+CONFIG_SRC = 		configparser/src
+VALIDATION_SRC =	$(CONFIG_SRC)/validation_functions
 SRC			=		Client.cpp\
 					init.cpp\
 					main.cpp\
@@ -16,7 +17,17 @@ SRC			=		Client.cpp\
 					$(CONFIG_SRC)/Lexer.cpp \
 					$(CONFIG_SRC)/Parser.cpp \
 					$(CONFIG_SRC)/ServerConfig.cpp \
-					$(CONFIG_SRC)/Validator.cpp
+					$(VALIDATION_SRC)/AllowOrDenyDirectives.cpp \
+					$(VALIDATION_SRC)/AutoindexDirective.cpp \
+					$(VALIDATION_SRC)/CGIDirectives.cpp \
+					$(VALIDATION_SRC)/ClientMaxBodySizeDirective.cpp \
+					$(VALIDATION_SRC)/ErrorPageDirective.cpp \
+					$(VALIDATION_SRC)/IndexDirective.cpp \
+					$(VALIDATION_SRC)/ListenDirective.cpp \
+					$(VALIDATION_SRC)/MethodsDirective.cpp \
+					$(VALIDATION_SRC)/ReturnDirective.cpp \
+					$(VALIDATION_SRC)/RootDirective.cpp \
+					$(VALIDATION_SRC)/Utilities.cpp
 OBJ			=		$(SRC:.cpp=.o)
 CC			=		c++
 # FLAGS		=		-Wall -Wextra -Werror -g
