@@ -6,13 +6,13 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/31 12:41:30 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/17 16:16:27 by rkaras        ########   odam.nl         */
+/*   Updated: 2025/10/31 12:42:39 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpParser.hpp"
 
-size_t	HttpParser::bodyLength(const HttpRequest &req, const unsigned long long maxBodySize)
+size_t	HttpParser::bodyLength(const HttpRequest &req)
 {
 	std::map<std::string, std::string>::const_iterator it = req.headers.find("content-length");
 	if (it == req.headers.end())
@@ -20,19 +20,18 @@ size_t	HttpParser::bodyLength(const HttpRequest &req, const unsigned long long m
 
 	const std::string &value = it->second;
 	if (value.empty() || !std::all_of(value.begin(), value.end(), ::isdigit))
-		throw HttpException(400, "Invalid Content-Length: non-digit characters");
+		throw std::runtime_error("Invalid Content-Length: non-digit characters");
 	
 	unsigned long long len = 0;
 	try {
 		len = std::stoull(value);
 	} catch (const std::out_of_range &) {
-		throw HttpException(400, "Invalid Content-Length: overflow");
+		throw std::runtime_error("Invalid Content-Length: overflow");
 	} catch (...) {
-		throw HttpException(400, "Invalid Content-Length");
+		throw std::runtime_error("Invalid Content-Length");
 	}
 	
-	if (len > maxBodySize)
-		throw HttpException(413, "Payload too large");
+	// check here if len > max body size from config file
 	
 	return static_cast<size_t>(len);
 }
@@ -73,7 +72,7 @@ ParseStatus	HttpParser::parseChunkedBody(ConnectionContext &ctx, size_t bodyStar
 		try {
 			chunkSize = std::stoul(line, nullptr, 16);
 		} catch (...) {
-			throw HttpException(400, "Invalid chunk size");
+			throw std::runtime_error("Invalid chunk size");
 		}
 
 		// std::cout << "Chunk size (hex): " << line << " =>" << chunkSize << std::endl;
@@ -103,7 +102,7 @@ ParseStatus	HttpParser::parseChunkedBody(ConnectionContext &ctx, size_t bodyStar
 		std::cout << decoded << std::endl;
 
 		if (pos + 1 >= length || buffer[pos] != '\r' || buffer[pos + 1] != '\n')
-			throw HttpException(400, "Malformed chunked encoding");
+			throw std::runtime_error("Missing CRLF after chunk/data");
 		
 		pos += 2;
 

@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/31 12:40:10 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/17 16:10:32 by rkaras        ########   odam.nl         */
+/*   Updated: 2025/10/31 12:40:58 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,22 +25,22 @@ void	HttpParser::parseHeaderLine(const std::string &line, HttpRequest &req)
 {
 	size_t colon = line.find(':');
 	if (colon == std::string::npos)
-		throw HttpException(400, "Malformed header: missing ':'");
+		throw std::runtime_error("Malformed header: missing ':'");
 
 	std::string rawKey = line.substr(0, colon);
 	
 	if (!rawKey.empty() && (rawKey.back() == ' ' || rawKey.back() == '\t'))
-		throw HttpException(400, "Malformed header: whitespace before colon");
+		throw std::runtime_error("Malformed header: whitespace before colon not allowed");
 	
 	rawKey.erase(0, rawKey.find_first_not_of(" \t"));
 	
 	if (rawKey.empty())
-		throw HttpException(400, "Malformed header: empty field name");
+		throw std::runtime_error("Malformed header: empty field name");
 	
 	for (char c : rawKey)
 	{
 		if (!isTchar(c))
-			throw HttpException(400, "Malformed header: invalid field name");
+			throw std::runtime_error("Malformed header: invalid character in field name");
 	}
 	
 	for (char &c : rawKey)
