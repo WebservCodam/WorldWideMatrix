@@ -155,7 +155,6 @@ std::vector<std::string>	Parser::parseParameters()
 	std::vector<std::string>	parameters;
 
 	while (currentToken().type == WORD
-		|| currentToken().type == NUMBER
 		|| currentToken().type == STRING
 		|| currentToken().type == COMMA)
 	{

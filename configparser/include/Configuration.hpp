@@ -15,7 +15,6 @@
 enum	TokenType
 {
 	WORD,
-	NUMBER,
 	LBRACE,		// {
 	RBRACE,		// }
 	SEMICOLON,	// ;
@@ -288,10 +287,10 @@ class	Parser
 
 struct ListenDirective
 {
-	std::string	address;	// defaults to "0.0.0.0"
+	std::string	address;	// defaults to "127.0.0.1"
 	std::string	port;		// defaults to 8080
     
-	ListenDirective(const std::string& addr = "0.0.0.0", const std::string& p = "8080") : address(addr), port(p) {}
+	ListenDirective(const std::string& addr = "127.0.0.1", const std::string& p = "8080") : address(addr), port(p) {}
 };
 
 class	Location

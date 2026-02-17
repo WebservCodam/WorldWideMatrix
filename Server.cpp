@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/02/09 18:14:24 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/02/17 13:09:29 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ void Server::add_servers_to_epoll(int server_fd)
 	if (epoll_ctl(epfd, EPOLL_CTL_ADD, server_fd, &event) == -1)
 		throw std::runtime_error("Server add to epoll failed");
 }
+
 void Server::start_server()
 {
 	Server		server(epfd);

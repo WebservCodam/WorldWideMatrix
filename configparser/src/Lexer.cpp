@@ -14,17 +14,17 @@ Lexer::~Lexer()
 // 	return (this->_tokens);
 // }
 
-std::string	Lexer::consumeNumber(const std::string& input, size_t& pos)
-{
-	std::string	number;
+// std::string	Lexer::consumeNumber(const std::string& input, size_t& pos)
+// {
+// 	std::string	number;
 
-	while (pos < input.length() && std::isdigit(input[pos]))
-	{
-		number += input[pos];
-		pos++;
-	}
-	return (number);
-}
+// 	while (pos < input.length() && std::isdigit(input[pos]))
+// 	{
+// 		number += input[pos];
+// 		pos++;
+// 	}
+// 	return (number);
+// }
 
 bool	Lexer::isValidWordChar(char c)
 {
