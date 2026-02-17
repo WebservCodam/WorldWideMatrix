@@ -237,7 +237,6 @@ void	ConfigFile::processKeepaliveTimeout(Directive* directive, int& keepalive_ti
 			keepalive_timeout = 30; // Defaults to 30
 		}
 	}
-
 }
 
 // ----- DIRECTIVE CLASS -----
