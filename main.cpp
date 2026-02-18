@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/02/17 14:44:57 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/02/18 14:08:09 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,20 +18,19 @@
 
 // void	start_server(int server_fd, int epfd);
 
+void	printErrorAndExit(const std::string& msg, int errorCode)
+{
+	std::cerr << "Error: " + msg + "." << std::endl;
+	exit(errorCode);
+}
+
 void	initialize(int argc, char **argv, std::unique_ptr<ConfigFile>& ast)
 {
 	if (argc != 2)
-	{
-		std::cerr << "Error: Expecting an input file." << std::endl;
-		exit(EXIT_FAILURE);
-	}
+		printErrorAndExit("Expecting an input file", EXIT_FAILURE);
 
 	std::ifstream	file(argv[1]);
-	if (!file)
-	{
-		std::cerr << "Error: Could not open file" << std::endl;
-		exit(EXIT_FAILURE);
-	}
+		printErrorAndExit("Could not open file", EXIT_FAILURE);
 
 	std::stringstream	buffer;
 	buffer << file.rdbuf();
@@ -41,26 +40,21 @@ void	initialize(int argc, char **argv, std::unique_ptr<ConfigFile>& ast)
 	{
 		ast = Parser(input).parse();
 		if (!ast)
-		{
-			std::cerr << "Error: Failed to parse configuration" << std::endl;
-			exit(EXIT_FAILURE);
-		}
+			printErrorAndExit("Failed to parse configuration", EXIT_FAILURE);
 	}
 	catch (const ConfigError& e)
 	{
-		std::cerr << e.what() << std::endl;
-		exit(EXIT_FAILURE);
+		printErrorAndExit(e.what(), EXIT_FAILURE); // If parsing fails, it would come to this, not to the if condition above.
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << "Unexpected error: " << e.what() << std::endl;
-		exit(EXIT_FAILURE);
+		printErrorAndExit(std::string("Unexpected error: ") + e.what(), EXIT_FAILURE);
 	}
 
 	// Phase 4: Create servers
 	ast->createServers();
 
-	std::cout << "Servers created" << std::endl;
+	std::cout << "DEBUG: Servers created" << std::endl;
 }
 
 int main(int argc, char** argv)

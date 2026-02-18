@@ -26,6 +26,12 @@ Lexer::~Lexer()
 // 	return (number);
 // }
 
+void		Lexer::advancePosition(int len, size_t& pos)
+{
+	this->_col_num += len;
+	pos += len;
+}
+
 bool	Lexer::isValidWordChar(char c)
 {
 	if (std::isspace(c) || c == '{' || c == '}' || c == ';'|| c == ',' || c == '#')
@@ -40,7 +46,7 @@ std::string	Lexer::consumeWord(const std::string& input, size_t& pos)
 	while (pos < input.length() && isValidWordChar(input[pos]))
 	{
 		word += input[pos];
-		pos++;
+		advancePosition(1, pos);
 	}
 	return (word);
 }
@@ -51,7 +57,10 @@ std::string	Lexer::consumeString(const std::string& input, size_t& pos, size_t l
 	char		quote = input[pos++];	// Store and skip opening quote
 
 	while (pos < input.length() && input[pos] != quote)
-		string += input[pos++];
+	{
+		string += input[pos];
+		advancePosition(1, pos);
+	}
 
 	if (pos >= input.length())
 		throw ConfigError(ErrorType::LEXER, "Unterminated string literal", line, col);
@@ -67,7 +76,7 @@ std::vector<Token>	Lexer::tokenize()
 
 	while (pos < _input.length())
 	{
-		char	current_char = _input[pos];	// Should it be reference or simply a new char?
+		char	current_char = _input[pos];
 
 		//	--- Rule 1: Handle Whitespace
 		if (isspace(current_char))
@@ -79,7 +88,7 @@ std::vector<Token>	Lexer::tokenize()
 			}
 			else
 				_col_num++;
-			pos++; // Consume the whitespace and continue to the next loop iteration.
+			pos++;	// Consume the whitespace and continue to the next loop iteration.
 			continue;
 		}
 
@@ -95,62 +104,47 @@ std::vector<Token>	Lexer::tokenize()
 		else if (current_char == '{')
 		{
 			_tokens.push_back({LBRACE, "{", _line_num, _col_num}); // Replace with addToken(LBRACE, "{");
-			pos++;		// Replace with advancePosition(1)
-			_col_num++;	// Replace with advancePosition (just one, the one from the previous comment).
+			advancePosition(1, pos);
 			continue ;
 		}
 
 		else if (current_char == '}')
 		{
 			_tokens.push_back({RBRACE, "}", _line_num, _col_num});
-			pos++;
-			_col_num++;
+			advancePosition(1, pos);
 			continue ;
 		}
 
 		else if (current_char == ';')
 		{
 			_tokens.push_back({SEMICOLON, ";", _line_num, _col_num});
-			pos++;
-			_col_num++;
+			advancePosition(1, pos);
 			continue ;
 		}
 
 		else if (current_char == ',')
 		{
 			_tokens.push_back({COMMA, ",", _line_num, _col_num});
-			pos++;
-			_col_num++;
+			advancePosition(1, pos);
 			continue ;
 		}
 
+		//	--- Rule 4: Handle Strings
 		else if (current_char == '"' || current_char == '\'')
 		{
 			std::string stringValue = consumeString(_input, pos, _line_num, _col_num);
 			_tokens.push_back({STRING, stringValue, _line_num, _col_num});
-			_col_num += stringValue.length();
 			continue ;
 		}
-
-		//	--- Rule 4: Handle Numbers	// It's messing with the addresses
-		// else if (isdigit(current_char))
-		// {
-		// 	std::string	numberValue = consumeNumber(_input, pos);
-		// 	// addToken(NUMBER, numberValue);
-		// 	_tokens.push_back({NUMBER, numberValue, _line_num, _col_num});
-		// 	_col_num += numberValue.length();
-		// 	continue ;
-		// }
 
 		//	--- Rule 5: Handle Words
 		else if (isValidWordChar(current_char))
 		{
 			std::string	wordValue = consumeWord(_input, pos);
 			_tokens.push_back({WORD, wordValue, _line_num, _col_num});
-			_col_num += wordValue.length();
 		}
 
-		//	Rule 6: Handle Errors
+		//	--- Rule 6: Handle Errors
 		else
 		{
 			throw ConfigError(ErrorType::LEXER,
