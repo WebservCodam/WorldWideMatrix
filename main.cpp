@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/02/18 14:08:09 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/02/18 14:29:20 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ void	initialize(int argc, char **argv, std::unique_ptr<ConfigFile>& ast)
 		printErrorAndExit("Expecting an input file", EXIT_FAILURE);
 
 	std::ifstream	file(argv[1]);
+	if (!file)
 		printErrorAndExit("Could not open file", EXIT_FAILURE);
 
 	std::stringstream	buffer;
