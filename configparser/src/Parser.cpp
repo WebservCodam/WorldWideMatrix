@@ -45,10 +45,7 @@ std::unique_ptr<ConfigFile>	Parser::parse()
 
 	this->_tokens = Lexer(_input).tokenize();
 	if (this->_tokens.empty())
-	{
-		std::cerr << "Parsing error: Empty list of tokens" << std::endl;
-		exit(EXIT_FAILURE);
-	}
+		throw ConfigError::initialization("Empty list of tokens");
 
 	while (!isAtEnd())
 	{

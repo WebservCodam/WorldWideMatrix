@@ -25,23 +25,22 @@ enum	TokenType
 
 enum class ErrorType
 {
+	INITIALIZATION,
 	LEXER,
 	PARSER,
 	VALIDATOR
 };
 
-
-
-class	ServerConfig;
-class	Directive;
-class	ConfigFile;
-struct	DirectiveDefinition;
-extern const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS;
-class	Location;
-class	Lexer;
-class	Parser;
-class	Validator;
-struct	ListenDirective;
+class			ServerConfig;
+class			Directive;
+class			ConfigFile;
+struct			DirectiveDefinition;
+extern const	std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS;
+class			Location;
+class			Lexer;
+class			Parser;
+class			Validator;
+struct			ListenDirective;
 
 // --- TOKEN ---
 
@@ -146,36 +145,6 @@ class	ConfigFile
 		std::vector<Directive*>		findAllDirectives(const std::string& name) const;
 };
 
-// --- DIRECTIVE SPECS ---
-
-bool	validateDirective(Directive* node);
-bool	validateBlockDirective(Directive* node);
-bool	validateContext(Directive* node);
-bool	validateRequiredChildren(Directive* node);
-
-
-bool	validateHttpDirective(Directive* node);
-bool	validateServerDirective(Directive* node);
-bool	validateLocationDirective(Directive* node);
-bool	validateListenDirective(Directive* node);
-bool	validateRootDirective(Directive* node);
-bool	validateIndexDirective(Directive* node);
-bool	validateAutoIndexDirective(Directive* node);
-bool	validateErrorPageDirective(Directive* node);
-// bool	validateFastcgiPassDirective(Directive* node);
-// bool	validateFastcgiParamDirective(Directive* node);
-// bool	validateFastcgiIndexDirective(Directive* node);
-bool	validateReturnDirective(Directive* node);
-bool	validateMethodsDirective(Directive* node);
-bool	validateClientMaxBodySizeDirective(Directive* node);
-bool	validateAllowOrDenyDirective(Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
-bool	validateKeepaliveTimeoutDirective(Directive* node);
-
-std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address);
-bool 								isByte(std::string &number);
-bool								validateAddress(const std::string& address);
-bool								validatePort(const std::string& port);
-
 // --- CONFIG ERROR ---
 
 class ConfigError : public std::runtime_error
@@ -186,24 +155,24 @@ class ConfigError : public std::runtime_error
 		size_t		_column;
 		std::string	_context;
 
-		static std::string	buildMessage(ErrorType type, const std::string& message,
-									size_t line, size_t column, const std::string& context);
+		std::string 		buildMessage(ErrorType type, const std::string& message);
+		static std::string	buildMessage(ErrorType type, const std::string& message, size_t line, size_t column, const std::string& context);
 
 	public:
-		ConfigError(ErrorType type, const std::string& message,
-					size_t line, size_t column,
-					const std::string& context = "");
 
-		ConfigError(ErrorType type, const std::string& message,
-					const Directive* directive);
+		ConfigError(ErrorType type, const std::string& message);
+		ConfigError(ErrorType type, const std::string& message, size_t line, size_t column, const std::string& context = "");
+		ConfigError(ErrorType type, const std::string& message, const Directive* directive);
+		~ConfigError() = default;
 
+		static ConfigError	initialization(const std::string& message);
+		static ConfigError	lexing(const std::string& message, size_t line, size_t column);
 		static ConfigError	parsing(const std::string& message, size_t line, size_t column);
 		static ConfigError	validation(const std::string& message, const Directive* directive);
 
-		ErrorType			getType() const { return _type; }
-		size_t				getLine() const { return _line; }
-		size_t				getColumn() const { return _column; }
-		const std::string&	getContext() const { return _context; }
+		// ErrorType			getType() const { return _type; }
+		// size_t				getLine() const { return _line; }
+		// size_t				getColumn() const { return _column; }
 
 		const char*			what() const noexcept override;
 };
@@ -218,7 +187,6 @@ class	Lexer
 		size_t				_line_num = 1;
 		size_t				_col_num = 1;
 
-		// std::string	consumeNumber(const std::string& input, size_t& pos);
 		void		advancePosition(int len, size_t& pos);
 		bool		isValidWordChar(char c);
 		std::string	consumeWord(const std::string& input, size_t& pos);
@@ -267,25 +235,6 @@ class	Parser
 		std::unique_ptr<ConfigFile>	parse();
 };
 
-// --- VALIDATOR --- 
-
-// class	Validator
-// {
-// 	private:
-// 		const ConfigFile*							_ConfigFile;
-// 		std::map<std::string, DirectiveDefinition>	_directiveSpecs;
-
-// 	public:
-// 		Validator() = delete;
-// 		Validator(const ConfigFile* configFile);
-// 		~Validator() = default;
-
-// 		bool	validate();
-
-// 	private:
-// 		bool	validateDirective(Directive* node);
-// };
-
 // --- SERVER CONFIG ---
 
 struct ListenDirective
@@ -321,8 +270,6 @@ class	Location
 		bool				getDeleteMethod() const;
 };
 
-// --- SERVER CONFIG ---
-
 class	ServerConfig
 {
 	private:
@@ -345,3 +292,34 @@ class	ServerConfig
 		const std::vector<Location>&			getLocations() const;
 		int										getKeepaliveTimeout() const;
 };
+
+// --- DIRECTIVE SPECS ---
+
+bool	validateDirective(Directive* node);
+bool	validateBlockDirective(Directive* node);
+bool	validateContext(Directive* node);
+bool	validateRequiredChildren(Directive* node);
+
+bool	validateHttpDirective(Directive* node);
+bool	validateServerDirective(Directive* node);
+bool	validateLocationDirective(Directive* node);
+bool	validateListenDirective(Directive* node);
+bool	validateRootDirective(Directive* node);
+bool	validateIndexDirective(Directive* node);
+bool	validateAutoIndexDirective(Directive* node);
+bool	validateErrorPageDirective(Directive* node);
+// bool	validateFastcgiPassDirective(Directive* node);
+// bool	validateFastcgiParamDirective(Directive* node);
+// bool	validateFastcgiIndexDirective(Directive* node);
+bool	validateReturnDirective(Directive* node);
+bool	validateMethodsDirective(Directive* node);
+bool	validateClientMaxBodySizeDirective(Directive* node);
+bool	validateAllowOrDenyDirective(Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
+bool	validateKeepaliveTimeoutDirective(Directive* node);
+
+// - Utilities -
+
+std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address);
+bool 								isByte(std::string &number);
+bool								validateAddress(const std::string& address);
+bool								validatePort(const std::string& port);
