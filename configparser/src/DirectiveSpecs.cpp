@@ -21,13 +21,10 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 	{"server", DirectiveDefinition{"server", true, 0, 0, {"main"}, {"listen", "client_max_body_size", "location"}, validateServerDirective}},
 	{"location", DirectiveDefinition{"location", true, 1, 2, {"server", "location"}, {}, validateLocationDirective}},	// 2 parameters in case it's an equals
 
-	// {"allow", DirectiveDefinition{"allow", false, 1, 1, {"server", "location", "limit_except"}, {}, validateAllowOrDenyDirective}},
-	// {"deny", DirectiveDefinition{"deny", false, 1, 1, {"server", "location", "limit_except"}, {}, validateAllowOrDenyDirective}},
-
 	//	=== ServerConfig Basics ===
 	{"listen", DirectiveDefinition{"listen", false, 1, 1, {"server"}, {}, validateListenDirective}}, 
 	{"server_name", DirectiveDefinition{"server_name", false, 1, 100, {"server"}, {}, nullptr}},
-	{"root", DirectiveDefinition{"root", false, 1, 1, {"main", "server", "location"}, {}, validateRootDirective}},
+	{"root", DirectiveDefinition{"root", false, 1, 1, {"server", "location"}, {}, validateRootDirective}},
 
 	//	=== Autoindex ===
 	{"autoindex", DirectiveDefinition{"autoindex", false, 1, 1, {"server", "location"}, {}, validateAutoIndexDirective}},
@@ -41,13 +38,15 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 	// {"fastcgi_param", DirectiveDefinition{"fastcgi_param", false, 2, 3, {"server", "location"}, {}, validateFastcgiParamDirective}},
 	// {"fastcgi_index", DirectiveDefinition{"fastcgi_index", false, 1, 1, {"server", "location"}, {}, validateFastcgiIndexDirective}},
 
-	//	===	Request Handling ===
-	{"return", DirectiveDefinition{"return", false, 1, 2, {"server", "location"}, {}, validateReturnDirective}},	
-
-	//	=== Methods/Limits	===
-	{"methods", DirectiveDefinition{"methods", false, 1, 4, {"location"}, {}, validateMethodsDirective}},
+	//	=== Others	===
 	{"client_max_body_size", DirectiveDefinition{"client_max_body_size", false, 1, 1, {"server", "location"}, {}, validateClientMaxBodySizeDirective}},
-	{"keepalive_timeout", DirectiveDefinition{"keepalive_timeout", false, 1, 1, {"server"}, {}, validateKeepaliveTimeoutDirective}}
+	{"keepalive_timeout", DirectiveDefinition{"keepalive_timeout", false, 1, 1, {"server"}, {}, validateKeepaliveTimeoutDirective}},
+
+	//	=== Location Subdirectives	===
+	{"methods", DirectiveDefinition{"methods", false, 1, 4, {"location"}, {}, validateMethodsDirective}},
+	{"redirect", DirectiveDefinition{"redirect", false, 1, 2, {"location"}, {}, validateRedirectDirective}}, // Check this is valid.
+	{"return", DirectiveDefinition{"return", false, 1, 2, {"server", "location"}, {}, validateReturnDirective}},
+	{"upload_path", DirectiveDefinition{"upload_path", false, 1, 1, {"location"}, {}, validateUploadPathDirective}} // Check this is valid.
 };
 
 /**

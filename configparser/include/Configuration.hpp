@@ -316,6 +316,8 @@ bool	validateMethodsDirective(Directive* node);
 bool	validateClientMaxBodySizeDirective(Directive* node);
 bool	validateAllowOrDenyDirective(Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
 bool	validateKeepaliveTimeoutDirective(Directive* node);
+bool	validateRedirectDirective(Directive* node);
+bool	validateUploadPathDirective(Directive* node);
 
 // - Utilities -
 
