@@ -18,37 +18,36 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 	{"user", DirectiveDefinition{"user", false, 0, 2, {"main"}, {}, nullptr}},
 
 	//	===	Block Directives ===
-	{"http", DirectiveDefinition{"http", true, 0, 0, {"main"}, {"server"}, validateHttpDirective}},
-	{"server", DirectiveDefinition{"server", true, 0, 0, {"main", "http"}, {"listen", "client_max_body_size", "location"}, validateServerDirective}},
+	{"server", DirectiveDefinition{"server", true, 0, 0, {"main"}, {"listen", "client_max_body_size", "location"}, validateServerDirective}},
 	{"location", DirectiveDefinition{"location", true, 1, 2, {"server", "location"}, {}, validateLocationDirective}},	// 2 parameters in case it's an equals
 
-	// {"allow", DirectiveDefinition{"allow", false, 1, 1, {"http", "server", "location", "limit_except"}, {}, validateAllowOrDenyDirective}},
-	// {"deny", DirectiveDefinition{"deny", false, 1, 1, {"http", "server", "location", "limit_except"}, {}, validateAllowOrDenyDirective}},
+	// {"allow", DirectiveDefinition{"allow", false, 1, 1, {"server", "location", "limit_except"}, {}, validateAllowOrDenyDirective}},
+	// {"deny", DirectiveDefinition{"deny", false, 1, 1, {"server", "location", "limit_except"}, {}, validateAllowOrDenyDirective}},
 
 	//	=== ServerConfig Basics ===
 	{"listen", DirectiveDefinition{"listen", false, 1, 1, {"server"}, {}, validateListenDirective}}, 
 	{"server_name", DirectiveDefinition{"server_name", false, 1, 100, {"server"}, {}, nullptr}},
-	{"root", DirectiveDefinition{"root", false, 1, 1, {"http", "server", "location"}, {}, validateRootDirective}},
+	{"root", DirectiveDefinition{"root", false, 1, 1, {"main", "server", "location"}, {}, validateRootDirective}},
 
 	//	=== Autoindex ===
-	{"autoindex", DirectiveDefinition{"autoindex", false, 1, 1, {"http", "server", "location"}, {}, validateAutoIndexDirective}},
-	{"index", DirectiveDefinition{"index", false, 1, 1, {"http", "server", "location"}, {}, validateIndexDirective}},
+	{"autoindex", DirectiveDefinition{"autoindex", false, 1, 1, {"server", "location"}, {}, validateAutoIndexDirective}},
+	{"index", DirectiveDefinition{"index", false, 1, 1, {"server", "location"}, {}, validateIndexDirective}},
 
 	//	=== Error Handling ===
-	{"error_page", DirectiveDefinition{"error_page", false, 2, 100, {"http", "server", "location"}, {}, validateErrorPageDirective}},
+	{"error_page", DirectiveDefinition{"error_page", false, 2, 100, {"server", "location"}, {}, validateErrorPageDirective}},
 
 	// === CGI ===
 	// {"fastcgi_pass", DirectiveDefinition{"fastcgi_pass", false, 1, 1, {"location"}, {}, validateFastcgiPassDirective}},
-	// {"fastcgi_param", DirectiveDefinition{"fastcgi_param", false, 2, 3, {"http", "server", "location"}, {}, validateFastcgiParamDirective}},
-	// {"fastcgi_index", DirectiveDefinition{"fastcgi_index", false, 1, 1, {"http", "server", "location"}, {}, validateFastcgiIndexDirective}},
+	// {"fastcgi_param", DirectiveDefinition{"fastcgi_param", false, 2, 3, {"server", "location"}, {}, validateFastcgiParamDirective}},
+	// {"fastcgi_index", DirectiveDefinition{"fastcgi_index", false, 1, 1, {"server", "location"}, {}, validateFastcgiIndexDirective}},
 
 	//	===	Request Handling ===
 	{"return", DirectiveDefinition{"return", false, 1, 2, {"server", "location"}, {}, validateReturnDirective}},	
 
 	//	=== Methods/Limits	===
 	{"methods", DirectiveDefinition{"methods", false, 1, 4, {"location"}, {}, validateMethodsDirective}},
-	{"client_max_body_size", DirectiveDefinition{"client_max_body_size", false, 1, 1, {"http", "server", "location"}, {}, validateClientMaxBodySizeDirective}},
-	{"keepalive_timeout", DirectiveDefinition{"keepalive_timeout", false, 1, 1, {"http", "server"}, {}, validateKeepaliveTimeoutDirective}}
+	{"client_max_body_size", DirectiveDefinition{"client_max_body_size", false, 1, 1, {"server", "location"}, {}, validateClientMaxBodySizeDirective}},
+	{"keepalive_timeout", DirectiveDefinition{"keepalive_timeout", false, 1, 1, {"server"}, {}, validateKeepaliveTimeoutDirective}}
 };
 
 /**
@@ -58,11 +57,6 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
  */
 
 // ----- BLOCK VALIDATION FUNCTIONS -----
-
-bool	validateHttpDirective(Directive* node)
-{
-	return (validateBlockDirective(node));
-}
 
 bool	validateServerDirective(Directive* node)
 {
