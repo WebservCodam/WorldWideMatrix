@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/31 12:41:30 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/17 16:16:27 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/02/18 19:30:11 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,24 @@ ParseStatus	HttpParser::parseChunkedBody(ConnectionContext &ctx, size_t bodyStar
 	size_t length = ctx.buffer.size();
 	size_t pos = bodyStart;
 	std::string decoded;
+
+	//see if there's optional Trailer header to know which trailer fields to accept
+	std::vector<std::string> allowedTrailers;
+	std::map<std::string, std::string>::iterator itTrailer = ctx.request.headers.find("trailer");
+	if (itTrailer != ctx.request.headers.end())
+	{
+		std::string value = itTrailer->second;
+		std::istringstream ss(value);
+		std::string field;
+		while (std::getline(ss, field, ','))
+		{
+			field.erase(0, field.find_first_not_of(" \t"));
+			field.erase(field.find_last_not_of(" \t") + 1);
+			std::transform(field.begin(), field.end(), field.begin(), ::tolower);
+			if (!field.empty())
+				allowedTrailers.push_back(field);
+		}
+	}
 	
 	while (true)
 	{
@@ -76,19 +94,54 @@ ParseStatus	HttpParser::parseChunkedBody(ConnectionContext &ctx, size_t bodyStar
 			throw HttpException(400, "Invalid chunk size");
 		}
 
-		// std::cout << "Chunk size (hex): " << line << " =>" << chunkSize << std::endl;
-
-		if (chunkSize == 0)
+		if (chunkSize == 0) //last chunk
 		{
+			//reading the trailer
 			while (true)
 			{
-				std::string trailer;
-				if (!readLine(buffer, length, pos, trailer))
+				std::string trailerLine;
+				if (!readLine(buffer, length, pos, trailerLine))
 					return ParseStatus::INCOMPLETE;
-				if (trailer.empty())
+				if (trailerLine.empty())
 					break;
+					
+				size_t colon = trailerLine.find(':');
+				if (colon != std::string::npos)
+				{
+					std::string key = trailerLine.substr(0, colon);
+					std::string value = trailerLine.substr(colon + 1);
+					key.erase(0, key.find_first_not_of(" \t" ));
+					key.erase(key.find_last_not_of(" \t") + 1);
+					std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+					
+					if (std::find(allowedTrailers.begin(), allowedTrailers.end(), key) != allowedTrailers.end())
+					{
+						value.erase(0, value.find_first_not_of(" \t"));
+						value.erase(value.find_last_not_of(" \t") + 1);
+						ctx.request.headers[key] = value;
+					}
+
+				}
 			}
+			
 			ctx.request.body = decoded;
+
+			//set Content-Length and remove "chunked"
+			ctx.request.headers["content-length"] = std::to_string(decoded.size());
+			std::map<std::string, std::string>::iterator it = ctx.request.headers.find("transfer-encoding");
+			if (it != ctx.request.headers.end() && it->second.find("chunked") != std::string::npos)
+			{
+				std::string value = it->second;
+				size_t pos = value.find("chunked");
+				value.erase(pos, 7);
+				value.erase(0, value.find_first_not_of(", "));
+				value.erase(value.find_last_not_of(", ")+ 1);
+				if (value.empty())
+					ctx.request.headers.erase(it);
+				else
+					it->second = value;
+			}
+			
 			ctx.buffer.erase(0, pos);
 			ctx.headerEnd = std::string::npos;
 			return (ParseStatus::COMPLETE);
@@ -100,13 +153,11 @@ ParseStatus	HttpParser::parseChunkedBody(ConnectionContext &ctx, size_t bodyStar
 		decoded.append(&buffer[pos], chunkSize);
 		pos += chunkSize;
 
-		std::cout << decoded << std::endl;
-
+		//CRLF check after chunk data
 		if (pos + 1 >= length || buffer[pos] != '\r' || buffer[pos + 1] != '\n')
 			throw HttpException(400, "Malformed chunked encoding");
 		
 		pos += 2;
 
-		// std::cout << "Decoded so far: '" << decoded << "'" << std::endl;
 	}
 }

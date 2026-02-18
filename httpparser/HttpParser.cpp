@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/25 15:36:17 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/17 17:03:48 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/02/18 19:50:00 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,11 +24,17 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 	size_t pos = 0;
 	std::string line;
 	
+	
 	/* request line */
-	if (!readLine(buf, length, pos, line))
+	while (readLine(buf, length, pos, line) && line.empty())
+	{
+		//do nothing, just skip the possible leading CRLFs
+	}
+	if (line.empty())
 		return ParseStatus::ERROR;
 	parseRequestLine(line, ctx.request);
 
+	
 	/* headers */
 	while (readLine(buf, length, pos, line))
 	{
@@ -39,6 +45,10 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 		parseHeaderLine(line, ctx.request);
 	}
 
+	if (ctx.request.headers.find("host") == ctx.request.headers.end())
+		throw HttpException(400, "Missing Host header");
+
+	
 	/* body */
 	size_t bodyStart = ctx.headerEnd + 4;
 	size_t availableBody = 0;
@@ -104,16 +114,9 @@ ParseStatus HttpParser::initParser(Client &client)
 			}
 			else
 				client._alive = false;
-
 				
 			client.response = responder.buildResponse(ctx.request, client._alive);
-			client._buf.clear();
-
 			
-		}
-		else if (status == ParseStatus::ERROR)
-		{
-			client._alive = false;
 			client._buf.clear();
 		}
 
@@ -121,6 +124,10 @@ ParseStatus HttpParser::initParser(Client &client)
 	}
 	catch (HttpException &e)
 	{
-		
+		client.response = responder.buildErrorResponse(e.getStatus(), false);	
+			
+		client._alive = false;
+		client._buf.clear();
+		return ParseStatus::ERROR;
 	}
 }

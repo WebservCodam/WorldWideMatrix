@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/31 12:37:52 by rkaras        #+#    #+#                 */
-/*   Updated: 2025/10/31 12:39:29 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/02/18 18:16:57 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,11 +29,14 @@
 
 void	HttpParser::parseRequestLine(const std::string &line, HttpRequest &req)
 {
+	if (line.length() > 8000) //octet = 1 byte = 1 char
+		throw HttpException(414, "URI too long");
+		
 	if (line.empty() || line[0] == ' ' || line.back() == ' ' ||line.find('\t') != std::string::npos)
-		throw std::runtime_error("Malformed request line:\n please use this formatting:\n method SP request-target SP HTTP-version CRLF");
+		throw HttpException(400, "Malformed request line");
 	
 	if (line.find("  ") != std::string::npos)
-		throw std::runtime_error("Malformed request line:\n please use this formatting:\n method SP request-target SP HTTP-version CRLF");
+		throw HttpException(400, "Malformed request line");
 		
 	size_t spaceCount = 0;
 	for (size_t i = 0; i < line.size(); i++) {
@@ -41,21 +44,19 @@ void	HttpParser::parseRequestLine(const std::string &line, HttpRequest &req)
 			spaceCount++;
 	}
 	if (spaceCount != 2)
-		throw std::runtime_error("Malformed request line:\n please use this formatting:\n method SP request-target SP HTTP-version CRLF");
-	
+		throw HttpException(400, "Malformed request line");
 	size_t space1 = line.find(' ');
 	size_t space2 = line.find(' ', space1 + 1);	
 	
 	if (space1 == 0 || space2 == std::string::npos)
-		throw std::runtime_error("Malformed request line: incorrect space placement");
-	
+		throw HttpException(400, "Malformed request line");
 	req.method = line.substr(0, space1);
 	req.uri = line.substr(space1 + 1, space2 - space1 - 1);
 	req.version = line.substr(space2 + 1);
 	
 	if (req.version != "HTTP/1.1" && req.version != "HTTP/1.0")
-		throw std::runtime_error("Unsupported HTTP version");
+		throw HttpException(505, "HTTP version not supported");
 
 	if (req.method != "GET" && req.method != "POST" && req.method != "DELETE")
-		throw std::runtime_error("Unsupported HTTP method");
+		throw HttpException(501, "Method not implemented");
 }
