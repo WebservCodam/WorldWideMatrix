@@ -1,0 +1,327 @@
+#pragma once
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <memory>
+#include <stdexcept>
+#include <functional>
+#include <set>
+#include <map>
+#include <unordered_map>
+
+enum	TokenType
+{
+	WORD,
+	LBRACE,		// {
+	RBRACE,		// }
+	SEMICOLON,	// ;
+	COMMA,		// ,
+	STRING,		// "quoted string" or 'single quoted'
+	END_OF_FILE	// Special token for the end of the input
+};
+
+enum class ErrorType
+{
+	INITIALIZATION,
+	LEXER,
+	PARSER,
+	VALIDATOR
+};
+
+class			ServerConfig;
+class			Directive;
+class			ConfigFile;
+struct			DirectiveDefinition;
+extern const	std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS;
+class			Location;
+class			Lexer;
+class			Parser;
+class			Validator;
+struct			ListenDirective;
+
+// --- TOKEN ---
+
+struct	Token
+{
+	TokenType	type;
+	std::string	value;
+
+	size_t		line;
+	size_t		column;
+};
+
+// --- DIRECTIVE DEFINITION ---
+
+struct	DirectiveDefinition
+{
+	std::string								name;
+	bool									isBlock;
+	size_t									minArgs;
+	size_t									maxArgs;
+	std::set<std::string>					validContexts;
+	std::set<std::string>					requiredChildren;
+
+	bool (*validateArgs)(Directive*);
+};
+
+// --- DIRECTIVE ---
+
+class	Directive
+{
+	private:
+		size_t _line;
+		size_t _column;
+
+		std::string									_name;
+		std::string									_context;
+		std::vector<std::string>					_parameters;
+		std::vector<std::unique_ptr<Directive>>		_children;
+
+	public:
+		Directive() = default;
+		Directive(
+			size_t line, 
+			size_t column, 
+			const std::string& name, 
+			const std::string& context, 
+			std::vector<std::string> parameters, 				// by value, so we can use std::move
+			std::vector<std::unique_ptr<Directive>> children);	// by value, so we can use std::move
+		~Directive() = default;
+
+		// Getters
+		size_t							getLine() const;
+		size_t							getColumn() const;
+		const std::string&				getName() const;
+		const std::string&				getContext() const;
+		const std::string&				getParameter(size_t i) const;
+		const std::vector<std::string>&	getParameters() const;
+		Directive*						getChild(size_t i);
+		std::vector<Directive*>			getChildren();
+
+		// Setters
+		void	setLine(size_t line);
+		void	setColumn(size_t column);
+		void	setName(const std::string& name);
+		void	setContext(const std::string& context);
+		void	setParameter(int index, const std::string& new_parameter);
+		void	setParameters(const std::vector<std::string>& parameters);
+		void	addChild(std::unique_ptr<Directive> child);
+};
+
+// --- CONFIG FILE ---
+
+class	ConfigFile
+{
+	private:
+		std::vector<std::unique_ptr<Directive>>	_directives;
+		std::vector<ServerConfig>				_servers;
+		
+	public:
+		ConfigFile() = delete;
+		ConfigFile(std::vector<std::unique_ptr<Directive>> directives);
+		~ConfigFile() = default;
+
+		std::vector<std::unique_ptr<Directive>>&		getDirectives();	// Non-constant so validation can set defaults.
+		const std::vector<ServerConfig>&				getServers() const;
+		const ServerConfig&								getServer(const std::string& serverName);
+
+		std::vector<ServerConfig>	createServers();
+
+	private:
+		// Helper functions for processing server directives
+		void		processServerName(const Directive* directive, std::string& serverName);
+		void		processListen(const Directive* directive, std::vector<ListenDirective>& listenDirectives);
+		void		processClientMaxBodySize(const Directive* directive, unsigned long long& maxBodySize);
+		void		processErrorPage(const Directive* directive, std::map<int, std::string>& errors);
+		Location	processLocation(Directive* directive);
+		void		processKeepaliveTimeout(Directive* directive, int& keepalive_timeout);
+
+	public:
+		// Query methods
+		const Directive*			findDirective(const std::string& name) const;
+		std::vector<Directive*>		findAllDirectives(const std::string& name) const;
+};
+
+// --- CONFIG ERROR ---
+
+class ConfigError : public std::runtime_error
+{
+	private:
+		ErrorType	_type;
+		size_t		_line;
+		size_t		_column;
+		std::string	_context;
+
+		std::string 		buildMessage(ErrorType type, const std::string& message);
+		static std::string	buildMessage(ErrorType type, const std::string& message, size_t line, size_t column, const std::string& context);
+
+	public:
+
+		ConfigError(ErrorType type, const std::string& message);
+		ConfigError(ErrorType type, const std::string& message, size_t line, size_t column, const std::string& context = "");
+		ConfigError(ErrorType type, const std::string& message, const Directive* directive);
+		~ConfigError() = default;
+
+		static ConfigError	initialization(const std::string& message);
+		static ConfigError	lexing(const std::string& message, size_t line, size_t column);
+		static ConfigError	parsing(const std::string& message, size_t line, size_t column);
+		static ConfigError	validation(const std::string& message, const Directive* directive);
+
+		// ErrorType			getType() const { return _type; }
+		// size_t				getLine() const { return _line; }
+		// size_t				getColumn() const { return _column; }
+
+		const char*			what() const noexcept override;
+};
+
+// --- LEXER ---
+
+class	Lexer
+{
+	private:
+		std::string			_input;
+		std::vector<Token>	_tokens;
+		size_t				_line_num = 1;
+		size_t				_col_num = 1;
+
+		void		advancePosition(int len, size_t& pos);
+		bool		isValidWordChar(char c);
+		std::string	consumeWord(const std::string& input, size_t& pos);
+		std::string	consumeString(const std::string& input, size_t& pos, size_t line, size_t col);
+
+	public:
+		Lexer() = delete; // Can default to a config file.
+		Lexer(const std::string& input);
+		~Lexer();
+
+		std::vector<Token>	tokenize();
+
+		// std::vector<Token>	getTokens();
+};
+
+// --- PARSER ---
+
+class	Parser
+{
+	private:
+		std::string					_input;
+		std::vector<Token>			_tokens;
+		size_t						_currentIndex;
+		std::unique_ptr<ConfigFile>	_configFile;
+
+		const Token&	currentToken() const;
+		void			advance();
+		const Token&	peekToken(size_t offset = 1) const;	// Default = 1
+		bool			isAtEnd();
+		void			expectToken(TokenType type, const std::string& errorMessage);
+
+		std::unique_ptr<Directive>			initializeDirective();
+		std::unique_ptr<Directive>			parseDirective();
+		std::unique_ptr<Directive>			parseSimpleDirective();
+		std::unique_ptr<Directive>			parseBlockDirective();
+		std::vector<std::string>			parseParameters();
+
+		bool	validateSemantics();
+		// bool	validateDirective(Directive* node);
+
+	public:
+		Parser() = delete;
+		Parser(const std::string& input);
+		~Parser() = default;
+
+		std::unique_ptr<ConfigFile>	parse();
+};
+
+// --- SERVER CONFIG ---
+
+struct ListenDirective
+{
+	std::string	address;	// defaults to "127.0.0.1"
+	std::string	port;		// defaults to 8080
+    
+	ListenDirective(const std::string& addr = "127.0.0.1", const std::string& p = "8080") : address(addr), port(p) {}
+};
+
+class	Location
+{
+	private:
+		std::string					_path;
+		std::string					_root;
+		std::string					_index;
+		bool						_autoindex;
+		bool						_getMethod;
+		bool						_postMethod;
+		bool						_deleteMethod;
+
+	public:
+		Location() = delete;
+		Location(const std::string& path, const std::string& root = "", const std::string& index = "", bool autoindex = false, bool getMethod = true, bool postMethod = false, bool deleteMethod = false);
+		~Location() = default;
+
+		const std::string&	getPath() const;
+		const std::string&	getRoot() const;
+		const std::string&	getIndex() const;
+		bool				getAutoindex() const;
+		bool				getGetMethod() const;
+		bool				getPostMethod() const;
+		bool				getDeleteMethod() const;
+};
+
+class	ServerConfig
+{
+	private:
+		std::string						_serverName;
+		std::vector<ListenDirective>	_listenDirectives; // This should be a single object.
+		unsigned long long				_maxBodySize;
+		std::map<int, std::string>		_errors;	//	The idea is that different error codes can return the same error. But this might overcomplicate things.
+		std::vector<Location>			_locations;
+		int								_keepalive_timeout;
+
+	public:
+		ServerConfig() = delete;
+		ServerConfig(const std::string& serverName, const std::vector<ListenDirective>	listenDirectives, size_t maxBodySize, const std::map<int, std::string>& errors, const std::vector<Location>& locations, int keepalive_timeout);
+		~ServerConfig() = default;
+
+		const std::string&						getServerName() const;
+		const std::vector<ListenDirective>&		getListenDirectives() const;	// Create function to get a port from an address and viceversa
+		unsigned long long						getMaxBodySize() const;
+		const std::map<int, std::string>&		getErrors() const;
+		const std::vector<Location>&			getLocations() const;
+		int										getKeepaliveTimeout() const;
+};
+
+// --- DIRECTIVE SPECS ---
+
+bool	validateDirective(Directive* node);
+bool	validateBlockDirective(Directive* node);
+bool	validateContext(Directive* node);
+bool	validateRequiredChildren(Directive* node);
+
+bool	validateHttpDirective(Directive* node);
+bool	validateServerDirective(Directive* node);
+bool	validateLocationDirective(Directive* node);
+bool	validateListenDirective(Directive* node);
+bool	validateRootDirective(Directive* node);
+bool	validateIndexDirective(Directive* node);
+bool	validateAutoIndexDirective(Directive* node);
+bool	validateErrorPageDirective(Directive* node);
+// bool	validateFastcgiPassDirective(Directive* node);
+// bool	validateFastcgiParamDirective(Directive* node);
+// bool	validateFastcgiIndexDirective(Directive* node);
+bool	validateReturnDirective(Directive* node);
+bool	validateMethodsDirective(Directive* node);
+bool	validateClientMaxBodySizeDirective(Directive* node);
+bool	validateAllowOrDenyDirective(Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
+bool	validateKeepaliveTimeoutDirective(Directive* node);
+bool	validateRedirectDirective(Directive* node);
+bool	validateUploadPathDirective(Directive* node);
+
+// - Utilities -
+
+std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address);
+bool 								isByte(std::string &number);
+bool								validateAddress(const std::string& address);
+bool								validatePort(const std::string& port);

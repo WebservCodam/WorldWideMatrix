@@ -40,4 +40,11 @@
 # debug information files
 *.dwo
 
+#binaries
+server
+client
+
+
+#vscode settings
 .vscode
+.claude
