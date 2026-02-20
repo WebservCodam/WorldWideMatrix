@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/31 12:40:10 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/17 16:10:32 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/02/20 13:41:38 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,43 @@ void	HttpParser::parseHeaderLine(const std::string &line, HttpRequest &req)
 	std::string value = line.substr(colon + 1);
 	value.erase(0, value.find_first_not_of(" \t"));
 	value.erase(value.find_last_not_of(" \t") + 1);
+		
+	if (rawKey == "host")
+	{
+		//duplicate Host header
+		if (req.headers.find("host") != req.headers.end())
+		throw HttpException(400, "Multiple host headers");
+		
+		//empty Host header
+		if (value.empty())
+		throw HttpException(400, "Invalid Host header");
 
-	req.headers[rawKey] = value;
+		//:port validation
+		size_t colonPos = value.find(':');
+		if (colonPos != std::string::npos)
+		{
+			std::string port = value.substr(colonPos + 1);
+			if (port.empty())
+				throw HttpException(400, "Invalid Host header");
+			for (size_t i = 0; i < port.length(); i++)
+			{
+				if (!std::isdigit(port[i]))
+					throw HttpException(400, "Invalid Host header");
+			}
+		}
+	}
+
+	if (rawKey == "content-length")
+	{
+		if (req.headers.find("content-length") != req.headers.end())
+			throw HttpException(400, "Multiple Content-Length headers");
+	}
+
+	if (rawKey == "transfer-encoding")
+	{
+		if (req.headers.find("transfer-encoding") != req.headers.end())
+			throw HttpException(400, "Multiple Transfer-Encoding headers");
+	}
+	
+	req.headers[rawKey] = value; 
 }

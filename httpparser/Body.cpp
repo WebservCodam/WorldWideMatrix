@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/31 12:41:30 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/18 19:30:11 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/02/20 13:25:48 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,10 +19,17 @@ size_t	HttpParser::bodyLength(const HttpRequest &req, const unsigned long long m
 		return 0;
 
 	const std::string &value = it->second;
-	if (value.empty() || !std::all_of(value.begin(), value.end(), ::isdigit))
+	if (value.empty())
 		throw HttpException(400, "Invalid Content-Length: non-digit characters");
 	
+	for (size_t i = 0; i < value.length(); i++)
+	{
+		if (!std::isdigit(value[i]))
+			throw HttpException(400, "Invalid Content-Length");
+	}
+	
 	unsigned long long len = 0;
+	
 	try {
 		len = std::stoull(value);
 	} catch (const std::out_of_range &) {

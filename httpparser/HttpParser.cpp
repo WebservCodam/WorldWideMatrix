@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/25 15:36:17 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/18 19:50:00 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/02/20 13:31:01 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,8 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 			throw HttpException(400, "Malformed header: leading whitespace");
 		parseHeaderLine(line, ctx.request);
 	}
-
+	
+	//enforcing the host header
 	if (ctx.request.headers.find("host") == ctx.request.headers.end())
 		throw HttpException(400, "Missing Host header");
 
@@ -60,13 +61,12 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 	bool hasContentLength = ctx.request.headers.count("content-length") > 0;
 
 	if (hasChunked && hasContentLength)
-	{
-		std::cerr << "Warning: both Transfer-Encoding and Content-Length present; ignoring Content-Length. \n";
+		throw HttpException(400, "Conflicting length headers");
+	
+	if (hasChunked)
 		return (parseChunkedBody(ctx, bodyStart));
-	}
-	else if (hasChunked)
-		return (parseChunkedBody(ctx, bodyStart));
-	else if (hasContentLength)
+	
+	if (hasContentLength)
 	{
 		size_t expectedBody = bodyLength(ctx.request, ctx.maxBodySize);
 		if (availableBody < expectedBody)
@@ -80,14 +80,11 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 		ctx.headerEnd = std::string::npos;
 		return (ParseStatus::COMPLETE);
 	}
-	else
-	{
-		ctx.request.body.clear();
-		ctx.buffer.erase(0, bodyStart);
-		ctx.headerEnd = std::string::npos;
-		return ParseStatus::COMPLETE;
-	}
-	
+
+	ctx.request.body.clear();
+	ctx.buffer.erase(0, bodyStart);
+	ctx.headerEnd = std::string::npos;
+	return ParseStatus::COMPLETE;
 }
 
 ParseStatus HttpParser::initParser(Client &client)

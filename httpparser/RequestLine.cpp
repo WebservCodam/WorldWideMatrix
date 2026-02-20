@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/31 12:37:52 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/18 18:16:57 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/02/20 12:22:07 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ void	HttpParser::parseRequestLine(const std::string &line, HttpRequest &req)
 	req.uri = line.substr(space1 + 1, space2 - space1 - 1);
 	req.version = line.substr(space2 + 1);
 	
-	if (req.version != "HTTP/1.1" && req.version != "HTTP/1.0")
+	if (req.version != "HTTP/1.1")
 		throw HttpException(505, "HTTP version not supported");
 
 	if (req.method != "GET" && req.method != "POST" && req.method != "DELETE")
