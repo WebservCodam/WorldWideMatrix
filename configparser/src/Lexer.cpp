@@ -9,23 +9,6 @@ Lexer::~Lexer()
 {
 }
 
-// std::vector<Token>	Lexer::getTokens()
-// {
-// 	return (this->_tokens);
-// }
-
-// std::string	Lexer::consumeNumber(const std::string& input, size_t& pos)
-// {
-// 	std::string	number;
-
-// 	while (pos < input.length() && std::isdigit(input[pos]))
-// 	{
-// 		number += input[pos];
-// 		pos++;
-// 	}
-// 	return (number);
-// }
-
 void		Lexer::advancePosition(int len, size_t& pos)
 {
 	this->_col_num += len;
@@ -54,8 +37,9 @@ std::string	Lexer::consumeWord(const std::string& input, size_t& pos)
 std::string	Lexer::consumeString(const std::string& input, size_t& pos, size_t line, size_t col)
 {
 	std::string	string;
-	char		quote = input[pos++];	// Store and skip opening quote
+	char		quote = input[pos];	// Store opening quote
 
+	advancePosition(1, pos);		// Skip opening quote
 	while (pos < input.length() && input[pos] != quote)
 	{
 		string += input[pos];
@@ -65,7 +49,7 @@ std::string	Lexer::consumeString(const std::string& input, size_t& pos, size_t l
 	if (pos >= input.length())
 		throw ConfigError(ErrorType::LEXER, "Unterminated string literal", line, col);
 
-	pos++;	// Skip closing quote
+	advancePosition(1, pos);		// Skip closing quote
 	return (string);
 }
 

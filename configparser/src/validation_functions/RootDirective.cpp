@@ -1,37 +1,23 @@
 #include "../../include/Configuration.hpp"
 
 //	Default root would be the root at the main block. (To do after validation)
+//	To do: create function that prepends the root to the location given by the request.
 bool	validateRootDirective(Directive* node)
 {
-	// If quoted it's because it may contain a space. But same rules apply:
-	// If a variable is inside quotes it doesn't expand, otherwise it does.
-	// If it is only variable, it has to resolve to an actual path.
-	// A path must begin with a '/'
+	// This currently assumes that directories are listed as absolute paths or relative paths.
+	// If we want the absolute path to be treated as a relative path, we would need to modify this slightly.
 
 	const std::string&	path = node->getParameter(0);
+	struct stat			st;
 
-	// Case 1: Path starts with '/'
-	if (path[0] == '/') // Good start
-		return (true) ;
+	if (stat(path.c_str(), &st) != 0)
+		throw ConfigError::validation(std::string("Root directory: ") + path + std::string(" doesn't exist"), node);
+	
+	if (!S_ISDIR(st.st_mode))
+		throw ConfigError::validation(std::string("Root directory: ") + path + std::string(" is not a directory"), node);
 
-	// Case 2: Path starts with '"' (quoted path, may contain spaces)
-	else if (path[0] == '"')
-	{
-		// Extract the content between quotes
-		if (path.length() < 3 || path.back() != '"')
-			throw ConfigError::validation("Invalid quoted path in '" + node->getName() + "' directive: path must be properly quoted", node);
+	if (access(path.c_str(), R_OK | X_OK) != 0)
+        throw ConfigError::validation(std::string("Root directory: ") + path + std::string(" doesn't have reading or executing permissions"), node);
 
-		std::string	quoted_content = path.substr(1, path.length() - 2);
-
-		// Must still start with '/' after removing quotes
-		if (quoted_content.empty() || quoted_content[0] != '/')
-			throw ConfigError::validation("Path in '" + node->getName() + "' directive must be an absolute path starting with '/'", node);
-
-		return (true);
-	}
-
-	// Would need to verify that it's a valid path.
-
-	// Invalid: doesn't start with '/', '"', or '$'
-	throw ConfigError::validation("Invalid path in " + node->getName() + " directive: '" + path + "' must be an absolute path starting with '/'", node);
+	return (true);
 }

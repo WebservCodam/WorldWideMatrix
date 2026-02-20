@@ -11,6 +11,8 @@
 #include <set>
 #include <map>
 #include <unordered_map>
+#include <sys/stat.h>
+#include <unistd.h>
 
 enum	TokenType
 {
