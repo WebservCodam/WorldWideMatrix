@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/31 12:37:52 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/20 12:22:07 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/02/20 15:25:53 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,11 +27,33 @@
 // practice.  It is RECOMMENDED that all HTTP senders and recipients
 // support, at a minimum, request-line lengths of 8000 octets.
 
+std::map<std::string, std::string>	HttpParser::parseQueryString(const std::string &query)
+{
+	std::map<std::string, std::string> result;
+	std::string key, value;
+	std::istringstream stream(query);
+
+	while (std::getline(stream, key,'&'))
+	{
+		size_t eqPos = key.find('=');
+		if (eqPos != std::string::npos)
+		{
+			value = key.substr(eqPos + 1);
+			key = key.substr(0, eqPos);
+		}
+		else
+			value.clear();
+		result[key] = value;
+	}
+	return result;
+}
+
 void	HttpParser::parseRequestLine(const std::string &line, HttpRequest &req)
 {
 	if (line.length() > 8000) //octet = 1 byte = 1 char
 		throw HttpException(414, "URI too long");
 		
+	//basic format and spacing check
 	if (line.empty() || line[0] == ' ' || line.back() == ' ' ||line.find('\t') != std::string::npos)
 		throw HttpException(400, "Malformed request line");
 	
@@ -45,13 +67,15 @@ void	HttpParser::parseRequestLine(const std::string &line, HttpRequest &req)
 	}
 	if (spaceCount != 2)
 		throw HttpException(400, "Malformed request line");
+	
 	size_t space1 = line.find(' ');
 	size_t space2 = line.find(' ', space1 + 1);	
 	
 	if (space1 == 0 || space2 == std::string::npos)
 		throw HttpException(400, "Malformed request line");
+	
 	req.method = line.substr(0, space1);
-	req.uri = line.substr(space1 + 1, space2 - space1 - 1);
+	std::string fullURI = line.substr(space1 + 1, space2 - space1 - 1);
 	req.version = line.substr(space2 + 1);
 	
 	if (req.version != "HTTP/1.1")
@@ -59,4 +83,18 @@ void	HttpParser::parseRequestLine(const std::string &line, HttpRequest &req)
 
 	if (req.method != "GET" && req.method != "POST" && req.method != "DELETE")
 		throw HttpException(501, "Method not implemented");
+
+	//splitting URI and query strings
+	size_t qpos = fullURI.find('?');
+	if (qpos != std::string::npos)
+	{
+		req.uri = fullURI.substr(0, qpos);
+		req.query = fullURI.substr(qpos + 1);
+		req.queryMap = parseQueryString(req.query);
+	}
+	else
+	{
+		req.uri = fullURI;
+		req.query.clear();
+	}
 }
