@@ -1,13 +1,12 @@
 #include "../../include/Configuration.hpp"
 
-bool	validateReturnDirective(Directive* node)
+void	validateReturnDirective(Directive* node)
 {
 	// return 301 http://example.com;
 	// return 404;
 	// return 200 "some text";
 
-	if (node->getParameters().empty() || node->getParameters().size() > 2)
-		throw ConfigError::validation("Directive " + node->getName() + " requires 1 or 2 parameters", node);
+	std::cout << "DEBUG: Testing in validateReturn" << std::endl;
 
 	// First parameter must be a valid HTTP status code
 	try
@@ -17,12 +16,15 @@ bool	validateReturnDirective(Directive* node)
 		// Must be a valid HTTP status code (100-599)
 		if (status_code < 100 || status_code > 599)
 			throw ConfigError::validation("Invalid HTTP status code in " + node->getName() + " directive: '" + node->getParameter(0) + "' must be between 100-599", node);
+
+		std::cout << "DEBUG: Testing throwing error in validateReturn" << std::endl;
+		throw ConfigError::validation("TEST", node);
 	}
 	catch (const ConfigError&)
 	{
-		throw;
+		throw ;
 	}
-	catch (const std::exception&)
+	catch (const std::exception&) // Would this catch a throw of the previous catch?
 	{
 		throw ConfigError::validation("Invalid HTTP status code in " + node->getName() + " directive: '" + node->getParameter(0) + "'", node);
 	}
@@ -71,5 +73,5 @@ bool	validateReturnDirective(Directive* node)
 		}
 	}
 
-	return (true);
+	return ;
 }

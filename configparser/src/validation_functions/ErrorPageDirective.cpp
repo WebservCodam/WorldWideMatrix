@@ -1,6 +1,6 @@
 #include "../../include/Configuration.hpp"
 
-bool	validateErrorPageDirective(Directive* node)
+void	validateErrorPageDirective(Directive* node)
 {
 	// error_page 404 /404.html;			The last value is a URI.
 	// error_page 500 502 503 /50x.html;	There can be multiple codes.
@@ -62,5 +62,5 @@ bool	validateErrorPageDirective(Directive* node)
 			}
 		}
 	}
-	return (true);
+	return ;
 }

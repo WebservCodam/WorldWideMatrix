@@ -66,7 +66,7 @@ struct	DirectiveDefinition
 	std::set<std::string>					validContexts;
 	std::set<std::string>					requiredChildren;
 
-	bool (*validateArgs)(Directive*);
+	void (*validateArgs)(Directive*);
 };
 
 // --- DIRECTIVE ---
@@ -297,29 +297,29 @@ class	ServerConfig
 
 // --- DIRECTIVE SPECS ---
 
-bool	validateDirective(Directive* node);
-bool	validateBlockDirective(Directive* node);
-bool	validateContext(Directive* node);
-bool	validateRequiredChildren(Directive* node);
+void	validateDirective(Directive* node);
+void	validateBlockDirective(Directive* node);
+void	validateContext(Directive* node);
+void	validateRequiredChildren(Directive* node);
 
-bool	validateHttpDirective(Directive* node);
-bool	validateServerDirective(Directive* node);
-bool	validateLocationDirective(Directive* node);
-bool	validateListenDirective(Directive* node);
-bool	validateRootDirective(Directive* node);
-bool	validateIndexDirective(Directive* node);
-bool	validateAutoIndexDirective(Directive* node);
-bool	validateErrorPageDirective(Directive* node);
-// bool	validateFastcgiPassDirective(Directive* node);
-// bool	validateFastcgiParamDirective(Directive* node);
-// bool	validateFastcgiIndexDirective(Directive* node);
-bool	validateReturnDirective(Directive* node);
-bool	validateMethodsDirective(Directive* node);
-bool	validateClientMaxBodySizeDirective(Directive* node);
-bool	validateAllowOrDenyDirective(Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
-bool	validateKeepaliveTimeoutDirective(Directive* node);
-bool	validateRedirectDirective(Directive* node);
-bool	validateUploadPathDirective(Directive* node);
+void	validateHttpDirective(Directive* node);
+void	validateServerDirective(Directive* node);
+void	validateLocationDirective(Directive* node);
+void	validateListenDirective(Directive* node);
+void	validateRootDirective(Directive* node);
+void	validateIndexDirective(Directive* node);
+void	validateAutoIndexDirective(Directive* node);
+void	validateErrorPageDirective(Directive* node);
+// void	validateFastcgiPassDirective(Directive* node);
+// void	validateFastcgiParamDirective(Directive* node);
+// void	validateFastcgiIndexDirective(Directive* node);
+void	validateReturnDirective(Directive* node);
+void	validateMethodsDirective(Directive* node);
+void	validateClientMaxBodySizeDirective(Directive* node);
+// void	validateAllowOrDenyDirective(Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
+void	validateKeepaliveTimeoutDirective(Directive* node);
+void	validateRedirectDirective(Directive* node);
+// void	validateUploadPathDirective(Directive* node);
 
 // - Utilities -
 

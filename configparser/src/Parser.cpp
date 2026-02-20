@@ -174,9 +174,14 @@ bool	Parser::validateSemantics()
 
 		// std::cout << "DEBUG: directive name: " << directive.get()->getName() << std::endl;
 
-		if (!validateDirective(directive.get()))
+		try
+		{
+			validateDirective(directive.get()); // Improve try-catch block...
+		}
+		catch (std::exception& e)
 		{
 			std::cerr << "Directive failed validation: " << directive.get()->getName() << std::endl;
+			std::cerr << e.what() << std::endl;
 			return (false);
 		}
 	}

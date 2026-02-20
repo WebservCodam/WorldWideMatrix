@@ -1,6 +1,6 @@
 #include "../../include/Configuration.hpp"
 
-bool	validateClientMaxBodySizeDirective(Directive* node)
+void	validateClientMaxBodySizeDirective(Directive* node)
 {
 	// If 0 == no limit
 	// Can be 1m or 10m which means 10 megabytes. Any request that exceeds that it returns a 413 error.
@@ -13,10 +13,8 @@ bool	validateClientMaxBodySizeDirective(Directive* node)
 
 	const long	DEFAULT_SIZE = 2000000;
 
-	if (node->getParameters().empty())
-		throw ConfigError::validation("Directive '" + node->getName() + "' requires a parameter", node);	// I belive this is checked in requiredArguments, so it should never enter this condition.
 	if (node->getParameter(0) == "0")
-		return (true);
+		return ;
 
 	try
 	{
@@ -41,7 +39,7 @@ bool	validateClientMaxBodySizeDirective(Directive* node)
 		if (num_len == param.length())
 		{
 			if (size < DEFAULT_SIZE)
-				return (true);
+				return ;
 			else
 				throw ConfigError::validation("Directive '" + node->getName() + "' exceeds the allowed limit.", node);
 		}
@@ -69,7 +67,7 @@ bool	validateClientMaxBodySizeDirective(Directive* node)
 		// std::cout << "DEBUG in clientMaxBodySize - Param: " << node->getParameter(0) << std::endl;
 		
 		if (size <= DEFAULT_SIZE)
-			return (true);
+			return ;
 		else
 			throw ConfigError::validation("Directive '" + node->getName() + "' exceeds the allowed limit.\n"
 										+ "The limit is: " + std::to_string(DEFAULT_SIZE) + " and the parameter value is: "
@@ -83,5 +81,5 @@ bool	validateClientMaxBodySizeDirective(Directive* node)
 	{
 		throw ConfigError::validation("Invalid size format in '" + node->getName() + "' directive: '" + node->getParameter(0) + "'", node);
 	}
-	return (true);
+	return ;
 }

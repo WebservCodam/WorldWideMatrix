@@ -1,6 +1,6 @@
 #include "../../include/Configuration.hpp"
 
-bool	validateListenDirective(Directive* node)
+void	validateListenDirective(Directive* node)
 {
 
 	std::cout << "DEBUG: In validateListenDirective" << std::endl;
@@ -16,18 +16,18 @@ bool	validateListenDirective(Directive* node)
 	if (addressAndPort.first.empty() && addressAndPort.second.empty())
 	{
 		if (validateAddress(node->getParameter(0)))
-			return (true);
+			return ;
 		if (validatePort(node->getParameter(0)))
-			return (true);
+			return ;
 		throw ConfigError::validation("Invalid address or port format in '" + node->getName() + "' directive: '" + node->getParameter(0) + "'", node);
 	}
 	isValidAddress = validateAddress(addressAndPort.first);
 	isValidPort = validatePort(addressAndPort.second);
 	if (isValidAddress && addressAndPort.second.empty())
-		return (true);
+		return ;
 	else if (isValidAddress && isValidPort)
-		return (true);
+		return ;
 	else if (addressAndPort.first.empty() && isValidPort)
-		return (true);
+		return ;
 	throw ConfigError::validation("Invalid address:port combination in '" + node->getName() + "' directive: '" + node->getParameter(0) + "'", node);
 }

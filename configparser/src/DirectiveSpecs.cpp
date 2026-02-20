@@ -45,8 +45,8 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 	//	=== Location Subdirectives	===
 	{"methods", DirectiveDefinition{"methods", false, 1, 4, {"location"}, {}, validateMethodsDirective}},
 	{"redirect", DirectiveDefinition{"redirect", false, 1, 2, {"location"}, {}, validateRedirectDirective}}, // Check this is valid.
-	{"return", DirectiveDefinition{"return", false, 1, 2, {"server", "location"}, {}, validateReturnDirective}},
-	{"upload_path", DirectiveDefinition{"upload_path", false, 1, 1, {"location"}, {}, validateUploadPathDirective}} // Check this is valid.
+	{"return", DirectiveDefinition{"return", false, 1, 2, {"server", "location"}, {}, validateReturnDirective}}
+	// {"upload_path", DirectiveDefinition{"upload_path", false, 1, 1, {"location"}, {}, validateUploadPathDirective}} // Check this is valid.
 };
 
 /**
@@ -57,19 +57,19 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 
 // ----- BLOCK VALIDATION FUNCTIONS -----
 
-bool	validateServerDirective(Directive* node)
+void	validateServerDirective(Directive* node)
 {
 	return (validateBlockDirective(node));
 }
 
-bool	validateLocationDirective(Directive* node)
+void	validateLocationDirective(Directive* node)
 {
 	return (validateBlockDirective(node));
 }
 
 //	----- GENERAL VALIDATION FUNCTIONS ------
 
-bool	validateDirective(Directive* node)
+void	validateDirective(Directive* node)
 {
 	// Check that the directive name is valid
 	std::map<std::string, DirectiveDefinition>::const_iterator	it = NGINX_DIRECTIVE_SPECS.find(node->getName());
@@ -83,7 +83,9 @@ bool	validateDirective(Directive* node)
 		throw ConfigError::validation("Directive '" + node->getName() + "' is not allowed in '" + node->getContext() + "' context", node);
 
 	// Check parameter count
-	if (node->getParameters().size() < spec.minArgs || node->getParameters().size() > spec.maxArgs)
+	if ((spec.minArgs > 0 && node->getParameters().empty())
+		|| node->getParameters().size() < spec.minArgs
+		|| node->getParameters().size() > spec.maxArgs)
 	{
 
 		// std::cout << "DEBUG in validateDirective - The parameters are: " << std::endl;
@@ -99,31 +101,56 @@ bool	validateDirective(Directive* node)
 	}
 
 	// Call specific validation function if it exists
-	if (spec.validateArgs && !spec.validateArgs(node))
+	if (spec.validateArgs)
 	{
-		throw ConfigError::validation("Invalid parameter value(s) for '" + node->getName() + "'", node);
+		try
+		{
+			spec.validateArgs(node);
+		}
+		catch (ConfigError&)
+		{
+			throw ;
+		}
 	}
+	// {
+	// 	throw ConfigError::validation("Invalid parameter value(s) for '" + node->getName() + "'", node);
+	// }
 
-	return (true); // If it's in a try-catch block, then no boolean should be returned.
+	return ; // If it's in a try-catch block, then no boolean should be returned.
 }
 
-bool	validateBlockDirective(Directive* node)
+void	validateBlockDirective(Directive* node)
 {
 	if (node->getChildren().empty())
 		throw ConfigError::validation("Directive '" + node->getName() + "' expected children directives but didn't have any", node);
 
 	// Validate required children are present
-	if (!validateRequiredChildren(node))
+	try
+	{
+		validateRequiredChildren(node);
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
 		throw ConfigError::validation("Directive '" + node->getName() + "' didn't contain the necessary children directives", node);
+		// For testing purposes. Later merge them or throw one.
+	}
 
 	// Validate that each child is in the right context
-	if (!validateContext(node))
+	try
+	{
+		validateContext(node);
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
 		throw ConfigError::validation("Directive '" + node->getName() + "' is in an invalid context", node);
-
-	return (true);
+		// For testing purposes. Later merge them or throw one.
+	}
+	return ;
 }
 
-bool	validateContext(Directive* node)
+void	validateContext(Directive* node)
 {
 	for (Directive* currentChild : node->getChildren())
 	{
@@ -149,10 +176,10 @@ bool	validateContext(Directive* node)
 		if (!validContext)
 			throw ConfigError::validation("Directive '" + currentChild->getName() + "' is not allowed in '" + currentChild->getContext() + "' context", currentChild);
 	}
-	return (true);
+	return ;
 }
 
-bool	validateRequiredChildren(Directive* node)
+void	validateRequiredChildren(Directive* node)
 {
 	// Find the directive specification
 	std::map<std::string, DirectiveDefinition>::const_iterator it = NGINX_DIRECTIVE_SPECS.find(node->getName());
@@ -165,25 +192,25 @@ bool	validateRequiredChildren(Directive* node)
 	for (const std::string& requiredChild : spec.requiredChildren)
 	{
 		bool found = false;
-		bool valid = false;
+		// bool valid = false;
 		for (Directive* child : node->getChildren())
 		{
 			if (child->getName() == requiredChild)
 			{
 				found = true;
-				valid = validateDirective(child);
-				break;
+				// valid =
+				validateDirective(child);
+				break ;
 			}
-
 		}
 		if (!found)
 			throw ConfigError::validation("Directive '" + node->getName() + "' is missing required child directive '" + requiredChild + "'", node);
 
-		if (!valid)
-		{
-			std::cerr << "Directive '" + node->getName() + "' is failing validation." << std::endl;
-			return (false);
-		}
+		// if (!valid) // Change this when removing booleans
+		// {
+		// 	std::cerr << "Directive '" + node->getName() + "' is failing validation." << std::endl;
+		// 	return (false);
+		// }
 	}
-	return (true);
+	return ;
 }

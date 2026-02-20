@@ -2,7 +2,7 @@
 
 //	Default root would be the root at the main block. (To do after validation)
 //	To do: create function that prepends the root to the location given by the request.
-bool	validateRootDirective(Directive* node)
+void	validateRootDirective(Directive* node)
 {
 	// This currently assumes that directories are listed as absolute paths or relative paths.
 	// If we want the absolute path to be treated as a relative path, we would need to modify this slightly.
@@ -19,5 +19,5 @@ bool	validateRootDirective(Directive* node)
 	if (access(path.c_str(), R_OK | X_OK) != 0)
         throw ConfigError::validation(std::string("Root directory: ") + path + std::string(" doesn't have reading or executing permissions"), node);
 
-	return (true);
+	return ;
 }
