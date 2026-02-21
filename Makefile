@@ -1,34 +1,35 @@
-NAME		=		webserver
-CONFIG_SRC = 		configparser/src
-VALIDATION_SRC =	$(CONFIG_SRC)/validation_functions
-SRC			=		Client.cpp\
-					init.cpp\
-					main.cpp\
-					Server.cpp\
-					utils.cpp\
+NAME		=			webserver
+SRC_DIR 	=			src
+CONFIG_SRC_DIR = 		$(SRC_DIR)/configparser
+VALIDATION_SRC_DIR =	$(CONFIG_SRC_DIR)/validation_functions
+SRC			=		$(SRC_DIR)/Client.cpp\
+					$(SRC_DIR)/init.cpp\
+					$(SRC_DIR)/main.cpp\
+					$(SRC_DIR)/Server.cpp\
+					$(SRC_DIR)/utils.cpp\
 					parser/Body.cpp\
 					parser/Headers.cpp\
 					parser/HttpParser.cpp\
 					parser/RequestLine.cpp\
 					parser/utils2.cpp\
-					$(CONFIG_SRC)/ConfigError.cpp \
-					$(CONFIG_SRC)/Configuration.cpp \
-					$(CONFIG_SRC)/DirectiveSpecs.cpp \
-					$(CONFIG_SRC)/Lexer.cpp \
-					$(CONFIG_SRC)/Parser.cpp \
-					$(CONFIG_SRC)/ServerConfig.cpp \
-					$(VALIDATION_SRC)/AutoindexDirective.cpp \
-					$(VALIDATION_SRC)/CGIDirectives.cpp \
-					$(VALIDATION_SRC)/ClientMaxBodySizeDirective.cpp \
-					$(VALIDATION_SRC)/ErrorPageDirective.cpp \
-					$(VALIDATION_SRC)/IndexDirective.cpp \
-					$(VALIDATION_SRC)/KeepaliveTimeout.cpp \
-					$(VALIDATION_SRC)/ListenDirective.cpp \
-					$(VALIDATION_SRC)/MethodsDirective.cpp \
-					$(VALIDATION_SRC)/ReturnDirective.cpp \
-					$(VALIDATION_SRC)/RootDirective.cpp \
-					$(VALIDATION_SRC)/RedirectDirective.cpp \
-					$(VALIDATION_SRC)/Utilities.cpp
+					$(CONFIG_SRC_DIR)/ConfigError.cpp \
+					$(CONFIG_SRC_DIR)/Configuration.cpp \
+					$(CONFIG_SRC_DIR)/DirectiveSpecs.cpp \
+					$(CONFIG_SRC_DIR)/Lexer.cpp \
+					$(CONFIG_SRC_DIR)/Parser.cpp \
+					$(CONFIG_SRC_DIR)/ServerConfig.cpp \
+					$(VALIDATION_SRC_DIR)/AutoindexDirective.cpp \
+					$(VALIDATION_SRC_DIR)/CGIDirectives.cpp \
+					$(VALIDATION_SRC_DIR)/ClientMaxBodySizeDirective.cpp \
+					$(VALIDATION_SRC_DIR)/ErrorPageDirective.cpp \
+					$(VALIDATION_SRC_DIR)/IndexDirective.cpp \
+					$(VALIDATION_SRC_DIR)/KeepaliveTimeout.cpp \
+					$(VALIDATION_SRC_DIR)/ListenDirective.cpp \
+					$(VALIDATION_SRC_DIR)/MethodsDirective.cpp \
+					$(VALIDATION_SRC_DIR)/ReturnDirective.cpp \
+					$(VALIDATION_SRC_DIR)/RootDirective.cpp \
+					$(VALIDATION_SRC_DIR)/RedirectDirective.cpp \
+					$(VALIDATION_SRC_DIR)/Utilities.cpp
 OBJ			=		$(SRC:.cpp=.o)
 CC			=		c++
 # FLAGS		=		-Wall -Wextra -Werror -g

@@ -14,7 +14,7 @@
 #define HTTPPARSER_H
 
 // #include "../server/Client.hpp"
-#include "../Client.hpp"
+#include "../src/Client.hpp"
 
 #include <iostream>
 #include <map>

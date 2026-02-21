@@ -1,0 +1,73 @@
+#include "../Configuration.hpp"
+#include "PrintUtilities.hpp"
+
+int	main(int argc, char *argv[])
+{
+	if (argc != 2)
+	{
+		std::cerr << "Error: Expecting an input file." << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+	std::ifstream file(argv[1]);
+	if (!file)
+	{
+		std::cerr << "Error: Could not open file" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+	std::stringstream	buffer;
+	buffer << file.rdbuf();
+	std::string input = buffer.str();
+
+	try
+	{
+		// Phase 1: Lexing
+		Lexer lexer(input);
+		lexer.tokenize();
+		// printTokensList(tokenList);
+
+		// Phase 2: Parsing
+		Parser parser = Parser(lexer);
+		std::unique_ptr<ConfigFile>	ast = parser.parse();
+
+		if (!ast)
+		{
+			std::cerr << "Error: Failed to parse configuration" << std::endl;
+			return (EXIT_FAILURE);
+		}
+
+		// printAST(ast);
+
+		// Phase 3: Validation
+		Validator	validator(ast.get());
+		if (validator.validate())
+		{
+			std::cout << "Configuration is valid!" << std::endl;
+
+			// Phase 4: Create servers
+			ast->createServers();
+
+			std::cout << "Servers created" << std::endl;
+
+			printServers(ast->getServers());
+
+			return (EXIT_SUCCESS);
+		}
+		else
+		{
+			std::cerr << "Error: Configuration validation failed" << std::endl;
+			return (EXIT_FAILURE);
+		}
+	}
+	catch (const ConfigError& e)
+	{
+		std::cerr << e.what() << std::endl;
+		return (EXIT_FAILURE);
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "Unexpected error: " << e.what() << std::endl;
+		return (EXIT_FAILURE);
+	}
+}
