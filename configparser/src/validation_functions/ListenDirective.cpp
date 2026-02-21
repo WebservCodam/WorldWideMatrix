@@ -3,14 +3,14 @@
 void	validateListenDirective(Directive* node)
 {
 
-	std::cout << "DEBUG: In validateListenDirective" << std::endl;
+	// std::cout << "DEBUG: In validateListenDirective" << std::endl;
 
 	std::pair<std::string, std::string>	addressAndPort;	//127.0.0.0:8080?
 	bool								isValidAddress;
 	bool								isValidPort;
 
-	if (node->getParameters().empty())
-		throw ConfigError::validation("Directive '" + node->getName() + "' requires at least one parameter", node);
+	// if (node->getParameters().empty())
+	// 	throw ConfigError::validation("Directive '" + node->getName() + "' requires at least one parameter", node);
 
 	addressAndPort = parseAddressAndPort(node->getParameter(0));
 	if (addressAndPort.first.empty() && addressAndPort.second.empty())

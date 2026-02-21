@@ -57,17 +57,19 @@ std::unique_ptr<ConfigFile>	Parser::parse()
 		}
 		catch (const ConfigError& e)
 		{
-			//throw ;  // Figure this out
-			return (nullptr) ;
+			throw ;
 		}
 	}
 
 	this->_configFile = std::make_unique<ConfigFile>(std::move(directives));
 
-	if (validateSemantics() == false)
+	try
 	{
-		std::cerr << "Parsing error: The directives have invalid semantics" << std::endl;
-		exit(EXIT_FAILURE);
+		validateSemantics();
+	}
+	catch(const ConfigError& e)
+	{
+		throw ;
 	}
 
 	return (std::move(this->_configFile));
@@ -163,7 +165,7 @@ std::vector<std::string>	Parser::parseParameters()
 	return (parameters);
 }
 
-bool	Parser::validateSemantics()
+void	Parser::validateSemantics()
 {
 	std::vector<std::unique_ptr<Directive>>&	directives = _configFile->getDirectives();
 
@@ -172,18 +174,17 @@ bool	Parser::validateSemantics()
 	for (std::unique_ptr<Directive>& directive : directives)
 	{
 
-		// std::cout << "DEBUG: directive name: " << directive.get()->getName() << std::endl;
-
+		std::cout << "DEBUG: directive name: " << directive.get()->getName() << std::endl;
 		try
 		{
 			validateDirective(directive.get()); // Improve try-catch block...
 		}
-		catch (std::exception& e)
+		catch (ConfigError& e)
 		{
-			std::cerr << "Directive failed validation: " << directive.get()->getName() << std::endl;
-			std::cerr << e.what() << std::endl;
-			return (false);
+			// std::cerr << "Directive failed validation: " << directive.get()->getName() << std::endl;
+			// std::cerr << e.what() << std::endl;
+			throw e;
 		}
 	}
-	return (true);
+	return ;
 }

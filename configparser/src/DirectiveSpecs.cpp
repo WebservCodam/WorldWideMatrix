@@ -71,16 +71,24 @@ void	validateLocationDirective(Directive* node)
 
 void	validateDirective(Directive* node)
 {
+	std::cerr << "DEBUG in validateDirective: " + node->getName() << std::endl; //Provisional.
+
 	// Check that the directive name is valid
 	std::map<std::string, DirectiveDefinition>::const_iterator	it = NGINX_DIRECTIVE_SPECS.find(node->getName());
 	if (it == NGINX_DIRECTIVE_SPECS.end())
+	{
+		std::cerr << "DEBUG in validateDirective 1" << std::endl; //Provisional.
 		throw ConfigError::validation("Unknown directive '" + node->getName() + "'", node);
+	}
 
 	const DirectiveDefinition&	spec = it->second;
 
 	// Check if context is valid
 	if (spec.validContexts.find(node->getContext()) == spec.validContexts.end())
+	{
+		std::cerr << "DEBUG in validateDirective 2" << std::endl; //Provisional.
 		throw ConfigError::validation("Directive '" + node->getName() + "' is not allowed in '" + node->getContext() + "' context", node);
+	}
 
 	// Check parameter count
 	if ((spec.minArgs > 0 && node->getParameters().empty())
@@ -94,7 +102,7 @@ void	validateDirective(Directive* node)
 		// {
 		// 	std::cout << "DEBUG: " << node->getParameter(i) << std::endl;
 		// }
-
+		std::cerr << "DEBUG in validateDirective 3" << std::endl; //Provisional.
 		throw ConfigError::validation("Invalid parameter count for '" + node->getName() + "': expected min:"
 									+ std::to_string(spec.minArgs) + " & max: " + std::to_string(spec.maxArgs)
 									+ ", got " + std::to_string(node->getParameters().size()), node);
@@ -105,10 +113,12 @@ void	validateDirective(Directive* node)
 	{
 		try
 		{
+			std::cout << "DEBUG in validateDirective: Calling validateArgs" << std::endl;
 			spec.validateArgs(node);
 		}
-		catch (ConfigError&)
+		catch (ConfigError& e)
 		{
+			std::cerr << e.what() << std::endl; //Provisional.
 			throw ;
 		}
 	}
@@ -121,13 +131,19 @@ void	validateDirective(Directive* node)
 
 void	validateBlockDirective(Directive* node)
 {
-	if (node->getChildren().empty())
-		throw ConfigError::validation("Directive '" + node->getName() + "' expected children directives but didn't have any", node);
+	// Not needed since validateDirective already checks this?
+	// if (node->getChildren().empty())
+	// 	throw ConfigError::validation("Directive '" + node->getName() + "' expected children directives but didn't have any", node);
 
 	// Validate required children are present
 	try
 	{
-		validateRequiredChildren(node);
+		validateRequiredChildren(node); // Checks presence
+
+		for (Directive* child : node->getChildren())
+		{
+			validateDirective(child); // Validates all Children.
+		}
 	}
 	catch(const std::exception& e)
 	{
@@ -139,11 +155,11 @@ void	validateBlockDirective(Directive* node)
 	// Validate that each child is in the right context
 	try
 	{
-		validateContext(node);
+		validateContext(node); // This doesn't call validateDirective...
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr << e.what() << '\n';
+		std::cerr << e.what() << std::endl; //Provisional.
 		throw ConfigError::validation("Directive '" + node->getName() + "' is in an invalid context", node);
 		// For testing purposes. Later merge them or throw one.
 	}
@@ -199,8 +215,8 @@ void	validateRequiredChildren(Directive* node)
 			{
 				found = true;
 				// valid =
-				validateDirective(child);
-				break ;
+				// validateDirective(child);
+				// break ; // Remove break so all the location blocks get checked.
 			}
 		}
 		if (!found)

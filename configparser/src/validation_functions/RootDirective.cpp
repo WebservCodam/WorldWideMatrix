@@ -4,10 +4,9 @@
 //	To do: create function that prepends the root to the location given by the request.
 void	validateRootDirective(Directive* node)
 {
-	// This currently assumes that directories are listed as absolute paths or relative paths.
-	// If we want the absolute path to be treated as a relative path, we would need to modify this slightly.
+	// This currently assumes that directories are listed as relative paths.
 
-	const std::string&	path = node->getParameter(0);
+	const std::string&	path = std::string("./") + node->getParameter(0);
 	struct stat			st;
 
 	if (stat(path.c_str(), &st) != 0)

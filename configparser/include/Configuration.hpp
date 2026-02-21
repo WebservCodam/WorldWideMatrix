@@ -226,7 +226,7 @@ class	Parser
 		std::unique_ptr<Directive>			parseBlockDirective();
 		std::vector<std::string>			parseParameters();
 
-		bool	validateSemantics();
+		void	validateSemantics();
 		// bool	validateDirective(Directive* node);
 
 	public:
