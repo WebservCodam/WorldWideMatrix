@@ -111,22 +111,11 @@ void	validateDirective(Directive* node)
 	// Call specific validation function if it exists
 	if (spec.validateArgs)
 	{
-		try
-		{
-			std::cout << "DEBUG in validateDirective: Calling validateArgs" << std::endl;
-			spec.validateArgs(node);
-		}
-		catch (ConfigError& e)
-		{
-			std::cerr << e.what() << std::endl; //Provisional.
-			throw ;
-		}
+		// std::cout << "DEBUG in validateDirective: Calling validateArgs" << std::endl;
+		spec.validateArgs(node);
 	}
-	// {
-	// 	throw ConfigError::validation("Invalid parameter value(s) for '" + node->getName() + "'", node);
-	// }
 
-	return ; // If it's in a try-catch block, then no boolean should be returned.
+	return ;
 }
 
 void	validateBlockDirective(Directive* node)
@@ -136,33 +125,12 @@ void	validateBlockDirective(Directive* node)
 	// 	throw ConfigError::validation("Directive '" + node->getName() + "' expected children directives but didn't have any", node);
 
 	// Validate required children are present
-	try
-	{
-		validateRequiredChildren(node); // Checks presence
-
-		for (Directive* child : node->getChildren())
-		{
-			validateDirective(child); // Validates all Children.
-		}
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << e.what() << '\n';
-		throw ConfigError::validation("Directive '" + node->getName() + "' didn't contain the necessary children directives", node);
-		// For testing purposes. Later merge them or throw one.
-	}
+	validateRequiredChildren(node); // Checks presence
+	for (Directive* child : node->getChildren())
+		validateDirective(child);
 
 	// Validate that each child is in the right context
-	try
-	{
-		validateContext(node); // This doesn't call validateDirective...
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << e.what() << std::endl; //Provisional.
-		throw ConfigError::validation("Directive '" + node->getName() + "' is in an invalid context", node);
-		// For testing purposes. Later merge them or throw one.
-	}
+	validateContext(node);
 	return ;
 }
 
@@ -204,29 +172,20 @@ void	validateRequiredChildren(Directive* node)
 
 	const DirectiveDefinition& spec = it->second;
 
-	// Check each required child directive
+	// Check each required child directive is present
 	for (const std::string& requiredChild : spec.requiredChildren)
 	{
 		bool found = false;
-		// bool valid = false;
 		for (Directive* child : node->getChildren())
 		{
 			if (child->getName() == requiredChild)
 			{
 				found = true;
-				// valid =
-				// validateDirective(child);
-				// break ; // Remove break so all the location blocks get checked.
+				break ;
 			}
 		}
 		if (!found)
 			throw ConfigError::validation("Directive '" + node->getName() + "' is missing required child directive '" + requiredChild + "'", node);
-
-		// if (!valid) // Change this when removing booleans
-		// {
-		// 	std::cerr << "Directive '" + node->getName() + "' is failing validation." << std::endl;
-		// 	return (false);
-		// }
 	}
 	return ;
 }

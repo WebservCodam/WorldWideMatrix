@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/02/18 14:29:20 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/02/22 16:21:52 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,18 +20,18 @@
 
 void	printErrorAndExit(const std::string& msg, int errorCode)
 {
-	std::cerr << "Error: " + msg + "." << std::endl;
+	std::cerr << msg << std::endl;
 	exit(errorCode);
 }
 
 void	initialize(int argc, char **argv, std::unique_ptr<ConfigFile>& ast)
 {
 	if (argc != 2)
-		printErrorAndExit("Expecting an input file", EXIT_FAILURE);
+		printErrorAndExit("Error: Expecting an input file.", EXIT_FAILURE);
 
 	std::ifstream	file(argv[1]);
 	if (!file)
-		printErrorAndExit("Could not open file", EXIT_FAILURE);
+		printErrorAndExit("Error: Could not open file.", EXIT_FAILURE);
 
 	std::stringstream	buffer;
 	buffer << file.rdbuf();
@@ -40,16 +40,14 @@ void	initialize(int argc, char **argv, std::unique_ptr<ConfigFile>& ast)
 	try
 	{
 		ast = Parser(input).parse();
-		if (!ast)
-			printErrorAndExit("Failed to parse configuration", EXIT_FAILURE);
 	}
 	catch (const ConfigError& e)
 	{
-		printErrorAndExit(e.what(), EXIT_FAILURE); // If parsing fails, it would come to this, not to the if condition above.
+		printErrorAndExit(e.what(), EXIT_FAILURE);
 	}
 	catch (const std::exception& e)
 	{
-		printErrorAndExit(std::string("Unexpected error: ") + e.what(), EXIT_FAILURE);
+		printErrorAndExit(std::string("Unexpected error\n") + e.what(), EXIT_FAILURE);
 	}
 
 	// Phase 4: Create servers

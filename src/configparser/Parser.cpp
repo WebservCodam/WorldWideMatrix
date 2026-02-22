@@ -63,14 +63,7 @@ std::unique_ptr<ConfigFile>	Parser::parse()
 
 	this->_configFile = std::make_unique<ConfigFile>(std::move(directives));
 
-	try
-	{
-		validateSemantics();
-	}
-	catch(const ConfigError& e)
-	{
-		throw ;
-	}
+	validateSemantics();
 
 	return (std::move(this->_configFile));
 }
@@ -174,17 +167,23 @@ void	Parser::validateSemantics()
 	for (std::unique_ptr<Directive>& directive : directives)
 	{
 
-		std::cout << "DEBUG: directive name: " << directive.get()->getName() << std::endl;
-		try
-		{
-			validateDirective(directive.get()); // Improve try-catch block...
-		}
-		catch (ConfigError& e)
-		{
-			// std::cerr << "Directive failed validation: " << directive.get()->getName() << std::endl;
-			// std::cerr << e.what() << std::endl;
-			throw e;
-		}
+		validateDirective(directive.get());
+		
+		// std::cout << "DEBUG: directive name: " << directive.get()->getName() << std::endl;
+
+		// CATCH BLOCK IS NOT NEEDED IF I'M GOING TO RETHROW THE ERROR
+		// try
+		// {
+		// 	 
+		// }
+		// catch (const ConfigError&)
+		// {
+		// 	throw;
+		// }
+		// catch (const std::exception&)
+		// {
+		// 	throw;
+		// }
 	}
 	return ;
 }
