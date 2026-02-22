@@ -49,19 +49,11 @@ std::unique_ptr<ConfigFile>	Parser::parse()
 
 	while (!isAtEnd())
 	{
-		try
-		{
-			std::unique_ptr<Directive>	directive = parseDirective();
-			if (directive)
-				directives.push_back(std::move(directive));	// Move transfers ownership from the local directive to the config->directives vector. The local directive becomes nullptr.
-		}
-		catch (const ConfigError& e)
-		{
-			throw ;
-		}
+		std::unique_ptr<Directive>	directive = parseDirective();
+		directives.push_back(std::move(directive));
 	}
 
-	this->_configFile = std::make_unique<ConfigFile>(std::move(directives));
+	this->_configFile = std::make_unique<ConfigFile>(std::move(directives)); //Calls constructor of ConfigFile that takes a vector of directives as arg.
 
 	validateSemantics();
 
@@ -170,20 +162,6 @@ void	Parser::validateSemantics()
 		validateDirective(directive.get());
 		
 		// std::cout << "DEBUG: directive name: " << directive.get()->getName() << std::endl;
-
-		// CATCH BLOCK IS NOT NEEDED IF I'M GOING TO RETHROW THE ERROR
-		// try
-		// {
-		// 	 
-		// }
-		// catch (const ConfigError&)
-		// {
-		// 	throw;
-		// }
-		// catch (const std::exception&)
-		// {
-		// 	throw;
-		// }
 	}
 	return ;
 }
