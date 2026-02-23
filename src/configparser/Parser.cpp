@@ -45,7 +45,7 @@ std::unique_ptr<ConfigFile>	Parser::parse()
 
 	this->_tokens = Lexer(_input).tokenize();
 	if (this->_tokens.empty())
-		throw ConfigError::initialization("Empty list of tokens");
+		throw ConfigError::initialization("Empty list of tokens.");
 
 	while (!isAtEnd())
 	{
@@ -86,7 +86,7 @@ std::unique_ptr<Directive>	Parser::parseDirective()
 
 std::unique_ptr<Directive>	Parser::initializeDirective()
 {
-	std::unique_ptr<Directive>	directive(new Directive());	//Add safeguards
+	std::unique_ptr<Directive>	directive(new Directive());	//Add safeguards?
 
 	directive->setLine(currentToken().line);
 	directive->setColumn(currentToken().column);
@@ -124,6 +124,7 @@ std::unique_ptr<Directive>	Parser::parseBlockDirective()
 		if (child)
 		{
 			child->setContext(directive->getName());
+			child->setParent(directive.get());
 			directive->addChild(std::move(child));
 		}
 	}

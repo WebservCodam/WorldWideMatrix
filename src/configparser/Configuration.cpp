@@ -299,6 +299,16 @@ Directive*	Directive::getChild(size_t i)
 	return (_children[i].get());
 }
 
+Directive*	Directive::getChild(const std::string& name)
+{
+	for (const std::unique_ptr<Directive>& child : _children)
+	{
+		if (child && child->getName() == name)
+			return (child.get());
+	}
+	return (nullptr); // Throw error in the calling function.
+}
+
 std::vector<Directive*>	Directive::getChildren()
 {
 	std::vector<Directive*>	result;
@@ -309,6 +319,11 @@ std::vector<Directive*>	Directive::getChildren()
 		result.push_back(child.get());
 	}
 	return (result);
+}
+
+Directive*	Directive::getParent()
+{
+	return (this->_parent);
 }
 
 // ----- SETTERS -----
@@ -344,4 +359,9 @@ void	Directive::setParameters(const std::vector<std::string>& parameters)
 void	Directive::addChild(std::unique_ptr<Directive> child)
 {
 	this->_children.push_back(std::move(child));
+}
+
+void	Directive::setParent(Directive* parent)
+{
+	this->_parent = parent;
 }

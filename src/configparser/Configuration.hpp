@@ -80,6 +80,7 @@ class	Directive
 		std::string									_name;
 		std::string									_context;
 		std::vector<std::string>					_parameters;
+		Directive*									_parent;	// This is like context, however it contains the actual pointer of the parent.
 		std::vector<std::unique_ptr<Directive>>		_children;
 
 	public:
@@ -100,7 +101,9 @@ class	Directive
 		const std::string&				getContext() const;
 		const std::string&				getParameter(size_t i) const;
 		const std::vector<std::string>&	getParameters() const;
+		Directive*						getParent();
 		Directive*						getChild(size_t i);
+		Directive*						getChild(const std::string& name);
 		std::vector<Directive*>			getChildren();
 
 		// Setters
@@ -111,6 +114,7 @@ class	Directive
 		void	setParameter(int index, const std::string& new_parameter);
 		void	setParameters(const std::vector<std::string>& parameters);
 		void	addChild(std::unique_ptr<Directive> child);
+		void	setParent(Directive* parent);
 };
 
 // --- CONFIG FILE ---

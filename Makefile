@@ -70,6 +70,6 @@ teststart:
 			./webserver example5.conf && siege -t $(V1)s -c $(V2) http://localhost:8080
 
 o:
-			./webserver example5.conf > output.txt 2>&1
+			./webserver config_files/valid/example.conf > output.txt 2>&1
 
 .PHONY:		all clean fclean re test teststart o
