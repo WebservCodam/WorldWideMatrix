@@ -9,7 +9,7 @@ void	validateErrorPageDirective(Directive* node)
 
 	// Last parameter is always the URI
 	const std::string&	uri = node->getParameters().back();
-	std::string			errorPagePath = "error_pages" + uri;
+	std::string			errorPagePath = "error_pages/" + uri;
 	struct stat			st;
 
 	// Check URI format (should start with / or be a valid URL)
@@ -31,11 +31,11 @@ void	validateErrorPageDirective(Directive* node)
 			if (param.length() < 2)
 				throw ConfigError::validation("Invalid response code change in " + node->getName() + " directive: '" + param + "'", node);
 			
-			int new_code = std::stoi(param.substr(1));
+			int new_code = std::stoi(param.substr(1)); // In try-catch block to throw a different error than the one from stoi.
+			std::cout << "DEBUG: New code is: " << new_code << std::endl;
 			// Check it's a valid HTTP status code
 			if (new_code < 100 || new_code > 599)
 				throw ConfigError::validation("Invalid HTTP status code in " + node->getName() + " directive: '" + param + "' must be between 100-599", node);
-			throw ConfigError::validation("Invalid response code change in " + node->getName() + " directive: '" + param + "'", node);
 		}
 		else
 		{

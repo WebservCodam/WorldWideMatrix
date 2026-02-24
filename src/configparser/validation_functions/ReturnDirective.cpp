@@ -2,32 +2,21 @@
 
 void	validateReturnDirective(Directive* node)
 {
-	// return 301 http://example.com;
+	// return 301 URI;
 	// return 404;
 	// return 200 "some text";
 
 	std::cout << "DEBUG: Testing in validateReturn" << std::endl;
 
 	// First parameter must be a valid HTTP status code
-	try
-	{
-		int status_code = std::stoi(node->getParameter(0));
+	int status_code = std::stoi(node->getParameter(0));
 
-		// Must be a valid HTTP status code (100-599)
-		if (status_code < 100 || status_code > 599)
-			throw ConfigError::validation("Invalid HTTP status code in " + node->getName() + " directive: '" + node->getParameter(0) + "' must be between 100-599", node);
+	// Must be a valid HTTP status code (100-599)
+	if (status_code < 100 || status_code > 599)
+		throw ConfigError::validation("Invalid HTTP status code in " + node->getName() + " directive: '" + node->getParameter(0) + "' must be between 100-599", node);
 
-		std::cout << "DEBUG: Testing throwing error in validateReturn" << std::endl;
-		throw ConfigError::validation("TEST", node);
-	}
-	catch (const ConfigError&)
-	{
-		throw ;
-	}
-	catch (const std::exception&) // Would this catch a throw of the previous catch?
-	{
-		throw ConfigError::validation("Invalid HTTP status code in " + node->getName() + " directive: '" + node->getParameter(0) + "'", node);
-	}
+	std::cout << "DEBUG: Testing throwing error in validateReturn" << std::endl;
+	throw ConfigError::validation("TEST", node);
 
 	// If there's a second parameter, validate it as URL or text
 	if (node->getParameters().size() == 2)
