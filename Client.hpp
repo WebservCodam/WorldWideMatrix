@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Client.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/12 14:00:27 by vknape            #+#    #+#             */
-/*   Updated: 2025/11/28 11:08:53 by vknape           ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   Client.hpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vknape <vknape@student.codam.nl>             +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/09/12 14:00:27 by vknape        #+#    #+#                 */
+/*   Updated: 2026/02/26 15:42:09 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ class Client
 		int content_length = 0;
 		std::string _buf;
 		std::string response;
+		
 		
 		Client(int fd);
 		~Client();

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   utils.cpp                                          :+:    :+:            */
+/*   utils2.cpp                                         :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/31 12:44:41 by rkaras        #+#    #+#                 */
-/*   Updated: 2025/10/31 15:14:53 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/02/26 17:00:19 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ bool	HttpParser::readLine(const char *buf, size_t length, size_t &pos, std::stri
 				++pos;
 				return (true);
 			}
-			throw std::runtime_error("Malformed line: CR not followed by LF");
+			throw HttpException(400, "Malformed line: CR not followed by LF");
 		}
 		out += c;
 	}

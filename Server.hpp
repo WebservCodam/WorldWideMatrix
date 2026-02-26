@@ -6,12 +6,12 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 15:04:10 by vknape        #+#    #+#                 */
-/*   Updated: 2026/01/26 13:17:10 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/02/24 17:10:58 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "utils.hpp"
-#include "parser/HttpParser.hpp"
+#include "httpparser/HttpParser.hpp"
 #include "configparser/include/Configuration.hpp"
 #pragma once
 

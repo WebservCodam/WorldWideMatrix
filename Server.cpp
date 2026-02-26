@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/02/17 13:09:29 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/02/26 12:38:32 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -252,27 +252,28 @@ void Server::parse(int client_fd)
 
 		if (status == ParseStatus::COMPLETE)
 		{
-			std::cout << "✅ Request parsed successfully!\n";
-			std::cout << "Method: " << ctx.request.method << "\n";
-			std::cout << "URI: " << ctx.request.uri << "\n";
-			std::cout << "Version: " << ctx.request.version << "\n";
-			std::cout << "Headers:\n";
+			std::cout << "✅ Request parsed successfully!" << std::endl;
+			std::cout << "Method: " << ctx.request.method << std::endl;
+			std::cout << "URI: " << ctx.request.uri << std::endl;
+			std::cout << "Version: " << ctx.request.version << std::endl;
+			std::cout << "Headers:" << std::endl;
 			for (std::map<std::string, std::string>::const_iterator it = ctx.request.headers.begin();
 				 it != ctx.request.headers.end(); ++it)
-				std::cout << "  " << it->first << ": " << it->second << "\n";
+				std::cout << "  " << it->first << ": " << it->second << std::endl;
 
 			if (ctx.request.body.empty())
-				std::cout << "(no body)\n";
+				std::cout << "(no body)" << std::endl;
 			else
-				std::cout << "Body: " << ctx.request.body << "\n";
+				std::cout << "Body: " << ctx.request.body << std::endl;
 		}
 		else if (status == ParseStatus::INCOMPLETE)
-			std::cout << "⚠️ Parsing incomplete – more data needed.\n";
+			std::cout << "⚠️ Parsing incomplete – more data needed." << std::endl;
 		else
-			std::cout << "❌ Parsing failed.\n";
+			std::cout << "❌ Parsing failed." << std::endl;
 	}
-	catch (const std::exception &e)
+	catch (HttpException &e)
 	{
-		std::cerr << "Exception during parsing: " << e.what() << "\n";
+		std::cerr << "Exception during parsing: " << e.what() << std::endl;
+		std::cerr << "Error code: " << e.getStatus() << std::endl;
 	}
 }

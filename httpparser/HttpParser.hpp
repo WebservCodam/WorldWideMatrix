@@ -6,12 +6,14 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/25 15:36:03 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/20 15:26:32 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/02/24 17:23:14 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef HTTPPARSER_H
 #define HTTPPARSER_H
+
+#pragma once
 
 #include "../Client.hpp"
 #include "../responder/Responder.hpp"

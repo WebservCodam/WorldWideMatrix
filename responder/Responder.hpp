@@ -6,7 +6,7 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/31 15:37:05 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/17 16:47:37 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/02/24 17:20:00 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,9 @@
 #include <string>
 #include <sstream>
 #include <fstream>
-#include "../httpparser/HttpParser.hpp"
+// #include "../httpparser/HttpParser.hpp"
+
+class HttpRequest;
 
 class Responder
 {

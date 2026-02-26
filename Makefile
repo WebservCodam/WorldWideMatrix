@@ -6,11 +6,12 @@ SRC			=		Client.cpp\
 					main.cpp\
 					Server.cpp\
 					utils.cpp\
-					parser/Body.cpp\
-					parser/Headers.cpp\
-					parser/HttpParser.cpp\
-					parser/RequestLine.cpp\
-					parser/utils2.cpp\
+					httpparser/Body.cpp\
+					httpparser/Headers.cpp\
+					httpparser/HttpParser.cpp\
+					httpparser/RequestLine.cpp\
+					httpparser/utils2.cpp\
+					httpparser/HttpException.cpp \
 					$(CONFIG_SRC)/ConfigError.cpp \
 					$(CONFIG_SRC)/Configuration.cpp \
 					$(CONFIG_SRC)/DirectiveSpecs.cpp \

@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/25 15:36:17 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/20 13:31:01 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/02/26 17:48:20 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,12 +18,14 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 	ctx.headerEnd = ctx.buffer.find("\r\n\r\n");
 	if (ctx.headerEnd == std::string::npos)
 		return ParseStatus::INCOMPLETE;
+	
+	if (ctx.headerEnd > 8000)
+		throw HttpException(431, "Request headers too long");
 
 	const char *buf = ctx.buffer.data();
 	size_t length = ctx.buffer.size();
 	size_t pos = 0;
-	std::string line;
-	
+	std::string line;	
 	
 	/* request line */
 	while (readLine(buf, length, pos, line) && line.empty())
@@ -49,7 +51,7 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 	if (ctx.request.headers.find("host") == ctx.request.headers.end())
 		throw HttpException(400, "Missing Host header");
 
-	
+
 	/* body */
 	size_t bodyStart = ctx.headerEnd + 4;
 	size_t availableBody = 0;
@@ -72,8 +74,8 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 		if (availableBody < expectedBody)
 			return ParseStatus::INCOMPLETE;
 
-		if (availableBody > expectedBody)
-			throw HttpException(400, "Body larger than Content-Length");
+		// if (availableBody > expectedBody)
+		// 	throw HttpException(400, "Body larger than Content-Length");
 			
 		ctx.request.body = ctx.buffer.substr(bodyStart, expectedBody);
 		ctx.buffer.erase(0, bodyStart + expectedBody);
@@ -91,7 +93,7 @@ ParseStatus HttpParser::initParser(Client &client)
 {
 	ConnectionContext ctx;
 	ctx.buffer = client._buf;
-	ctx.maxBodySize = client._maxBodySize;
+	// ctx.maxBodySize = client._maxBodySize;
 
 	Responder responder;
 	
@@ -112,7 +114,7 @@ ParseStatus HttpParser::initParser(Client &client)
 			else
 				client._alive = false;
 				
-			client.response = responder.buildResponse(ctx.request, client._alive);
+			// client.response = responder.buildResponse(ctx.request, client._alive);
 			
 			client._buf.clear();
 		}
@@ -121,7 +123,7 @@ ParseStatus HttpParser::initParser(Client &client)
 	}
 	catch (HttpException &e)
 	{
-		client.response = responder.buildErrorResponse(e.getStatus(), false);	
+		// client.response = responder.buildErrorResponse(e.getStatus(), false);	
 			
 		client._alive = false;
 		client._buf.clear();
