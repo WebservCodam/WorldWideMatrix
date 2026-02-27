@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/25 15:36:17 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/26 17:48:20 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/02/27 15:22:09 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 		//do nothing, just skip the possible leading CRLFs
 	}
 	if (line.empty())
-		return ParseStatus::ERROR;
+		throw HttpException(400, "Bad request");
 	parseRequestLine(line, ctx.request);
 
 	
@@ -89,44 +89,30 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 	return ParseStatus::COMPLETE;
 }
 
-ParseStatus HttpParser::initParser(Client &client)
-{
-	ConnectionContext ctx;
-	ctx.buffer = client._buf;
-	// ctx.maxBodySize = client._maxBodySize;
+// ParseStatus HttpParser::initParser(Client &client)
+// {
+// 	ConnectionContext ctx;
+// 	ctx.buffer = client._buf;
+// 	// ctx.maxBodySize = client._maxBodySize;
 
-	Responder responder;
+// 	// Responder responder;
 	
-	try
-	{
-		ParseStatus status = parseRequest(ctx);
+// 	ParseStatus status = parseRequest(ctx);
 		
-		if (status == ParseStatus::COMPLETE)
-		{		
-			std::map<std::string, std::string>::iterator it = ctx.request.headers.find("connection");
-			if (it != ctx.request.headers.end())
-			{
-				std::string value = it->second;
-				std::transform(value.begin(), value.end(), value.begin(), ::tolower);
-				if (value == "keep-alive")
-					client._alive = true;
-			}
-			else
-				client._alive = false;
-				
-			// client.response = responder.buildResponse(ctx.request, client._alive);
-			
-			client._buf.clear();
-		}
+// 	if (status == ParseStatus::COMPLETE)
+// 	{		
+// 		std::map<std::string, std::string>::iterator it = ctx.request.headers.find("connection");
+// 		if (it != ctx.request.headers.end())
+// 		{
+// 			std::string value = it->second;
+// 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+// 			if (value == "keep-alive")
+// 				client._alive = true;
+// 		}
+// 		else
+// 			client._alive = false;			
+// 			client._buf.clear();
+// 		}
 
-		return (status);
-	}
-	catch (HttpException &e)
-	{
-		// client.response = responder.buildErrorResponse(e.getStatus(), false);	
-			
-		client._alive = false;
-		client._buf.clear();
-		return ParseStatus::ERROR;
-	}
-}
+// 	return (status);
+// }

@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/12 14:00:27 by vknape        #+#    #+#                 */
-/*   Updated: 2026/02/26 15:42:09 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/02/27 16:44:09 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,9 @@ class Client
 		int	parseready = 0;
 		int content_length = 0;
 		std::string _buf;
-		std::string response;
+		std::string _response;
+		const unsigned long long _maxBodySize;
+		HttpRequest _request;
 		
 		
 		Client(int fd);

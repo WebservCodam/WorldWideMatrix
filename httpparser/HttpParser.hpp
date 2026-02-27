@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/25 15:36:03 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/24 17:23:14 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/02/27 15:20:07 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ enum ParseStatus
 {
 	INCOMPLETE,
 	COMPLETE,
-	ERROR
+	// ERROR
 };
 
 class HttpParser
@@ -70,7 +70,7 @@ class HttpParser
 		HttpParser&	operator=(const HttpParser& other) = delete;
 		~HttpParser() = default;
 		
-		ParseStatus initParser(Client &client);
+		// ParseStatus initParser(Client &client);
 		ParseStatus	parseRequest(ConnectionContext &ctx);
 };
 

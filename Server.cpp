@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/02/26 12:38:32 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/02/27 16:51:23 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -241,39 +241,91 @@ void Server::print_buffers()
 
 void Server::parse(int client_fd)
 {
+	Client &client = list.at(client_fd);
 	HttpParser parser;
-	ConnectionContext ctx;
-	// parser.appendData(ctx, data.c_str(), data.size());
-	ctx.buffer = list.at(client_fd)._buf;
-
-	try
+	Responder responder;
+	
+	while (!client._buf.empty())
 	{
-		ParseStatus status = parser.parseRequest(ctx);
-
-		if (status == ParseStatus::COMPLETE)
+		ConnectionContext ctx;
+		ctx.buffer = client._buf;
+		ctx.maxBodySize = client._maxBodySize;
+		
+		ParseStatus status;
+		try
 		{
-			std::cout << "✅ Request parsed successfully!" << std::endl;
-			std::cout << "Method: " << ctx.request.method << std::endl;
-			std::cout << "URI: " << ctx.request.uri << std::endl;
-			std::cout << "Version: " << ctx.request.version << std::endl;
-			std::cout << "Headers:" << std::endl;
-			for (std::map<std::string, std::string>::const_iterator it = ctx.request.headers.begin();
-				 it != ctx.request.headers.end(); ++it)
-				std::cout << "  " << it->first << ": " << it->second << std::endl;
-
-			if (ctx.request.body.empty())
-				std::cout << "(no body)" << std::endl;
-			else
-				std::cout << "Body: " << ctx.request.body << std::endl;
+			status = parser.parseRequest(ctx);
+			
+			if (status == ParseStatus::COMPLETE)
+			{
+				client._request = ctx.request;
+				client._buf = ctx.buffer;
+				
+				//keep-alive check
+				std::map<std::string, std::string>::iterator it = client._request.headers.find("connection");
+				if (it != client._request.headers.end())
+				{
+					std::string value = it->second;
+					std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+					client._alive = (value == "keep-alive");
+				}
+				else
+					//HTTP/1.1 default - RFC 7230, Section 6.6, Connection
+					client._alive = true;
+				
+				/*CGI*/
+				// if ()
+				// 	client._response = responder.buildCGIResponse(client._request);
+				// else
+					client._response = responder.buildResponse(client._request, client._alive);
+				
+				continue;
+			}
+			else if (status == ParseStatus::INCOMPLETE)
+			{
+				//wait for more data
+				break;
+			}
 		}
-		else if (status == ParseStatus::INCOMPLETE)
-			std::cout << "⚠️ Parsing incomplete – more data needed." << std::endl;
-		else
-			std::cout << "❌ Parsing failed." << std::endl;
-	}
-	catch (HttpException &e)
-	{
-		std::cerr << "Exception during parsing: " << e.what() << std::endl;
-		std::cerr << "Error code: " << e.getStatus() << std::endl;
+		catch (HttpException &e)
+		{
+			client._response = responder.buildErrorResponse(e.getStatus(), false);
+			
+			client._alive = false;
+			client._buf.clear();
+			break;
+		}
 	}
 }
+		
+
+	// 	{
+	// 		std::cout << "✅ Request parsed successfully!" << std::endl;
+	// 		std::cout << "Method: " << ctx.request.method << std::endl;
+	// 		std::cout << "URI: " << ctx.request.uri << std::endl;
+	// 		std::cout << "Version: " << ctx.request.version << std::endl;
+	// 		std::cout << "Headers:" << std::endl;
+	// 		for (std::map<std::string, std::string>::const_iterator it = ctx.request.headers.begin();
+	// 			 it != ctx.request.headers.end(); ++it)
+	// 			std::cout << "  " << it->first << ": " << it->second << std::endl;
+
+	// 		if (ctx.request.body.empty())
+	// 			std::cout << "(no body)" << std::endl;
+	// 		else
+	// 			std::cout << "Body: " << ctx.request.body << std::endl;
+	// 	}
+	// 	else if (status == ParseStatus::INCOMPLETE)
+	// 		std::cout << "⚠️ Parsing incomplete – more data needed." << std::endl;
+	// 	else
+	// 		std::cout << "❌ Parsing failed." << std::endl;
+	// }
+	// catch (HttpException &e)
+	// {
+	// 	std::cerr << "Exception during parsing: " << e.what() << std::endl;
+	// 	std::cerr << "Error code: " << e.getStatus() << std::endl;
+	// }
+	
+	// parser.initParser(client_fd);
+	// ConnectionContext ctx;
+	// // parser.appendData(ctx, data.c_str(), data.size());
+	// ctx.buffer = list.at(client_fd)._buf;
