@@ -55,17 +55,13 @@ std::vector<ServerConfig>	ConfigFile::createServers()
 
 	for (Directive* serverDirective : serverDirectives)
 	{
-		if (!serverDirective) {
-			continue;
-		}
-
 		if (serverDirective->getName() != "server")
 			continue;
 
-		std::string							serverName = "default_server";
-		std::vector<ListenDirective>		listenDirectives;	//The structure already defaults to 0.0.0.0:8080
+		std::string							serverName;
+		std::vector<ListenDirective>		listenDirectives;
 		unsigned long long					maxBodySize;
-		std::map<int, std::string>			errors;
+		std::unordered_map<int, ErrorPage>	errorPages;
 		std::vector<Location>				locations;
 		int									keepalive_timeout;
 
@@ -78,30 +74,31 @@ std::vector<ServerConfig>	ConfigFile::createServers()
 			}
 
 			if (directive->getName() == "server_name")
-				processServerName(directive, serverName);
+				serverName = processServerName(directive);
 			else if (directive->getName() == "listen")
 				processListen(directive, listenDirectives);
 			else if (directive->getName() == "client_max_body_size")
 				processClientMaxBodySize(directive, maxBodySize);
 			else if (directive->getName() == "error_page")
-				processErrorPage(directive, errors);
+				errorPages = processErrorPages(directive);
 			else if (directive->getName() == "location")
 				locations.push_back(processLocation(directive));
 			else if (directive->getName() == "keepalive_timeout")
 				processKeepaliveTimeout(directive, keepalive_timeout);
 		}
 
-		ServerConfig server(serverName, listenDirectives, maxBodySize, errors, locations, keepalive_timeout);
+		ServerConfig server(serverName, listenDirectives, maxBodySize, errorPages, locations, keepalive_timeout);
 		this->_servers.push_back(server);
 	}
 
 	return (this->_servers);
 }
 
-void	ConfigFile::processServerName(const Directive* directive, std::string& serverName)
+std::string	ConfigFile::processServerName(const Directive* directive)
 {
 	if (directive && !directive->getParameters().empty())
-		serverName = directive->getParameter(0);
+		return (directive->getParameter(0));
+	return ("default");
 }
 
 void	ConfigFile::processListen(const Directive* directive, std::vector<ListenDirective>& listenDirectives)
@@ -138,24 +135,6 @@ void	ConfigFile::processClientMaxBodySize(const Directive* directive, unsigned l
 	}
 }
 
-void	ConfigFile::processErrorPage(const Directive* directive, std::map<int, std::string>& errors)
-{
-	if (directive && directive->getParameters().size() >= 2)
-	{
-		std::string	errorPagePath = directive->getParameter(directive->getParameters().size() - 1);
-
-		for (size_t i = 0; i < directive->getParameters().size() - 1; ++i)
-		{
-			try {
-				int code = std::stoi(directive->getParameter(i));
-				errors[code] = errorPagePath;
-			} catch (const std::exception&) {
-				continue;
-			}
-		}
-	}
-}
-
 Location	ConfigFile::processLocation(Directive* directive)
 {
 	if (!directive || directive->getParameters().empty())
@@ -176,25 +155,16 @@ Location	ConfigFile::processLocation(Directive* directive)
 		if (!locationDirective)
 			continue ;
 
-		if (locationDirective->getName() == "root")
+		if (locationDirective->getName() == "root" && !locationDirective->getParameters().empty())
+			root = locationDirective->getParameter(0);
+		else if (locationDirective->getName() == "index" && !locationDirective->getParameters().empty())
+			index = locationDirective->getParameter(0);
+		else if (locationDirective->getName() == "autoindex" && !locationDirective->getParameters().empty())
 		{
-			if (!locationDirective->getParameters().empty())
-				root = locationDirective->getParameter(0);
+			std::string autoindexParam = locationDirective->getParameter(0);
+			autoindex = (autoindexParam == "on" || autoindexParam == "true");
 		}
-		else if (locationDirective->getName() == "index")
-		{
-			if (!locationDirective->getParameters().empty())
-				index = locationDirective->getParameter(0);
-		}
-		else if (locationDirective->getName() == "autoindex")
-		{
-			if (!locationDirective->getParameters().empty())
-			{
-				std::string autoindexParam = locationDirective->getParameter(0);
-				autoindex = (autoindexParam == "on" || autoindexParam == "true");
-			}
-		}
-		else if (locationDirective->getName() == "methods")
+		else if (locationDirective->getName() == "methods"  && !locationDirective->getParameters().empty())
 		{
 			// std::cout << "DEBUG: enters elseif statement 'methods'" << std::endl;
 			getMethod = false;
@@ -238,6 +208,61 @@ void	ConfigFile::processKeepaliveTimeout(Directive* directive, int& keepalive_ti
 		}
 	}
 }
+
+std::unordered_map<int, ErrorPage>	ConfigFile::processErrorPages(const Directive* directive)
+{
+	std::unordered_map<int, ErrorPage>	errorPages;
+	std::string							URI;
+	bool								isRedirect;
+	int									redirectCode = -1;
+	int									numErrorCodes;  // This is the number of error codes.
+
+	// std::cout << "DEBUG: processErrorPages" << std::endl;
+
+	numErrorCodes = directive->getParameters().size() - 1;
+	// std::cout << "DEBUG: number of error codes: " + std::to_string(numErrorCodes) << std::endl;
+	URI = directive->getParameter(numErrorCodes);
+	// std::cout << "DEBUG: URI: " + URI << std::endl;
+	if (directive->getParameter(numErrorCodes - 1).at(0) == '=')
+	{
+		isRedirect = true;
+		redirectCode = std::stoi(directive->getParameter(numErrorCodes - 1).substr(1));
+		numErrorCodes -= 1;
+	}
+	for (size_t i = 0; i < numErrorCodes; i++)
+	{
+		ErrorPage	current;
+		current.errorCode = std::stoi(directive->getParameter(i));
+		current.isRedirect = isRedirect;
+		current.redirectCode = redirectCode;
+		current.URI = URI;
+		errorPages.emplace(current.errorCode, current);
+	}
+	return (errorPages);
+}
+
+// If the page is a link, the page must be a valid path and have reading access.
+// If the link exists but has no reading access it throws an error,
+// Otherwise the string is considered a page by itself.
+ReturnPage	ConfigFile::processReturnPage(const Directive* directive)
+{
+	ReturnPage	returnPage;
+	struct stat	st;
+
+	returnPage.code = std::stoi(directive->getParameter(0));
+	if (directive->getParameters().size() == 1)
+		return (returnPage);
+	
+	returnPage.page = std::stoi(directive->getParameter(1));
+	if (stat(std::string(returnPage.page).c_str(), &st) == 0)
+	{
+		if (access(returnPage.page.c_str(), R_OK) != 0)
+			throw ConfigError::semantics("Return page: " + returnPage.page + " has no reading access.", directive);
+		returnPage.isURI = true;
+	}
+	return (returnPage);
+}
+
 
 // ----- DIRECTIVE CLASS -----
 

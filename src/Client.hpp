@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/12 14:00:27 by vknape        #+#    #+#                 */
-/*   Updated: 2026/02/17 14:06:07 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/02/26 16:05:48 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,11 +32,11 @@ class Client
 		const int 			_fd;
 		int 				_time;
 		bool 				_alive = false;
-		int					_readstate = 0;
-		int					_parseready = 0;
-		int 				_content_length = 0;
+		int					readstate = 0;
+		int					parseready = 0;
+		int 				content_length = 0;
 		std::string			_buf;
-		std::string			_response;
+		std::string			response;
 		unsigned long long	_maxBodySize;
 		
 		Client(int fd);

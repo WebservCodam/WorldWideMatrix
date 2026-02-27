@@ -30,7 +30,8 @@ enum class ErrorType
 	INITIALIZATION,
 	LEXER,
 	PARSER,
-	VALIDATOR
+	VALIDATOR,
+	SEMANTICS
 };
 
 class			ServerConfig;
@@ -43,6 +44,8 @@ class			Lexer;
 class			Parser;
 class			Validator;
 struct			ListenDirective;
+struct			ErrorPage;
+struct			ReturnPage;
 
 // --- TOKEN ---
 
@@ -138,12 +141,14 @@ class	ConfigFile
 
 	private:
 		// Helper functions for processing server directives
-		void		processServerName(const Directive* directive, std::string& serverName);
-		void		processListen(const Directive* directive, std::vector<ListenDirective>& listenDirectives);
-		void		processClientMaxBodySize(const Directive* directive, unsigned long long& maxBodySize);
-		void		processErrorPage(const Directive* directive, std::map<int, std::string>& errors);
-		Location	processLocation(Directive* directive);
-		void		processKeepaliveTimeout(Directive* directive, int& keepalive_timeout);
+		std::string							processServerName(const Directive* directive);
+		void								processListen(const Directive* directive, std::vector<ListenDirective>& listenDirectives);
+		void								processClientMaxBodySize(const Directive* directive, unsigned long long& maxBodySize);
+		// void								processErrorPage(const Directive* directive, std::map<int, std::string>& errors);
+		Location							processLocation(Directive* directive);
+		void								processKeepaliveTimeout(Directive* directive, int& keepalive_timeout);
+		std::unordered_map<int, ErrorPage>	processErrorPages(const Directive* directive);
+		ReturnPage	processReturnPage(const Directive* directive);
 
 	public:
 		// Query methods
@@ -175,6 +180,7 @@ class ConfigError : public std::runtime_error
 		static ConfigError	lexing(const std::string& message, size_t line, size_t column);
 		static ConfigError	parsing(const std::string& message, size_t line, size_t column);
 		static ConfigError	validation(const std::string& message, const Directive* directive);
+		static ConfigError	semantics(const std::string& message, const Directive* directive);
 
 		// ErrorType			getType() const { return _type; }
 		// size_t				getLine() const { return _line; }
@@ -251,12 +257,28 @@ struct ListenDirective
 	ListenDirective(const std::string& addr = "127.0.0.1", const std::string& p = "8080") : address(addr), port(p) {}
 };
 
+struct	ErrorPage
+{
+	int			errorCode;
+	bool		isRedirect = false;
+	int			redirectCode = -1;
+	std::string	URI;
+};
+
+struct	ReturnPage
+{
+	int			code;
+	bool		isURI = false;
+	std::string	page = "";	// Which can store a path to a page if it is URI or it can simply store the whole page here.
+};
+
 class	Location
 {
 	private:
 		std::string					_path;
 		std::string					_root;
 		std::string					_index;
+		ReturnPage					_returnPage;
 		bool						_autoindex;
 		bool						_getMethod;
 		bool						_postMethod;
@@ -270,33 +292,41 @@ class	Location
 		const std::string&	getPath() const;
 		const std::string&	getRoot() const;
 		const std::string&	getIndex() const;
+		ReturnPage			getReturnPage() const;
 		bool				getAutoindex() const;
 		bool				getGetMethod() const;
 		bool				getPostMethod() const;
 		bool				getDeleteMethod() const;
 };
 
+
+
 class	ServerConfig
 {
 	private:
-		std::string						_serverName;
-		std::vector<ListenDirective>	_listenDirectives; // This should be a single object.
-		unsigned long long				_maxBodySize;
-		std::map<int, std::string>		_errors;	//	The idea is that different error codes can return the same error. But this might overcomplicate things.
-		std::vector<Location>			_locations;
-		int								_keepalive_timeout;
+		std::string							_serverName;
+		std::vector<ListenDirective>		_listenDirectives; // This should be a single object.
+		unsigned long long					_maxBodySize;
+		std::unordered_map<int, ErrorPage>	_errorPages;
+		std::vector<Location>				_locations;
+		int									_keepalive_timeout;
 
 	public:
 		ServerConfig() = delete;
-		ServerConfig(const std::string& serverName, const std::vector<ListenDirective>	listenDirectives, size_t maxBodySize, const std::map<int, std::string>& errors, const std::vector<Location>& locations, int keepalive_timeout);
+		ServerConfig(const std::string& serverName,
+					const std::vector<ListenDirective>	listenDirectives,
+					size_t maxBodySize,
+					const std::unordered_map<int, ErrorPage>& errorPages,
+					const std::vector<Location>& locations,
+					int keepalive_timeout);
 		~ServerConfig() = default;
 
-		const std::string&						getServerName() const;
-		const std::vector<ListenDirective>&		getListenDirectives() const;	// Create function to get a port from an address and viceversa
-		unsigned long long						getMaxBodySize() const;
-		const std::map<int, std::string>&		getErrors() const;
-		const std::vector<Location>&			getLocations() const;
-		int										getKeepaliveTimeout() const;
+		const std::string&							getServerName() const;
+		const std::vector<ListenDirective>&			getListenDirectives() const;	// Create function to get a port from an address and viceversa
+		unsigned long long							getMaxBodySize() const;
+		const std::unordered_map<int, ErrorPage>&	getErrorPages() const;
+		const std::vector<Location>&				getLocations() const;
+		int											getKeepaliveTimeout() const;
 };
 
 // --- DIRECTIVE SPECS ---
@@ -306,7 +336,7 @@ void	validateBlockDirective(Directive* node);
 void	validateContext(Directive* node);
 void	validateRequiredChildren(Directive* node);
 
-void	validateHttpDirective(Directive* node);
+// void	validateHttpDirective(Directive* node);
 void	validateServerDirective(Directive* node);
 void	validateLocationDirective(Directive* node);
 void	validateListenDirective(Directive* node);

@@ -23,6 +23,11 @@ const std::string&	Location::getIndex() const
 	return (this->_index);
 }
 
+ReturnPage	Location::getReturnPage() const
+{
+	return (this->_returnPage);
+}
+
 bool	Location::getAutoindex() const
 {
 	return (this->_autoindex);
@@ -48,10 +53,10 @@ bool	Location::getDeleteMethod() const
 ServerConfig::ServerConfig(const std::string& serverName,
 				const std::vector<ListenDirective>	listenDirectives,
 				size_t maxBodySize,
-				const std::map<int, std::string>& errors,
+				const std::unordered_map<int, ErrorPage>& errorPages,
 				const std::vector<Location>& locations,
 				int keepalive_timeout)
-	: _serverName(serverName), _listenDirectives(listenDirectives), _maxBodySize(maxBodySize), _errors(errors), _locations(locations), _keepalive_timeout(keepalive_timeout)
+	: _serverName(serverName), _listenDirectives(listenDirectives), _maxBodySize(maxBodySize), _errorPages(errorPages), _locations(locations), _keepalive_timeout(keepalive_timeout)
 {
 }
 
@@ -70,9 +75,9 @@ unsigned long long	ServerConfig::getMaxBodySize() const
 	return (this->_maxBodySize);
 }
 
-const std::map<int, std::string>&	ServerConfig::getErrors() const
+const std::unordered_map<int, ErrorPage>&	ServerConfig::getErrorPages() const
 {
-	return (this->_errors);
+	return (this->_errorPages);
 }
 
 const std::vector<Location>&	ServerConfig::getLocations() const

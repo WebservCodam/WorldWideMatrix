@@ -28,6 +28,9 @@ std::string ConfigError::buildMessage(ErrorType type, const std::string& message
 		case ErrorType::VALIDATOR:
 			typeStr = "Validation";
 			break;
+		case ErrorType::SEMANTICS:
+			typeStr = "Semantics";
+			break;
 	}
 
 	std::string msg = typeStr + " error: " + message;
@@ -50,6 +53,9 @@ std::string ConfigError::buildMessage(ErrorType type, const std::string& message
 			break;
 		case ErrorType::VALIDATOR:
 			typeStr = "Validation";
+			break;
+		case ErrorType::SEMANTICS:
+			typeStr = "Semantic processing";
 			break;
 	}
 
@@ -82,6 +88,11 @@ ConfigError ConfigError::parsing(const std::string& message, size_t line, size_t
 ConfigError ConfigError::validation(const std::string& message, const Directive* directive)
 {
 	return ConfigError(ErrorType::VALIDATOR, message, directive);
+}
+
+ConfigError ConfigError::semantics(const std::string& message, const Directive* directive)
+{
+	return ConfigError(ErrorType::SEMANTICS, message, directive);
 }
 
 const char* ConfigError::what() const noexcept

@@ -8,11 +8,11 @@ void	validateErrorPageDirective(Directive* node)
 	// error_page 404 =200 /empty.gif;		An equals changes the code.
 
 	// Last parameter is always the URI
-	const std::string&	uri = node->getParameters().back();
-	std::string			errorPagePath = "error_pages/" + uri;
-	struct stat			st;
+	const std::string&					uri = node->getParameters().back();
+	std::string							errorPagePath = "error_pages/" + uri;
+	struct stat							st;
 
-	// Check URI format (should start with / or be a valid URL)
+	// Check URI
 	if (uri.empty() || stat(std::string(errorPagePath).c_str(), &st) != 0)
 		throw ConfigError::validation("Error page: " + errorPagePath + " not found.", node); // To make tests...
 
