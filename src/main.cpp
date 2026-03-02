@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/02/22 16:21:52 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/03/02 17:41:56 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ void	printErrorAndExit(const std::string& msg, int errorCode)
 	exit(errorCode);
 }
 
-void	initialize(int argc, char **argv, std::unique_ptr<ConfigFile>& ast)
+void	initialize(int argc, char **argv, std::vector<ServerConfig>& serversConfigurations)
 {
 	if (argc != 2)
 		printErrorAndExit("Error: Expecting an input file.", EXIT_FAILURE);
@@ -39,7 +39,8 @@ void	initialize(int argc, char **argv, std::unique_ptr<ConfigFile>& ast)
 	
 	try
 	{
-		ast = Parser(input).parse();
+		std::unique_ptr<ConfigFile> ast = Parser(input).parse();
+		serversConfigurations = ast->createServers();
 	}
 	catch (const ConfigError& e)
 	{
@@ -50,17 +51,14 @@ void	initialize(int argc, char **argv, std::unique_ptr<ConfigFile>& ast)
 		printErrorAndExit(std::string("Unexpected error\n") + e.what(), EXIT_FAILURE);
 	}
 
-	// Phase 4: Create servers
-	ast->createServers();
-
 	std::cout << "DEBUG: Servers created" << std::endl;
 }
 
 int main(int argc, char** argv)
 {
-	std::unique_ptr<ConfigFile>	ast = NULL;
+	std::vector<ServerConfig>	serversConfigurations;
 
-	initialize(argc, argv, ast);
+	initialize(argc, argv, serversConfigurations);
 	while (true)
 	{
 		try {
@@ -72,7 +70,7 @@ int main(int argc, char** argv)
 				throw std::runtime_error("Failed to create epoll fd");
 				
 			Server server(epfd);
-			server.servers = ast->getServers();
+			server.servers = serversConfigurations;
 			std::cout << server.servers.at(0).getServerName() << std::endl;
 			
 			server.init_server();

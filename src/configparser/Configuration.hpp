@@ -143,12 +143,11 @@ class	ConfigFile
 		// Helper functions for processing server directives
 		std::string							processServerName(const Directive* directive);
 		void								processListen(const Directive* directive, std::vector<ListenDirective>& listenDirectives);
-		void								processClientMaxBodySize(const Directive* directive, unsigned long long& maxBodySize);
-		// void								processErrorPage(const Directive* directive, std::map<int, std::string>& errors);
+		unsigned long long					processClientMaxBodySize(const Directive* directive);
 		Location							processLocation(Directive* directive);
 		void								processKeepaliveTimeout(Directive* directive, int& keepalive_timeout);
 		std::unordered_map<int, ErrorPage>	processErrorPages(const Directive* directive);
-		ReturnPage	processReturnPage(const Directive* directive);
+		ReturnPage							processReturnPage(const Directive* directive);
 
 	public:
 		// Query methods
@@ -293,7 +292,7 @@ class	Location
 				bool getMethod = true,
 				bool postMethod = false,
 				bool deleteMethod = false,
-				ReturnPage returnPage);
+				ReturnPage returnPage = ReturnPage());
 		~Location() = default;
 
 		const std::string&	getPath() const;
@@ -359,7 +358,6 @@ void	validateMethodsDirective(Directive* node);
 void	validateClientMaxBodySizeDirective(Directive* node);
 // void	validateAllowOrDenyDirective(Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
 void	validateKeepaliveTimeoutDirective(Directive* node);
-void	validateRedirectDirective(Directive* node);
 // void	validateUploadPathDirective(Directive* node);
 
 // - Utilities -

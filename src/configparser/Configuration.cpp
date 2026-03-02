@@ -7,7 +7,7 @@ const Directive*	ConfigFile::findDirective(const std::string& name) const
 	for (const std::unique_ptr<Directive>& directive : this->_directives)
 	{
 		if (directive && directive->getName() == name)
-			return (directive.get()); // Extracts raw pointer from unique_ptr
+			return (directive.get()); // Extracts raw pointer from unique_ptr (test if this is a dangling pointer on return...)
 	}
 	return (nullptr);
 }
@@ -69,16 +69,15 @@ std::vector<ServerConfig>	ConfigFile::createServers()
 
 		for (Directive* directive : serverChildren)
 		{
-			if (!directive) {
+			if (!directive)
 				continue;
-			}
 
 			if (directive->getName() == "server_name")
 				serverName = processServerName(directive);
 			else if (directive->getName() == "listen")
 				processListen(directive, listenDirectives);
 			else if (directive->getName() == "client_max_body_size")
-				processClientMaxBodySize(directive, maxBodySize);
+				maxBodySize = processClientMaxBodySize(directive);
 			else if (directive->getName() == "error_page")
 				errorPages = processErrorPages(directive);
 			else if (directive->getName() == "location")
@@ -122,17 +121,23 @@ void	ConfigFile::processListen(const Directive* directive, std::vector<ListenDir
 	}
 }
 
-void	ConfigFile::processClientMaxBodySize(const Directive* directive, unsigned long long& maxBodySize)
+unsigned long long	ConfigFile::processClientMaxBodySize(const Directive* directive)
 {
+	unsigned long long	maxBodySize;
+
 	if (directive && !directive->getParameters().empty())
 	{
 		std::string sizeStr = directive->getParameter(0);
-		try {
+		try
+		{
 			maxBodySize = std::stoull(sizeStr);
-		} catch (const std::exception&) {
+		}
+		catch (const std::exception&)
+		{
 			maxBodySize = 2000000; // Defaults to 2MB
 		}
 	}
+	return (maxBodySize);
 }
 
 Location	ConfigFile::processLocation(Directive* directive)
@@ -147,7 +152,7 @@ Location	ConfigFile::processLocation(Directive* directive)
 	bool			getMethod = false;
 	bool			postMethod = false;
 	bool			deleteMethod = false;
-	ReturnPage		returnPage;
+	ReturnPage		returnPage = ReturnPage();
 
 	std::vector<Directive*> locationChildren = directive->getChildren();
 
@@ -311,7 +316,7 @@ const std::vector<std::string>&	Directive::getParameters() const
 Directive*	Directive::getChild(size_t i)
 {
 	if (i < 0 || i >= _children.size())
-		return (nullptr); // Throw exception
+		return (nullptr);
 
 	return (_children[i].get());
 }

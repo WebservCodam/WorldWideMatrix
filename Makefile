@@ -28,7 +28,6 @@ SRC			=		$(SRC_DIR)/Client.cpp\
 					$(VALIDATION_SRC_DIR)/MethodsDirective.cpp \
 					$(VALIDATION_SRC_DIR)/ReturnDirective.cpp \
 					$(VALIDATION_SRC_DIR)/RootDirective.cpp \
-					$(VALIDATION_SRC_DIR)/RedirectDirective.cpp \
 					$(VALIDATION_SRC_DIR)/Utilities.cpp
 OBJ			=		$(SRC:.cpp=.o)
 CC			=		c++
