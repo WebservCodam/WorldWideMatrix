@@ -138,7 +138,7 @@ void	ConfigFile::processClientMaxBodySize(const Directive* directive, unsigned l
 Location	ConfigFile::processLocation(Directive* directive)
 {
 	if (!directive || directive->getParameters().empty())
-		return Location("/");
+		return Location("/"); // What is this? and Why?
 
 	std::string		path = directive->getParameter(0);
 	std::string		root = "";
@@ -147,53 +147,45 @@ Location	ConfigFile::processLocation(Directive* directive)
 	bool			getMethod = false;
 	bool			postMethod = false;
 	bool			deleteMethod = false;
+	ReturnPage		returnPage;
 
 	std::vector<Directive*> locationChildren = directive->getChildren();
 
-	for (Directive* locationDirective : locationChildren)
+	for (Directive* child : locationChildren)
 	{
-		if (!locationDirective)
-			continue ;
-
-		if (locationDirective->getName() == "root" && !locationDirective->getParameters().empty())
-			root = locationDirective->getParameter(0);
-		else if (locationDirective->getName() == "index" && !locationDirective->getParameters().empty())
-			index = locationDirective->getParameter(0);
-		else if (locationDirective->getName() == "autoindex" && !locationDirective->getParameters().empty())
+		if (child->getName() == "root" && !child->getParameters().empty())
+			root = child->getParameter(0);
+		else if (child->getName() == "index" && !child->getParameters().empty())
+			index = child->getParameter(0);
+		else if (child->getName() == "autoindex" && !child->getParameters().empty())
 		{
-			std::string autoindexParam = locationDirective->getParameter(0);
+			std::string autoindexParam = child->getParameter(0);
 			autoindex = (autoindexParam == "on" || autoindexParam == "true");
 		}
-		else if (locationDirective->getName() == "methods"  && !locationDirective->getParameters().empty())
+		else if (child->getName() == "methods"  && !child->getParameters().empty())
 		{
 			// std::cout << "DEBUG: enters elseif statement 'methods'" << std::endl;
 			getMethod = false;
 			postMethod = false;
 			deleteMethod = false;
 
-			for (const std::string& method : locationDirective->getParameters())
+			for (const std::string& method : child->getParameters())
 			{
-				// std::cout << "DEBUG: method is " << method << std::endl;
 				if (method == "GET")
-				{
 					getMethod = true;
-					// std::cout << "DEBUG: GET set to true" << std::endl;
-				}
 				else if (method == "POST")
-				{
 					postMethod = true;
-					// std::cout << "DEBUG: POST set to true" << std::endl;
-				}
 				else if (method == "DELETE")
-				{
 					deleteMethod = true;
-					// std::cout << "DEBUG: DELETE set to true" << std::endl;
-				}
 			}
+		}
+		else if (child->getName() == "return")
+		{
+			returnPage = processReturnPage(child);
 		}
 	}
 
-	return Location(path, root, index, autoindex, getMethod, postMethod, deleteMethod);
+	return Location(path, root, index, autoindex, getMethod, postMethod, deleteMethod, returnPage);
 }
 
 void	ConfigFile::processKeepaliveTimeout(Directive* directive, int& keepalive_timeout)

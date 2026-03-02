@@ -3,8 +3,8 @@
 
 //	----- LOCATION -----
 
-Location::Location(const std::string& path, const std::string& root, const std::string& index, bool autoindex, bool getMethod, bool postMethod, bool deleteMethod)
-	: _path(path), _root(root), _index(index), _autoindex(autoindex), _getMethod(getMethod), _postMethod(postMethod), _deleteMethod(deleteMethod)
+Location::Location(const std::string& path, const std::string& root, const std::string& index, bool autoindex, bool getMethod, bool postMethod, bool deleteMethod, ReturnPage returnPage)
+	: _path(path), _root(root), _index(index), _autoindex(autoindex), _getMethod(getMethod), _postMethod(postMethod), _deleteMethod(deleteMethod), _returnPage(returnPage)
 {
 }
 

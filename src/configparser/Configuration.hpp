@@ -286,7 +286,14 @@ class	Location
 
 	public:
 		Location() = delete;
-		Location(const std::string& path, const std::string& root = "", const std::string& index = "", bool autoindex = false, bool getMethod = true, bool postMethod = false, bool deleteMethod = false);
+		Location(const std::string& path,
+				const std::string& root = "",
+				const std::string& index = "",
+				bool autoindex = false,
+				bool getMethod = true,
+				bool postMethod = false,
+				bool deleteMethod = false,
+				ReturnPage returnPage);
 		~Location() = default;
 
 		const std::string&	getPath() const;
