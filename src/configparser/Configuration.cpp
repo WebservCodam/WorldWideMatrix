@@ -142,17 +142,11 @@ unsigned long long	ConfigFile::processClientMaxBodySize(const Directive* directi
 
 Location	ConfigFile::processLocation(Directive* directive)
 {
-	if (!directive || directive->getParameters().empty())
-		return Location("/"); // What is this? and Why?
-
-	std::string		path = directive->getParameter(0);
+	Location		location;
 	std::string		root = "";
 	std::string		index = "";
-	bool			autoindex = false;
-	bool			getMethod = false;
-	bool			postMethod = false;
-	bool			deleteMethod = false;
-	ReturnPage		returnPage = ReturnPage();
+
+	location.name = directive->getParameter(0);
 
 	std::vector<Directive*> locationChildren = directive->getChildren();
 
@@ -165,32 +159,24 @@ Location	ConfigFile::processLocation(Directive* directive)
 		else if (child->getName() == "autoindex" && !child->getParameters().empty())
 		{
 			std::string autoindexParam = child->getParameter(0);
-			autoindex = (autoindexParam == "on" || autoindexParam == "true");
+			location.autoindex = (autoindexParam == "on" || autoindexParam == "true");
 		}
 		else if (child->getName() == "methods"  && !child->getParameters().empty())
 		{
-			// std::cout << "DEBUG: enters elseif statement 'methods'" << std::endl;
-			getMethod = false;
-			postMethod = false;
-			deleteMethod = false;
-
 			for (const std::string& method : child->getParameters())
 			{
 				if (method == "GET")
-					getMethod = true;
+					location.getMethod = true;
 				else if (method == "POST")
-					postMethod = true;
+					location.postMethod = true;
 				else if (method == "DELETE")
-					deleteMethod = true;
+					location.deleteMethod = true;
 			}
 		}
 		else if (child->getName() == "return")
-		{
-			returnPage = processReturnPage(child);
-		}
+			location.returnPage = processReturnPage(child);
 	}
-
-	return Location(path, root, index, autoindex, getMethod, postMethod, deleteMethod, returnPage);
+	return (location);
 }
 
 void	ConfigFile::processKeepaliveTimeout(Directive* directive, int& keepalive_timeout)

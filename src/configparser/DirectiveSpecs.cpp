@@ -16,44 +16,31 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 {
 	//	=== Main Context Directives ===
 	{"user", DirectiveDefinition{"user", false, 0, 2, {"main"}, {}, nullptr}},
-
-	//	===	Block Directives ===
 	{"server", DirectiveDefinition{"server", true, 0, 0, {"main"}, {"listen", "client_max_body_size", "location"}, validateServerDirective}},
-	{"location", DirectiveDefinition{"location", true, 1, 2, {"server", "location"}, {}, validateLocationDirective}},	// 2 parameters in case it's an equals
 
-	//	=== ServerConfig Basics ===
-	{"listen", DirectiveDefinition{"listen", false, 1, 1, {"server"}, {}, validateListenDirective}}, 
+	//	===	Server Context Directives ===
 	{"server_name", DirectiveDefinition{"server_name", false, 1, 100, {"server"}, {}, nullptr}},
-	{"root", DirectiveDefinition{"root", false, 1, 1, {"server", "location"}, {}, validateRootDirective}},
-
-	//	=== Autoindex ===
-	{"autoindex", DirectiveDefinition{"autoindex", false, 1, 1, {"server", "location"}, {}, validateAutoIndexDirective}},
-	{"index", DirectiveDefinition{"index", false, 1, 1, {"server", "location"}, {}, validateIndexDirective}},
-
-	//	=== Error Handling ===
-	{"error_page", DirectiveDefinition{"error_page", false, 2, 100, {"server", "location"}, {}, validateErrorPageDirective}},
-
-	// === CGI ===
-	// {"fastcgi_pass", DirectiveDefinition{"fastcgi_pass", false, 1, 1, {"location"}, {}, validateFastcgiPassDirective}},
-	// {"fastcgi_param", DirectiveDefinition{"fastcgi_param", false, 2, 3, {"server", "location"}, {}, validateFastcgiParamDirective}},
-	// {"fastcgi_index", DirectiveDefinition{"fastcgi_index", false, 1, 1, {"server", "location"}, {}, validateFastcgiIndexDirective}},
-
-	//	=== Others	===
-	{"client_max_body_size", DirectiveDefinition{"client_max_body_size", false, 1, 1, {"server", "location"}, {}, validateClientMaxBodySizeDirective}},
+	{"listen", DirectiveDefinition{"listen", false, 1, 1, {"server"}, {}, validateListenDirective}}, 
 	{"keepalive_timeout", DirectiveDefinition{"keepalive_timeout", false, 1, 1, {"server"}, {}, validateKeepaliveTimeoutDirective}},
+	{"location", DirectiveDefinition{"location", true, 1, 2, {"server"}, {}, validateLocationDirective}},	// 2 parameters in case it's an equals
 
-	//	=== Location Subdirectives	===
+	//	=== Location Context Directives ===
+	{"root", DirectiveDefinition{"root", false, 1, 1, {"server", "location"}, {}, validateRootDirective}},
+	{"index", DirectiveDefinition{"index", false, 1, 1, {"server", "location"}, {}, validateIndexDirective}},
+	{"autoindex", DirectiveDefinition{"autoindex", false, 1, 1, {"server", "location"}, {}, validateAutoIndexDirective}},
+	{"error_page", DirectiveDefinition{"error_page", false, 2, 100, {"server", "location"}, {}, validateErrorPageDirective}},
+	{"client_max_body_size", DirectiveDefinition{"client_max_body_size", false, 1, 1, {"server", "location"}, {}, validateClientMaxBodySizeDirective}},
 	{"methods", DirectiveDefinition{"methods", false, 1, 4, {"location"}, {}, validateMethodsDirective}},
 	// {"redirect", DirectiveDefinition{"redirect", false, 1, 2, {"location"}, {}, validateRedirectDirective}}, // Check this is valid.
-	{"return", DirectiveDefinition{"return", false, 1, 2, {"server", "location"}, {}, validateReturnDirective}}
+	{"return", DirectiveDefinition{"return", false, 1, 2, {"server", "location"}, {}, validateReturnDirective}},
 	// {"upload_path", DirectiveDefinition{"upload_path", false, 1, 1, {"location"}, {}, validateUploadPathDirective}} // Check this is valid.
-};
 
-/**
- * MISSING DIRECTIVES
- * 
- * keepalive_timeout
- */
+	// === CGI ===
+	// {"cgi_pass", DirectiveDefinition{"cgi_pass", false, 1, 1, {"location"}, {}, validateCgiPassDirective}},
+	// {"cgi_param", DirectiveDefinition{"cgi_param", false, 2, 3, {"server", "location"}, {}, validateCgiParamDirective}},
+	// {"cgi_index", DirectiveDefinition{"cgi_index", false, 1, 1, {"server", "location"}, {}, validateCgiIndexDirective}},
+	
+};
 
 // ----- BLOCK VALIDATION FUNCTIONS -----
 

@@ -1,53 +1,5 @@
 #include "Configuration.hpp"
 
-
-//	----- LOCATION -----
-
-Location::Location(const std::string& path, const std::string& root, const std::string& index, bool autoindex, bool getMethod, bool postMethod, bool deleteMethod, ReturnPage returnPage)
-	: _path(path), _root(root), _index(index), _autoindex(autoindex), _getMethod(getMethod), _postMethod(postMethod), _deleteMethod(deleteMethod), _returnPage(returnPage)
-{
-}
-
-const std::string&	Location::getPath() const
-{
-	return (this->_path);
-}
-
-const std::string&	Location::getRoot() const
-{
-	return (this->_root);
-}
-
-const std::string&	Location::getIndex() const
-{
-	return (this->_index);
-}
-
-ReturnPage	Location::getReturnPage() const
-{
-	return (this->_returnPage);
-}
-
-bool	Location::getAutoindex() const
-{
-	return (this->_autoindex);
-}
-
-bool	Location::getGetMethod() const
-{
-	return (this->_getMethod);
-}
-
-bool	Location::getPostMethod() const
-{
-	return (this->_postMethod);
-}
-
-bool	Location::getDeleteMethod() const
-{
-	return (this->_deleteMethod);
-}
-
 //	----- SERVER -----
 
 ServerConfig::ServerConfig(const std::string& serverName,
@@ -59,6 +11,8 @@ ServerConfig::ServerConfig(const std::string& serverName,
 	: _serverName(serverName), _listenDirectives(listenDirectives), _maxBodySize(maxBodySize), _errorPages(errorPages), _locations(locations), _keepalive_timeout(keepalive_timeout)
 {
 }
+
+// Put all of this below inside the class in the header file.
 
 const std::string&	ServerConfig::getServerName() const
 {

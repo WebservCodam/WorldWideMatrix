@@ -271,38 +271,23 @@ struct	ReturnPage
 	std::string	page = "";	// Which can store a path to a page if it is URI or it can simply store the whole page here.
 };
 
-class	Location
+struct	Location
 {
-	private:
-		std::string					_path;
-		std::string					_root;
-		std::string					_index;
-		ReturnPage					_returnPage;
-		bool						_autoindex;
-		bool						_getMethod;
-		bool						_postMethod;
-		bool						_deleteMethod;
+		std::string					name;		// This represents the location we're trying to access.
+		std::string					path;		// This is the full path to the location: root + location + (index?).
+		ReturnPage					returnPage;
+		bool						autoindex;
+		bool						getMethod;
+		bool						postMethod;
+		bool						deleteMethod;
 
-	public:
-		Location() = delete;
-		Location(const std::string& path,
-				const std::string& root = "",
-				const std::string& index = "",
+		Location(const std::string& name = "",
+				const std::string& path = "",
 				bool autoindex = false,
 				bool getMethod = true,
 				bool postMethod = false,
 				bool deleteMethod = false,
 				ReturnPage returnPage = ReturnPage());
-		~Location() = default;
-
-		const std::string&	getPath() const;
-		const std::string&	getRoot() const;
-		const std::string&	getIndex() const;
-		ReturnPage			getReturnPage() const;
-		bool				getAutoindex() const;
-		bool				getGetMethod() const;
-		bool				getPostMethod() const;
-		bool				getDeleteMethod() const;
 };
 
 
@@ -311,7 +296,7 @@ class	ServerConfig
 {
 	private:
 		std::string							_serverName;
-		std::vector<ListenDirective>		_listenDirectives; // This should be a single object.
+		std::vector<ListenDirective>		_listenDirectives;
 		unsigned long long					_maxBodySize;
 		std::unordered_map<int, ErrorPage>	_errorPages;
 		std::vector<Location>				_locations;
