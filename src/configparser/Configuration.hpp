@@ -273,24 +273,15 @@ struct	ReturnPage
 
 struct	Location
 {
-		std::string					name;		// This represents the location we're trying to access.
-		std::string					path;		// This is the full path to the location: root + location + (index?).
+		std::string					name;			// This represents the location we're trying to access.
+		std::string					dirPath;
+		std::string					indexPath;		// This is the full path that goes to the index. root + location + (index?).
 		ReturnPage					returnPage;
-		bool						autoindex;
-		bool						getMethod;
-		bool						postMethod;
-		bool						deleteMethod;
-
-		Location(const std::string& name = "",
-				const std::string& path = "",
-				bool autoindex = false,
-				bool getMethod = true,
-				bool postMethod = false,
-				bool deleteMethod = false,
-				ReturnPage returnPage = ReturnPage());
+		bool						autoindex = false;
+		bool						getMethod = false;
+		bool						postMethod = false;
+		bool						deleteMethod = false;
 };
-
-
 
 class	ServerConfig
 {
@@ -311,6 +302,11 @@ class	ServerConfig
 					const std::vector<Location>& locations,
 					int keepalive_timeout);
 		~ServerConfig() = default;
+
+		// For the return directive -> if the page string is empty, and the code is an error page, then serve the error page for that code.
+		// If there is no error page for that code, serve the default error page.
+
+		// Create function that retrieves an error page from the code given. If the page is not specified, then return the default error page.
 
 		const std::string&							getServerName() const;
 		const std::vector<ListenDirective>&			getListenDirectives() const;	// Create function to get a port from an address and viceversa
@@ -351,3 +347,5 @@ std::pair<std::string, std::string>	parseAddressAndPort(const std::string& addre
 bool 								isByte(std::string &number);
 bool								validateAddress(const std::string& address);
 bool								validatePort(const std::string& port);
+
+std::string	joinPath(const std::string& a, const std::string& b);

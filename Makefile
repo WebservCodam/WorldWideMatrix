@@ -18,6 +18,7 @@ SRC			=		$(SRC_DIR)/Client.cpp\
 					$(CONFIG_SRC_DIR)/Lexer.cpp \
 					$(CONFIG_SRC_DIR)/Parser.cpp \
 					$(CONFIG_SRC_DIR)/ServerConfig.cpp \
+					$(CONFIG_SRC_DIR)/Utils.cpp \
 					$(VALIDATION_SRC_DIR)/AutoindexDirective.cpp \
 					$(VALIDATION_SRC_DIR)/CGIDirectives.cpp \
 					$(VALIDATION_SRC_DIR)/ClientMaxBodySizeDirective.cpp \

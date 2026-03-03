@@ -142,6 +142,7 @@ unsigned long long	ConfigFile::processClientMaxBodySize(const Directive* directi
 
 Location	ConfigFile::processLocation(Directive* directive)
 {
+	Directive*		server;
 	Location		location;
 	std::string		root = "";
 	std::string		index = "";
@@ -152,16 +153,27 @@ Location	ConfigFile::processLocation(Directive* directive)
 
 	for (Directive* child : locationChildren)
 	{
-		if (child->getName() == "root" && !child->getParameters().empty())
+		const std::string& name = child->getName();
+
+		if (name == "return")
+		{
+			location.returnPage = processReturnPage(child);
+			continue ;
+		}
+
+		if (child->getParameters().empty())
+			continue;
+
+		if (name == "root")
 			root = child->getParameter(0);
-		else if (child->getName() == "index" && !child->getParameters().empty())
+		else if (name == "index")
 			index = child->getParameter(0);
-		else if (child->getName() == "autoindex" && !child->getParameters().empty())
+		else if (name == "autoindex")
 		{
 			std::string autoindexParam = child->getParameter(0);
 			location.autoindex = (autoindexParam == "on" || autoindexParam == "true");
 		}
-		else if (child->getName() == "methods"  && !child->getParameters().empty())
+		else if (name == "methods")
 		{
 			for (const std::string& method : child->getParameters())
 			{
@@ -172,10 +184,36 @@ Location	ConfigFile::processLocation(Directive* directive)
 				else if (method == "DELETE")
 					location.deleteMethod = true;
 			}
+			if (location.getMethod == false && location.postMethod == false && location.deleteMethod == false)
+			{
+				location.getMethod = true;
+				location.postMethod = true;
+				location.deleteMethod = true;
+			}
 		}
-		else if (child->getName() == "return")
-			location.returnPage = processReturnPage(child);
 	}
+
+	//	Inherit from server if not set locally
+	server = directive->getParent();
+	if (root.empty())
+	{
+		if (server && server->getChild("root"))
+			root = server->getChild("root")->getParameter(0);
+		else
+			root = "/www/";
+	}
+	if (index.empty() && location.autoindex == false)
+	{
+		if (server && server->getChild("index"))
+			index = server->getChild("index")->getParameter(0);
+		else
+			index = "index.html";
+	}
+
+	//	Build full path
+	location.dirPath = joinPath(root, location.name);
+	if (!index.empty())
+		location.indexPath = joinPath(location.dirPath, index);
 	return (location);
 }
 
