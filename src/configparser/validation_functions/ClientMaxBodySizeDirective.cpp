@@ -25,14 +25,7 @@ void	validateClientMaxBodySizeDirective(Directive* node)
 			throw ConfigError::validation("Invalid size value in '" + node->getName() + "' directive", node);
 
 		// Convert parameter to long.
-		try
-		{
-			size = std::stol(param);
-		}
-		catch(const std::exception& e)
-		{
-			std::cerr << e.what() << std::endl;
-		}
+		size = std::stol(param);
 
 		// Check if the string is purely a number.
 		int	num_len = std::to_string(size).length();

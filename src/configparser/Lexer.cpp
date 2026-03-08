@@ -1,14 +1,5 @@
 #include "Configuration.hpp"
 
-Lexer::Lexer(const std::string& input)
-{
-	this->_input = input;
-}
-
-Lexer::~Lexer()
-{
-}
-
 void		Lexer::advancePosition(int len, size_t& pos)
 {
 	this->_col_num += len;

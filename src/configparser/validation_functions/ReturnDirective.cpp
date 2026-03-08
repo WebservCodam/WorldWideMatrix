@@ -1,5 +1,8 @@
 #include "../Configuration.hpp"
 
+/**
+ * THIS IS NOT REALLY RIGHT
+ */
 void	validateReturnDirective(Directive* node)
 {
 	// return 301 URI;
@@ -26,15 +29,16 @@ void	validateReturnDirective(Directive* node)
 		if (second_param.empty())
 			throw ConfigError::validation("Second parameter in " + node->getName() + " directive cannot be empty", node);
 
-		// For URLs starting with http:// or https://
-		if (second_param.find("http://") == 0 || second_param.find("https://") == 0)
-		{
-			// Basic URL validation - must have something after protocol
-			if (second_param.length() <= 8) // "https://" is 8 chars
-				throw ConfigError::validation("Invalid URL in " + node->getName() + " directive: '" + second_param + "'", node);
-		}
+		// // For URLs starting with http:// or https://
+		// if (second_param.find("http://") == 0 || second_param.find("https://") == 0)
+		// {
+		// 	// Basic URL validation - must have something after protocol
+		// 	if (second_param.length() <= 8) // "https://" is 8 chars
+		// 		throw ConfigError::validation("Invalid URL in " + node->getName() + " directive: '" + second_param + "'", node);
+		// }
+		
 		// For quoted text
-		else if (second_param.front() == '"' && second_param.back() == '"')
+		if (second_param.front() == '"' && second_param.back() == '"')
 		{
 			// Must have content between quotes
 			if (second_param.length() < 3)

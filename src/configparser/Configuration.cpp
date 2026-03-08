@@ -16,17 +16,17 @@ std::vector<Directive*>	ConfigFile::findAllDirectives(const std::string& name) c
 {
 	std::vector<Directive*>	result;
 
-    for (size_t i = 0; i < this->_directives.size(); ++i)
-    {
+	for (size_t i = 0; i < this->_directives.size(); ++i)
+	{
 		const std::unique_ptr<Directive>& directive = this->_directives[i];
 
 		if (!directive)
 			continue ;
 
-        if (directive->getName() == name)
-            result.push_back(directive.get());
-    }
-    return (result);
+		if (directive->getName() == name)
+			result.push_back(directive.get());
+	}
+	return (result);
 }
 
 std::vector<std::unique_ptr<Directive>>&	ConfigFile::getDirectives()
@@ -56,7 +56,7 @@ std::vector<ServerConfig>	ConfigFile::createServers()
 	for (Directive* serverDirective : serverDirectives)
 	{
 		if (serverDirective->getName() != "server")
-			continue;
+			continue ;
 
 		std::string							serverName;
 		std::vector<ListenDirective>		listenDirectives;
@@ -83,7 +83,7 @@ std::vector<ServerConfig>	ConfigFile::createServers()
 			else if (directive->getName() == "location")
 				locations.push_back(processLocation(directive));
 			else if (directive->getName() == "keepalive_timeout")
-				processKeepaliveTimeout(directive, keepalive_timeout);
+				keepalive_timeout = processKeepaliveTimeout(directive);
 		}
 
 		ServerConfig server(serverName, listenDirectives, maxBodySize, errorPages, locations, keepalive_timeout);
@@ -93,19 +93,37 @@ std::vector<ServerConfig>	ConfigFile::createServers()
 	return (this->_servers);
 }
 
+// ----- PROCESSING FUNCTIONS -----
+
+/**
+ * @return
+ * If there's a server name directive, it returns the given server name.
+ * Otherwise it returns 'unnamed_server'.
+ */
 std::string	ConfigFile::processServerName(const Directive* directive)
 {
-	if (directive && !directive->getParameters().empty())
+	if (directive)
 		return (directive->getParameter(0));
-	return ("default");
+	return ("unnamed_server");
 }
 
+/**
+ * @brief
+ * This function takes a vector of ListenDirective objects to store the resulting address & port pair.
+ * It is possible for a listen directive to only have an address or a port.
+ * 
+ * @return
+ * In the case where there's only an address, it returns it with a default port of '8080'.
+ * In the case where there's only a port, it returns it with a default address of '127.0.0.1'.
+ * In the case where both are provided it pushes that ListenDirective into the vector.
+ * In any other case it throws an error.
+ */
 void	ConfigFile::processListen(const Directive* directive, std::vector<ListenDirective>& listenDirectives)
 {
-	if (directive && !directive->getParameters().empty())
+	if (directive)
 	{
-		std::string listenParam = directive->getParameter(0);
-		size_t colonPos = listenParam.find(':');
+		std::string	listenParam = directive->getParameter(0);
+		size_t		colonPos = listenParam.find(':');
 
 		if (colonPos != std::string::npos)
 		{
@@ -115,31 +133,32 @@ void	ConfigFile::processListen(const Directive* directive, std::vector<ListenDir
 		}
 		else
 		{
-			// If no colon, treat the parameter as a port number (default address: 0.0.0.0)
-			listenDirectives.push_back(ListenDirective("0.0.0.0", listenParam));
+			if (validateAddress(listenParam))
+				listenDirectives.push_back(ListenDirective(listenParam, "8080"));
+			else if (validatePort(listenParam))
+				listenDirectives.push_back(ListenDirective("127.0.0.1", listenParam));
+			else
+				throw ConfigError::semantics("Invalid address & port", directive);
 		}
 	}
 }
 
+/**
+ * @brief
+ * During validation the valid parameters that had letters have been changed to the number equivalent.
+ * @return
+ * This function simply returns the conversion of that number stored in a string into an unsigned long long.
+ */
 unsigned long long	ConfigFile::processClientMaxBodySize(const Directive* directive)
 {
-	unsigned long long	maxBodySize;
-
-	if (directive && !directive->getParameters().empty())
-	{
-		std::string sizeStr = directive->getParameter(0);
-		try
-		{
-			maxBodySize = std::stoull(sizeStr);
-		}
-		catch (const std::exception&)
-		{
-			maxBodySize = 2000000; // Defaults to 2MB
-		}
-	}
-	return (maxBodySize);
+	if (directive)
+		return (std::stoull(directive->getParameter(0)));
 }
 
+/**
+ * @brief
+ * 
+ */
 Location	ConfigFile::processLocation(Directive* directive)
 {
 	Directive*		server;
@@ -162,7 +181,7 @@ Location	ConfigFile::processLocation(Directive* directive)
 		}
 
 		if (child->getParameters().empty())
-			continue;
+			continue ;
 
 		if (name == "root")
 			root = child->getParameter(0);
@@ -214,22 +233,30 @@ Location	ConfigFile::processLocation(Directive* directive)
 	location.dirPath = joinPath(root, location.name);
 	if (!index.empty())
 		location.indexPath = joinPath(location.dirPath, index);
+
+	// CHECK THE PATH BEFORE RETURN
+
 	return (location);
 }
 
-void	ConfigFile::processKeepaliveTimeout(Directive* directive, int& keepalive_timeout)
+/**
+ * @brief
+ * 
+ * @return
+ */
+int	ConfigFile::processKeepaliveTimeout(Directive* directive)
 {
-	if (directive && !directive->getParameters().empty())
-	{
-		std::string sizeStr = directive->getParameter(0);
-		try {
-			keepalive_timeout = std::stoi(sizeStr);
-		} catch (const std::exception&) {
-			keepalive_timeout = 30; // Defaults to 30
-		}
-	}
+	if (directive)
+		return (std::stoi(directive->getParameter(0)));
+	else
+		return (DEFAULT_KEEP_ALIVE_TIMEOUT);
 }
 
+/**
+ * @brief
+ * 
+ * @return
+ */
 std::unordered_map<int, ErrorPage>	ConfigFile::processErrorPages(const Directive* directive)
 {
 	std::unordered_map<int, ErrorPage>	errorPages;

@@ -19,7 +19,7 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 	{"server", DirectiveDefinition{"server", true, 0, 0, {"main"}, {"listen", "client_max_body_size", "location"}, validateServerDirective}},
 
 	//	===	Server Context Directives ===
-	{"server_name", DirectiveDefinition{"server_name", false, 1, 100, {"server"}, {}, nullptr}},
+	{"server_name", DirectiveDefinition{"server_name", false, 1, 1, {"server"}, {}, nullptr}},
 	{"listen", DirectiveDefinition{"listen", false, 1, 1, {"server"}, {}, validateListenDirective}}, 
 	{"keepalive_timeout", DirectiveDefinition{"keepalive_timeout", false, 1, 1, {"server"}, {}, validateKeepaliveTimeoutDirective}},
 	{"location", DirectiveDefinition{"location", true, 1, 2, {"server"}, {}, validateLocationDirective}},	// 2 parameters in case it's an equals
@@ -58,13 +58,13 @@ void	validateLocationDirective(Directive* node)
 
 void	validateDirective(Directive* node)
 {
-	std::cerr << "DEBUG in validateDirective: " + node->getName() << std::endl; //Provisional.
+	// std::cerr << "DEBUG in validateDirective: " + node->getName() << std::endl; //Provisional.
 
 	// Check that the directive name is valid
 	std::map<std::string, DirectiveDefinition>::const_iterator	it = NGINX_DIRECTIVE_SPECS.find(node->getName());
 	if (it == NGINX_DIRECTIVE_SPECS.end())
 	{
-		std::cerr << "DEBUG in validateDirective 1" << std::endl; //Provisional.
+		// std::cerr << "DEBUG in validateDirective 1" << std::endl; //Provisional.
 		throw ConfigError::validation("Unknown directive '" + node->getName() + "'", node);
 	}
 
@@ -73,7 +73,7 @@ void	validateDirective(Directive* node)
 	// Check if context is valid
 	if (spec.validContexts.find(node->getContext()) == spec.validContexts.end())
 	{
-		std::cerr << "DEBUG in validateDirective 2" << std::endl; //Provisional.
+		// std::cerr << "DEBUG in validateDirective 2" << std::endl; //Provisional.
 		throw ConfigError::validation("Directive '" + node->getName() + "' is not allowed in '" + node->getContext() + "' context", node);
 	}
 
@@ -89,7 +89,7 @@ void	validateDirective(Directive* node)
 		// {
 		// 	std::cout << "DEBUG: " << node->getParameter(i) << std::endl;
 		// }
-		std::cerr << "DEBUG in validateDirective 3" << std::endl; //Provisional.
+		// std::cerr << "DEBUG in validateDirective 3" << std::endl; //Provisional.
 		throw ConfigError::validation("Invalid parameter count for '" + node->getName() + "': expected min:"
 									+ std::to_string(spec.minArgs) + " & max: " + std::to_string(spec.maxArgs)
 									+ ", got " + std::to_string(node->getParameters().size()), node);

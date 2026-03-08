@@ -14,6 +14,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+# define DEFAULT_KEEP_ALIVE_TIMEOUT 30
+
 enum	TokenType
 {
 	WORD,
@@ -145,7 +147,7 @@ class	ConfigFile
 		void								processListen(const Directive* directive, std::vector<ListenDirective>& listenDirectives);
 		unsigned long long					processClientMaxBodySize(const Directive* directive);
 		Location							processLocation(Directive* directive);
-		void								processKeepaliveTimeout(Directive* directive, int& keepalive_timeout);
+		int									processKeepaliveTimeout(Directive* directive);
 		std::unordered_map<int, ErrorPage>	processErrorPages(const Directive* directive);
 		ReturnPage							processReturnPage(const Directive* directive);
 
@@ -204,9 +206,9 @@ class	Lexer
 		std::string	consumeString(const std::string& input, size_t& pos, size_t line, size_t col);
 
 	public:
-		Lexer() = delete; // Can default to a config file.
-		Lexer(const std::string& input);
-		~Lexer();
+		Lexer() = delete; // Could default to a config file.
+		Lexer(const std::string& input) { this->_input = input; };
+		~Lexer() = default;
 
 		std::vector<Token>	tokenize();
 
@@ -236,7 +238,6 @@ class	Parser
 		std::vector<std::string>			parseParameters();
 
 		void	validateSemantics();
-		// bool	validateDirective(Directive* node);
 
 	public:
 		Parser() = delete;
