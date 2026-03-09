@@ -15,6 +15,7 @@
 #include <unistd.h>
 
 # define DEFAULT_KEEP_ALIVE_TIMEOUT 30
+# define DEFAULT_MAX_BODY_SIZE 2000000
 
 enum	TokenType
 {

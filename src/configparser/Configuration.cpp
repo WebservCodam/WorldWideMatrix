@@ -153,6 +153,7 @@ unsigned long long	ConfigFile::processClientMaxBodySize(const Directive* directi
 {
 	if (directive)
 		return (std::stoull(directive->getParameter(0)));
+	return (DEFAULT_MAX_BODY_SIZE);
 }
 
 /**

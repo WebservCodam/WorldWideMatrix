@@ -2,6 +2,7 @@ NAME		=			webserver
 SRC_DIR 	=			src
 CONFIG_SRC_DIR = 		$(SRC_DIR)/configparser
 VALIDATION_SRC_DIR =	$(CONFIG_SRC_DIR)/validation_functions
+
 SRC			=		$(SRC_DIR)/Client.cpp\
 					$(SRC_DIR)/init.cpp\
 					$(SRC_DIR)/main.cpp\
@@ -67,7 +68,7 @@ test:
 			siege -t $(V1)s -c $(V2) http://localhost:8080
 
 teststart:
-			./webserver example5.conf && siege -t $(V1)s -c $(V2) http://localhost:8080
+			./webserver config_files/valid/example.conf && siege -t $(V1)s -c $(V2) http://localhost:8080
 
 o:
 			./webserver config_files/valid/example.conf > output.txt 2>&1

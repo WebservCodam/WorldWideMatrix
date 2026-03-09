@@ -24,7 +24,7 @@ void	printErrorAndExit(const std::string& msg, int errorCode)
 	exit(errorCode);
 }
 
-void	initialize(int argc, char **argv, std::vector<ServerConfig>& serversConfigurations)
+void	initialize(int argc, char **argv, std::vector<ServerConfig>& configurations)
 {
 	if (argc != 2)
 		printErrorAndExit("Error: Expecting an input file.", EXIT_FAILURE);
@@ -40,7 +40,7 @@ void	initialize(int argc, char **argv, std::vector<ServerConfig>& serversConfigu
 	try
 	{
 		std::unique_ptr<ConfigFile> ast = Parser(input).parse();
-		serversConfigurations = ast->createServers();
+		configurations = ast->createServers();
 	}
 	catch (const ConfigError& e)
 	{
@@ -51,14 +51,14 @@ void	initialize(int argc, char **argv, std::vector<ServerConfig>& serversConfigu
 		printErrorAndExit(std::string("Unexpected error\n") + e.what(), EXIT_FAILURE);
 	}
 
-	std::cout << "DEBUG: Servers created" << std::endl;
+	// std::cout << "DEBUG: Servers created" << std::endl;
 }
 
 int main(int argc, char** argv)
 {
-	std::vector<ServerConfig>	serversConfigurations;
+	std::vector<ServerConfig>	configurations;
 
-	initialize(argc, argv, serversConfigurations);
+	initialize(argc, argv, configurations);
 	while (true)
 	{
 		try {
@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 				throw std::runtime_error("Failed to create epoll fd");
 				
 			Server server(epfd);
-			server.servers = serversConfigurations;
+			server.servers = configurations;
 			std::cout << server.servers.at(0).getServerName() << std::endl;
 			
 			server.init_server();
