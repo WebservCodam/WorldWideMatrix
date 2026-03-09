@@ -184,10 +184,6 @@ class ConfigError : public std::runtime_error
 		static ConfigError	validation(const std::string& message, const Directive* directive);
 		static ConfigError	semantics(const std::string& message, const Directive* directive);
 
-		// ErrorType			getType() const { return _type; }
-		// size_t				getLine() const { return _line; }
-		// size_t				getColumn() const { return _column; }
-
 		const char*			what() const noexcept override;
 };
 
@@ -252,10 +248,10 @@ class	Parser
 
 struct ListenDirective
 {
-	std::string	address;	// defaults to "127.0.0.1"
-	std::string	port;		// defaults to 8080
+	std::string	address;
+	std::string	port;
     
-	ListenDirective(const std::string& addr = "127.0.0.1", const std::string& p = "8080") : address(addr), port(p) {}
+	ListenDirective(const std::string& addr, const std::string& p) : address(addr), port(p) {}
 };
 
 struct	ErrorPage
@@ -311,7 +307,7 @@ class	ServerConfig
 		// Create function that retrieves an error page from the code given. If the page is not specified, then return the default error page.
 
 		const std::string&							getServerName() const;
-		const std::vector<ListenDirective>&			getListenDirectives() const;	// Create function to get a port from an address and viceversa
+		const std::vector<ListenDirective>&			getListenDirectives() const;
 		unsigned long long							getMaxBodySize() const;
 		const std::unordered_map<int, ErrorPage>&	getErrorPages() const;
 		const std::vector<Location>&				getLocations() const;

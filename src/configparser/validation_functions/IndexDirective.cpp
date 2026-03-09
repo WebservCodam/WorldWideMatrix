@@ -5,10 +5,20 @@ void	validateIndexDirective(Directive* node)
     // std::cout << "DEBUG Index Directive: " << std::endl;
 
 	struct stat		st;
-	Directive*		rootDirective = node->getParent()->getChild("root");
-	std::string		root = "." + rootDirective->getParameter(0);
-	std::string		index = node->getParameter(0);
-	std::string		indexPath = root + index;	
+	Directive*		rootDirective;
+	std::string		root;
+	std::string		index;
+	std::string		indexPath;
+
+	rootDirective = node->getParent()->getChild("root");
+	if (!rootDirective)
+		rootDirective = node->getParent()->getParent()->getChild("root");
+	if (!rootDirective)
+		throw ConfigError::validation(std::string("Root directive couldn't be found."), node);
+
+	root = "." + rootDirective->getParameter(0);
+	index = node->getParameter(0);
+	indexPath = root + index;
 
 	if (stat(std::string(indexPath).c_str(), &st) != 0)
 		throw ConfigError::validation(std::string("Index path: ") + indexPath + std::string(" doesn't exist."), node);

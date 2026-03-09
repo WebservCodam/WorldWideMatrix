@@ -235,7 +235,11 @@ Location	ConfigFile::processLocation(Directive* directive)
 	if (!index.empty())
 		location.indexPath = joinPath(location.dirPath, index);
 
-	// CHECK THE PATH BEFORE RETURN
+	std::cout << "DEBUG in processLocation" << std::endl;
+	std::cout << "Location name: " << location.name << std::endl;
+	std::cout << "Location dirPath: " << location.dirPath << std::endl;
+	std::cout << "Location indexPath: " << location.indexPath << std::endl;
+	std::cout << "Location returnPage: " << location.returnPage.code << std::endl;
 
 	return (location);
 }
