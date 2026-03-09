@@ -101,26 +101,26 @@ class	Directive
 		~Directive() = default;
 
 		// Getters
-		size_t							getLine() const;
-		size_t							getColumn() const;
-		const std::string&				getName() const;
-		const std::string&				getContext() const;
-		const std::string&				getParameter(size_t i) const;
-		const std::vector<std::string>&	getParameters() const;
-		Directive*						getParent();
-		Directive*						getChild(size_t i);
-		Directive*						getChild(const std::string& name);
-		std::vector<Directive*>			getChildren();
+		size_t getLine() const { return this->_line; }
+		size_t getColumn() const { return this->_column; }
+		const std::string& getName() const { return this->_name; }
+		const std::string& getContext() const { return this->_context; }
+		const std::string& getParameter(size_t i) const;
+		const std::vector<std::string>& getParameters() const { return this->_parameters; }
+		Directive* getParent() { return this->_parent; }
+		Directive* getChild(size_t i);
+		Directive* getChild(const std::string& name);
+		std::vector<Directive*> getChildren();
 
 		// Setters
-		void	setLine(size_t line);
-		void	setColumn(size_t column);
-		void	setName(const std::string& name);
-		void	setContext(const std::string& context);
-		void	setParameter(int index, const std::string& new_parameter);
-		void	setParameters(const std::vector<std::string>& parameters);
-		void	addChild(std::unique_ptr<Directive> child);
-		void	setParent(Directive* parent);
+		void setLine(size_t line) { this->_line = line; }
+		void setColumn(size_t column) { this->_column = column; }
+		void setName(const std::string& name) { this->_name = name; }
+		void setContext(const std::string& context) { this->_context = context; }
+		void setParameter(int index, const std::string& new_parameter) { this->_parameters.at(index) = new_parameter; }
+		void setParameters(const std::vector<std::string>& parameters) { this->_parameters = parameters; }
+		void addChild(std::unique_ptr<Directive> child) { this->_children.push_back(std::move(child)); }
+		void setParent(Directive* parent) { this->_parent = parent; }
 };
 
 // --- CONFIG FILE ---
@@ -136,8 +136,8 @@ class	ConfigFile
 		ConfigFile(std::vector<std::unique_ptr<Directive>> directives);
 		~ConfigFile() = default;
 
-		std::vector<std::unique_ptr<Directive>>&		getDirectives();	// Non-constant so validation can set defaults.
-		const std::vector<ServerConfig>&				getServers() const;
+		std::vector<std::unique_ptr<Directive>>&		getDirectives() { return (this->_directives); } // Non constant so the validation can modify the directives.
+		const std::vector<ServerConfig>&				getServers() const { return (this->_servers); }
 		const ServerConfig&								getServer(const std::string& serverName);
 
 		std::vector<ServerConfig>	createServers();
@@ -306,12 +306,12 @@ class	ServerConfig
 
 		// Create function that retrieves an error page from the code given. If the page is not specified, then return the default error page.
 
-		const std::string&							getServerName() const;
-		const std::vector<ListenDirective>&			getListenDirectives() const;
-		unsigned long long							getMaxBodySize() const;
-		const std::unordered_map<int, ErrorPage>&	getErrorPages() const;
-		const std::vector<Location>&				getLocations() const;
-		int											getKeepaliveTimeout() const;
+		const std::string&							getServerName() const { return this->_serverName; }
+		const std::vector<ListenDirective>&			getListenDirectives() const { return this->_listenDirectives; }
+		unsigned long long							getMaxBodySize() const { return this->_maxBodySize; }
+		const std::unordered_map<int, ErrorPage>&	getErrorPages() const { return this->_errorPages; }
+		const std::vector<Location>&				getLocations() const { return this->_locations; }
+		int 										getKeepaliveTimeout() const { return this->_keepalive_timeout; }
 };
 
 // --- DIRECTIVE SPECS ---

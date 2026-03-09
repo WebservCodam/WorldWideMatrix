@@ -29,16 +29,6 @@ std::vector<Directive*>	ConfigFile::findAllDirectives(const std::string& name) c
 	return (result);
 }
 
-std::vector<std::unique_ptr<Directive>>&	ConfigFile::getDirectives()
-{
-	return (this->_directives);
-}
-
-const std::vector<ServerConfig>&	ConfigFile::getServers() const
-{
-	return (this->_servers);
-}
-
 const ServerConfig&	ConfigFile::getServer(const std::string& serverName)
 {
 	for (const ServerConfig& server : this->_servers)
@@ -163,9 +153,34 @@ unsigned long long	ConfigFile::processClientMaxBodySize(const Directive* directi
 Location	ConfigFile::processLocation(Directive* directive)
 {
 	Directive*		server;
+	Directive*		autoindex;
+	Directive*		indexDirective;
 	Location		location;
 	std::string		root = "";
 	std::string		index = "";
+
+	//	Inherit from server (THESE COULD BE OPTIMIZED BY HAVING THE MAIN FUNCTION DO THIS AND PASSING THE PRE-WORKED LOCATION WITH THESE VALUES, for every location)
+	server = directive->getParent();
+	if (!server)
+		throw ConfigError::semantics("Location directive is not in any server.", directive);
+
+	if (server->getChild("root"))
+		root = server->getChild("root")->getParameter(0);
+	else
+		root = "./www/";
+
+	autoindex = server->getChild("autoindex");
+	if (autoindex)
+	{
+		std::string	autoindexParam = autoindex->getParameter(0);
+		location.autoindex = (autoindexParam == "on" || autoindexParam == "true");
+	}
+
+	indexDirective = server->getChild("index");
+	if (indexDirective)
+		index = indexDirective->getParameter(0);
+	else
+		index = "index.html";
 
 	location.name = directive->getParameter(0);
 
@@ -213,23 +228,6 @@ Location	ConfigFile::processLocation(Directive* directive)
 		}
 	}
 
-	//	Inherit from server if not set locally
-	server = directive->getParent();
-	if (root.empty())
-	{
-		if (server && server->getChild("root"))
-			root = server->getChild("root")->getParameter(0);
-		else
-			root = "/www/";
-	}
-	if (index.empty() && location.autoindex == false)
-	{
-		if (server && server->getChild("index"))
-			index = server->getChild("index")->getParameter(0);
-		else
-			index = "index.html";
-	}
-
 	//	Build full path
 	location.dirPath = joinPath(root, location.name);
 	if (!index.empty())
@@ -239,6 +237,7 @@ Location	ConfigFile::processLocation(Directive* directive)
 	std::cout << "Location name: " << location.name << std::endl;
 	std::cout << "Location dirPath: " << location.dirPath << std::endl;
 	std::cout << "Location indexPath: " << location.indexPath << std::endl;
+	std::cout << "Location autoindex: " << location.autoindex << std::endl;
 	std::cout << "Location returnPage: " << location.returnPage.code << std::endl;
 
 	return (location);
@@ -336,37 +335,12 @@ Directive::Directive(
 
 // ----- GETTERS ------
 
-size_t	Directive::getLine() const
-{
-	return (this->_line);
-}
-
-size_t	Directive::getColumn() const
-{
-	return (this->_column);
-}
-
-const std::string&	Directive::getName() const
-{
-	return (this->_name);
-}
-
-const std::string&	Directive::getContext() const
-{
-	return (this->_context);
-}
-
 const std::string&	Directive::getParameter(size_t i) const
 {
 	if (i < 0 || i >= _parameters.size())
 		throw std::out_of_range("Parameter index out of range");
 
 	return (_parameters.at(i));
-}
-
-const std::vector<std::string>&	Directive::getParameters() const
-{
-	return (this->_parameters);
 }
 
 Directive*	Directive::getChild(size_t i)
@@ -397,49 +371,4 @@ std::vector<Directive*>	Directive::getChildren()
 		result.push_back(child.get());
 	}
 	return (result);
-}
-
-Directive*	Directive::getParent()
-{
-	return (this->_parent);
-}
-
-// ----- SETTERS -----
-
-void	Directive::setLine(size_t line)
-{
-	this->_line = line;
-}
-
-void	Directive::setColumn(size_t column)
-{
-	this->_column = column;
-}
-void	Directive::setName(const std::string& name)
-{
-	this->_name = name;
-}
-void	Directive::setContext(const std::string& context)
-{
-	this->_context = context;
-}
-
-void	Directive::setParameter(int index, const std::string& new_parameter)
-{
-	this->_parameters.at(index) = new_parameter;
-}
-
-void	Directive::setParameters(const std::vector<std::string>& parameters)
-{
-	this->_parameters = parameters;
-}
-
-void	Directive::addChild(std::unique_ptr<Directive> child)
-{
-	this->_children.push_back(std::move(child));
-}
-
-void	Directive::setParent(Directive* parent)
-{
-	this->_parent = parent;
 }

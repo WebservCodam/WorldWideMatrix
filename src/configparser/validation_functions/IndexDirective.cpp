@@ -11,7 +11,7 @@ void	validateIndexDirective(Directive* node)
 	std::string		indexPath;
 
 	rootDirective = node->getParent()->getChild("root");
-	if (!rootDirective)
+	if (!rootDirective && node->getParent()->getParent())
 		rootDirective = node->getParent()->getParent()->getChild("root");
 	if (!rootDirective)
 		throw ConfigError::validation(std::string("Root directive couldn't be found."), node);
