@@ -6,8 +6,10 @@ void	validateRootDirective(Directive* node)
 {
 	// This currently assumes that directories are listed as relative paths.
 
-	const std::string&	path = std::string(".") + node->getParameter(0);
-	struct stat			st;
+	std::string	path = node->getParameter(0);
+	struct stat	st;
+
+	
 
 	if (stat(path.c_str(), &st) != 0)
 		throw ConfigError::validation(std::string("Root directory: ") + path + std::string(" doesn't exist."), node);

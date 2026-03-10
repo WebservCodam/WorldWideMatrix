@@ -11,3 +11,8 @@ ServerConfig::ServerConfig(const std::string& serverName,
 	: _serverName(serverName), _listenDirectives(listenDirectives), _maxBodySize(maxBodySize), _errorPages(errorPages), _locations(locations), _keepalive_timeout(keepalive_timeout)
 {
 }
+
+ErrorPage	ServerConfig::getErrorPage() const
+{
+	
+}

@@ -13,9 +13,10 @@ SRC			=		$(SRC_DIR)/Client.cpp\
 					parser/HttpParser.cpp\
 					parser/RequestLine.cpp\
 					parser/utils2.cpp\
+					$(CONFIG_SRC_DIR)/Directive.cpp \
 					$(CONFIG_SRC_DIR)/ConfigError.cpp \
-					$(CONFIG_SRC_DIR)/Configuration.cpp \
-					$(CONFIG_SRC_DIR)/DirectiveSpecs.cpp \
+					$(CONFIG_SRC_DIR)/ConfigFile.cpp \
+					$(CONFIG_SRC_DIR)/Validation.cpp \
 					$(CONFIG_SRC_DIR)/Lexer.cpp \
 					$(CONFIG_SRC_DIR)/Parser.cpp \
 					$(CONFIG_SRC_DIR)/ServerConfig.cpp \

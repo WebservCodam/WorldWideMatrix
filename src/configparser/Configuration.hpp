@@ -168,7 +168,7 @@ class ConfigError : public std::runtime_error
 		size_t		_column;
 		std::string	_context;
 
-		std::string 		buildMessage(ErrorType type, const std::string& message);
+		static std::string	buildMessage(ErrorType type, const std::string& message);
 		static std::string	buildMessage(ErrorType type, const std::string& message, size_t line, size_t column, const std::string& context);
 
 	public:
@@ -234,6 +234,7 @@ class	Parser
 		std::unique_ptr<Directive>			parseBlockDirective();
 		std::vector<std::string>			parseParameters();
 
+		void	checkDefaultErrorPages(std::vector<std::unique_ptr<Directive>>& directives);
 		void	validateSemantics();
 
 	public:
@@ -309,6 +310,7 @@ class	ServerConfig
 		const std::string&							getServerName() const { return this->_serverName; }
 		const std::vector<ListenDirective>&			getListenDirectives() const { return this->_listenDirectives; }
 		unsigned long long							getMaxBodySize() const { return this->_maxBodySize; }
+		ErrorPage									getErrorPage() const;
 		const std::unordered_map<int, ErrorPage>&	getErrorPages() const { return this->_errorPages; }
 		const std::vector<Location>&				getLocations() const { return this->_locations; }
 		int 										getKeepaliveTimeout() const { return this->_keepalive_timeout; }
@@ -347,3 +349,4 @@ bool								validateAddress(const std::string& address);
 bool								validatePort(const std::string& port);
 
 std::string	joinPath(const std::string& a, const std::string& b);
+void		checkPath(const std::string& path, ErrorType errorType, const std::string& msg1, const std::string& msg2);

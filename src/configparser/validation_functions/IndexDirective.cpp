@@ -16,7 +16,11 @@ void	validateIndexDirective(Directive* node)
 	if (!rootDirective)
 		throw ConfigError::validation(std::string("Root directive couldn't be found."), node);
 
-	root = "." + rootDirective->getParameter(0);
+	root = rootDirective->getParameter(0);
+	if (root.at(0) != '.')
+		root = joinPath(".", root);
+	rootDirective->setParameter(0, root);
+
 	index = node->getParameter(0);
 	indexPath = root + index;
 
