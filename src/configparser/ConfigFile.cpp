@@ -29,6 +29,18 @@ std::vector<Directive*>	ConfigFile::findAllDirectives(const std::string& name) c
 	return (result);
 }
 
+std::vector<Directive*>	ConfigFile::getDirectives()
+{
+    std::vector<Directive*>	result;
+
+    result.reserve(_directives.size());
+
+    for (size_t i = 0; i < _directives.size(); ++i)
+        result.push_back(_directives[i].get());
+
+    return (result);
+}
+
 const ServerConfig&	ConfigFile::getServer(const std::string& serverName)
 {
 	for (const ServerConfig& server : this->_servers)
@@ -69,7 +81,7 @@ std::vector<ServerConfig>	ConfigFile::createServers()
 			else if (directive->getName() == "client_max_body_size")
 				maxBodySize = processClientMaxBodySize(directive);
 			else if (directive->getName() == "error_page")
-				errorPages = processErrorPages(directive);
+				processErrorPages(directive, errorPages);
 			else if (directive->getName() == "location")
 				locations.push_back(processLocation(directive));
 			else if (directive->getName() == "keepalive_timeout")
@@ -261,19 +273,21 @@ int	ConfigFile::processKeepaliveTimeout(Directive* directive)
  * 
  * @return
  */
-std::unordered_map<int, ErrorPage>	ConfigFile::processErrorPages(const Directive* directive)
+void	ConfigFile::processErrorPages(Directive* directive, std::unordered_map<int, ErrorPage> errorPages)
 {
-	std::unordered_map<int, ErrorPage>	errorPages;
-	std::string							URI;
-	bool								isRedirect;
-	int									redirectCode = -1;
-	int									numErrorCodes;  // This is the number of error codes.
+	Directive&	serverDirective = directive->getParent();
+	std::string	URI;
+	bool		isRedirect;
+	int			redirectCode = -1;
+	int			numErrorCodes;  // This is the number of error codes.
 
 	// std::cout << "DEBUG: processErrorPages" << std::endl;
 
 	// INCLUDE DEFAULT ERROR PAGES WITH CODES 4 & 5
 
-	
+
+
+	// errorPages.emplace(4, current);
 
 	numErrorCodes = directive->getParameters().size() - 1;
 	// std::cout << "DEBUG: number of error codes: " + std::to_string(numErrorCodes) << std::endl;

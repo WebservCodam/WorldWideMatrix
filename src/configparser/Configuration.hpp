@@ -50,7 +50,7 @@ struct			ListenDirective;
 struct			ErrorPage;
 struct			ReturnPage;
 
-// --- TOKEN ---
+// =============== --- TOKEN --- ===============
 
 struct	Token
 {
@@ -61,7 +61,7 @@ struct	Token
 	size_t		column;
 };
 
-// --- DIRECTIVE DEFINITION ---
+// =============== --- DIRECTIVE DEFINITION --- ===============
 
 struct	DirectiveDefinition
 {
@@ -75,90 +75,7 @@ struct	DirectiveDefinition
 	void (*validateArgs)(Directive*);
 };
 
-// --- DIRECTIVE ---
-
-class	Directive
-{
-	private:
-		size_t _line;
-		size_t _column;
-
-		std::string									_name;
-		std::string									_context;
-		std::vector<std::string>					_parameters;
-		Directive*									_parent;	// This is like context, however it contains the actual pointer of the parent.
-		std::vector<std::unique_ptr<Directive>>		_children;
-
-	public:
-		Directive() = default;
-		Directive(
-			size_t line, 
-			size_t column, 
-			const std::string& name, 
-			const std::string& context, 
-			std::vector<std::string> parameters, 				// by value, so we can use std::move
-			std::vector<std::unique_ptr<Directive>> children);	// by value, so we can use std::move
-		~Directive() = default;
-
-		// Getters
-		size_t getLine() const { return this->_line; }
-		size_t getColumn() const { return this->_column; }
-		const std::string& getName() const { return this->_name; }
-		const std::string& getContext() const { return this->_context; }
-		const std::string& getParameter(size_t i) const;
-		const std::vector<std::string>& getParameters() const { return this->_parameters; }
-		Directive* getParent() { return this->_parent; }
-		Directive* getChild(size_t i);
-		Directive* getChild(const std::string& name);
-		std::vector<Directive*> getChildren();
-
-		// Setters
-		void setLine(size_t line) { this->_line = line; }
-		void setColumn(size_t column) { this->_column = column; }
-		void setName(const std::string& name) { this->_name = name; }
-		void setContext(const std::string& context) { this->_context = context; }
-		void setParameter(int index, const std::string& new_parameter) { this->_parameters.at(index) = new_parameter; }
-		void setParameters(const std::vector<std::string>& parameters) { this->_parameters = parameters; }
-		void addChild(std::unique_ptr<Directive> child) { this->_children.push_back(std::move(child)); }
-		void setParent(Directive* parent) { this->_parent = parent; }
-};
-
-// --- CONFIG FILE ---
-
-class	ConfigFile
-{
-	private:
-		std::vector<std::unique_ptr<Directive>>	_directives;
-		std::vector<ServerConfig>				_servers;
-		
-	public:
-		ConfigFile() = delete;
-		ConfigFile(std::vector<std::unique_ptr<Directive>> directives);
-		~ConfigFile() = default;
-
-		std::vector<std::unique_ptr<Directive>>&		getDirectives() { return (this->_directives); } // Non constant so the validation can modify the directives.
-		const std::vector<ServerConfig>&				getServers() const { return (this->_servers); }
-		const ServerConfig&								getServer(const std::string& serverName);
-
-		std::vector<ServerConfig>	createServers();
-
-	private:
-		// Helper functions for processing server directives
-		std::string							processServerName(const Directive* directive);
-		void								processListen(const Directive* directive, std::vector<ListenDirective>& listenDirectives);
-		unsigned long long					processClientMaxBodySize(const Directive* directive);
-		Location							processLocation(Directive* directive);
-		int									processKeepaliveTimeout(Directive* directive);
-		std::unordered_map<int, ErrorPage>	processErrorPages(const Directive* directive);
-		ReturnPage							processReturnPage(const Directive* directive);
-
-	public:
-		// Query methods
-		const Directive*			findDirective(const std::string& name) const;
-		std::vector<Directive*>		findAllDirectives(const std::string& name) const;
-};
-
-// --- CONFIG ERROR ---
+// =============== --- CONFIG ERROR --- ===============
 
 class ConfigError : public std::runtime_error
 {
@@ -187,7 +104,7 @@ class ConfigError : public std::runtime_error
 		const char*			what() const noexcept override;
 };
 
-// --- LEXER ---
+// =============== --- LEXER --- ===============
 
 class	Lexer
 {
@@ -212,7 +129,7 @@ class	Lexer
 		// std::vector<Token>	getTokens();
 };
 
-// --- PARSER ---
+// =============== --- PARSER --- ===============
 
 class	Parser
 {
@@ -245,7 +162,7 @@ class	Parser
 		std::unique_ptr<ConfigFile>	parse();
 };
 
-// --- SERVER CONFIG ---
+// =============== --- SERVER CONFIG --- ===============
 
 struct ListenDirective
 {
@@ -282,6 +199,89 @@ struct	Location
 		bool						deleteMethod = false;
 };
 
+// =============== --- DIRECTIVE --- ===============
+
+class	Directive
+{
+	private:
+		size_t _line;
+		size_t _column;
+
+		std::string									_name;
+		std::string									_context;
+		std::vector<std::string>					_parameters;
+		std::unique_ptr<Directive>					_parent;	// This is like context, however it contains the actual pointer of the parent.
+		std::vector<std::unique_ptr<Directive>>		_children;
+
+	public:
+		Directive() = default;
+		Directive(
+			size_t line, 
+			size_t column, 
+			const std::string& name, 
+			const std::string& context, 
+			std::vector<std::string> parameters, 				// by value, so we can use std::move
+			std::vector<std::unique_ptr<Directive>> children);	// by value, so we can use std::move
+		~Directive() = default;
+
+		// Getters
+		size_t getLine() const { return this->_line; }
+		size_t getColumn() const { return this->_column; }
+		const std::string& getName() const { return this->_name; }
+		const std::string& getContext() const { return this->_context; }
+		const std::string& getParameter(size_t i) const;
+		const std::vector<std::string>& getParameters() const { return this->_parameters; }
+		Directive* getParent() { return this->_parent.get(); }
+		Directive* getChild(size_t i);
+		Directive* getChild(const std::string& name);
+		std::vector<Directive*> getChildren();
+
+		// Setters
+		void setLine(size_t line) { this->_line = line; }
+		void setColumn(size_t column) { this->_column = column; }
+		void setName(const std::string& name) { this->_name = name; }
+		void setContext(const std::string& context) { this->_context = context; }
+		void setParameter(int index, const std::string& new_parameter) { this->_parameters.at(index) = new_parameter; }
+		void setParameters(const std::vector<std::string>& parameters) { this->_parameters = parameters; }
+		void addChild(const Directive& child) { this->_children.push_back(std::make_unique<Directive>(child)); }
+		void setParent(const Directive& parent) { this->_parent = std::make_unique<Directive>(parent); }
+};
+
+// =============== --- CONFIG FILE --- ===============
+
+class	ConfigFile
+{
+	private:
+		std::vector<std::unique_ptr<Directive>>	_directives;
+		std::vector<ServerConfig>				_servers;
+		
+	public:
+		ConfigFile() = delete;
+		ConfigFile(std::vector<std::unique_ptr<Directive>> directives);
+		~ConfigFile() = default;
+
+		std::vector<Directive*>				getDirectives(); // Non constant so the validation can modify the directives.
+		const std::vector<ServerConfig>&	getServers() const { return (this->_servers); }
+		const ServerConfig&					getServer(const std::string& serverName);
+
+		std::vector<ServerConfig>	createServers();
+
+	private:
+		// Helper functions for processing server directives
+		std::string							processServerName(const Directive* directive);
+		void								processListen(const Directive* directive, std::vector<ListenDirective>& listenDirectives);
+		unsigned long long					processClientMaxBodySize(const Directive* directive);
+		Location							processLocation(Directive* directive);
+		int									processKeepaliveTimeout(Directive* directive);
+		void								processErrorPages(Directive* directive, std::unordered_map<int, ErrorPage>);
+		ReturnPage							processReturnPage(const Directive* directive);
+
+	public:
+		// Query methods
+		const Directive*		findDirective(const std::string& name) const;
+		std::vector<Directive*>	findAllDirectives(const std::string& name) const;
+};
+
 class	ServerConfig
 {
 	private:
@@ -316,7 +316,7 @@ class	ServerConfig
 		int 										getKeepaliveTimeout() const { return this->_keepalive_timeout; }
 };
 
-// --- DIRECTIVE SPECS ---
+// =============== --- DIRECTIVE SPECS --- ===============
 
 void	validateDirective(Directive* node);
 void	validateBlockDirective(Directive* node);
@@ -341,7 +341,7 @@ void	validateClientMaxBodySizeDirective(Directive* node);
 void	validateKeepaliveTimeoutDirective(Directive* node);
 // void	validateUploadPathDirective(Directive* node);
 
-// - Utilities -
+// =============== --- Utilities --- ===============
 
 std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address);
 bool 								isByte(std::string &number);

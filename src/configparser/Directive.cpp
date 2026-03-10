@@ -29,7 +29,7 @@ const std::string&	Directive::getParameter(size_t i) const
 
 Directive*	Directive::getChild(size_t i)
 {
-	if (i < 0 || i >= _children.size())
+	if (i >= _children.size())
 		return (nullptr);
 
 	return (_children[i].get());

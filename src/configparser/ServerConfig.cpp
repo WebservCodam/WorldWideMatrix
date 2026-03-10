@@ -14,5 +14,5 @@ ServerConfig::ServerConfig(const std::string& serverName,
 
 ErrorPage	ServerConfig::getErrorPage() const
 {
-	
+	//If error page not found, return the default which is either 4 or 5.
 }

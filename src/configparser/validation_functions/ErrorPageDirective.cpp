@@ -25,6 +25,7 @@ void	validateErrorPageDirective(Directive* node)
 	struct stat			st;
 
 	checkPath(errorPagePath, ErrorType::VALIDATOR, "Error page: " + errorPagePath + " not found.", "Error page: " + errorPagePath + " has no reading access.");
+	node->setParameter(node->getParameters().size() - 1, errorPagePath);
 
 	// All parameters except the last one are error codes
 	for (size_t i = 0; i < node->getParameters().size() - 1; ++i)
