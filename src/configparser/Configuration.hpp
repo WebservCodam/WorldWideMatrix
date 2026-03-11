@@ -50,7 +50,7 @@ struct			ListenDirective;
 struct			ErrorPage;
 struct			ReturnPage;
 
-// =============== --- TOKEN --- ===============
+// ===============  TOKEN  ===============
 
 struct	Token
 {
@@ -61,7 +61,7 @@ struct	Token
 	size_t		column;
 };
 
-// =============== --- DIRECTIVE DEFINITION --- ===============
+// ===============  DIRECTIVE DEFINITION  ===============
 
 struct	DirectiveDefinition
 {
@@ -75,7 +75,7 @@ struct	DirectiveDefinition
 	void (*validateArgs)(Directive*);
 };
 
-// =============== --- CONFIG ERROR --- ===============
+// ===============  CONFIG ERROR  ===============
 
 class ConfigError : public std::runtime_error
 {
@@ -85,7 +85,6 @@ class ConfigError : public std::runtime_error
 		size_t		_column;
 		std::string	_context;
 
-		static std::string	buildMessage(ErrorType type, const std::string& message);
 		static std::string	buildMessage(ErrorType type, const std::string& message, size_t line, size_t column, const std::string& context);
 
 	public:
@@ -95,6 +94,7 @@ class ConfigError : public std::runtime_error
 		ConfigError(ErrorType type, const std::string& message, const Directive* directive);
 		~ConfigError() = default;
 
+		static std::string	buildMessage(ErrorType type, const std::string& message);
 		static ConfigError	initialization(const std::string& message);
 		static ConfigError	lexing(const std::string& message, size_t line, size_t column);
 		static ConfigError	parsing(const std::string& message, size_t line, size_t column);
@@ -104,7 +104,7 @@ class ConfigError : public std::runtime_error
 		const char*			what() const noexcept override;
 };
 
-// =============== --- LEXER --- ===============
+// ===============  LEXER  ===============
 
 class	Lexer
 {
@@ -129,7 +129,7 @@ class	Lexer
 		// std::vector<Token>	getTokens();
 };
 
-// =============== --- PARSER --- ===============
+// ===============  PARSER  ===============
 
 class	Parser
 {
@@ -162,7 +162,7 @@ class	Parser
 		std::unique_ptr<ConfigFile>	parse();
 };
 
-// =============== --- SERVER CONFIG --- ===============
+// ===============  SERVER CONFIG  ===============
 
 struct ListenDirective
 {
@@ -210,7 +210,7 @@ class	Directive
 		std::string									_name;
 		std::string									_context;
 		std::vector<std::string>					_parameters;
-		std::unique_ptr<Directive>					_parent;	// This is like context, however it contains the actual pointer of the parent.
+		Directive*									_parent = nullptr;	// Non-owning pointer; the parent owns its children, not vice versa.
 		std::vector<std::unique_ptr<Directive>>		_children;
 
 	public:
@@ -225,26 +225,26 @@ class	Directive
 		~Directive() = default;
 
 		// Getters
-		size_t getLine() const { return this->_line; }
-		size_t getColumn() const { return this->_column; }
-		const std::string& getName() const { return this->_name; }
-		const std::string& getContext() const { return this->_context; }
-		const std::string& getParameter(size_t i) const;
-		const std::vector<std::string>& getParameters() const { return this->_parameters; }
-		Directive* getParent() { return this->_parent.get(); }
-		Directive* getChild(size_t i);
-		Directive* getChild(const std::string& name);
-		std::vector<Directive*> getChildren();
+		size_t							getLine() const { return this->_line; }
+		size_t							getColumn() const { return this->_column; }
+		const std::string&				getName() const { return this->_name; }
+		const std::string&				getContext() const { return this->_context; }
+		const std::string&				getParameter(size_t i) const;
+		const std::vector<std::string>&	getParameters() const { return this->_parameters; }
+		Directive*						getParent() { return this->_parent; }
+		Directive*						getChild(size_t i);
+		Directive*						getChild(const std::string& name);
+		std::vector<Directive*>			getChildren();
 
 		// Setters
-		void setLine(size_t line) { this->_line = line; }
-		void setColumn(size_t column) { this->_column = column; }
-		void setName(const std::string& name) { this->_name = name; }
-		void setContext(const std::string& context) { this->_context = context; }
-		void setParameter(int index, const std::string& new_parameter) { this->_parameters.at(index) = new_parameter; }
-		void setParameters(const std::vector<std::string>& parameters) { this->_parameters = parameters; }
-		void addChild(const Directive& child) { this->_children.push_back(std::make_unique<Directive>(child)); }
-		void setParent(const Directive& parent) { this->_parent = std::make_unique<Directive>(parent); }
+		void	setLine(size_t line) { this->_line = line; }
+		void	setColumn(size_t column) { this->_column = column; }
+		void	setName(const std::string& name) { this->_name = name; }
+		void	setContext(const std::string& context) { this->_context = context; }
+		void	setParameter(int index, const std::string& new_parameter) { this->_parameters.at(index) = new_parameter; }
+		void	setParameters(const std::vector<std::string>& parameters) { this->_parameters = parameters; }
+		void	addChild(std::unique_ptr<Directive> child) { this->_children.push_back(std::move(child)); }
+		void	setParent(Directive* parent) { this->_parent = parent; }
 };
 
 // =============== --- CONFIG FILE --- ===============
@@ -260,9 +260,9 @@ class	ConfigFile
 		ConfigFile(std::vector<std::unique_ptr<Directive>> directives);
 		~ConfigFile() = default;
 
-		std::vector<Directive*>				getDirectives(); // Non constant so the validation can modify the directives.
-		const std::vector<ServerConfig>&	getServers() const { return (this->_servers); }
-		const ServerConfig&					getServer(const std::string& serverName);
+		std::vector<std::unique_ptr<Directive>>&	getDirectives(); // Non constant so the validation can modify the directives.
+		std::vector<ServerConfig>	getServers() const { return (this->_servers); }
+		ServerConfig				getServer(const std::string& serverName) const;
 
 		std::vector<ServerConfig>	createServers();
 
@@ -273,7 +273,7 @@ class	ConfigFile
 		unsigned long long					processClientMaxBodySize(const Directive* directive);
 		Location							processLocation(Directive* directive);
 		int									processKeepaliveTimeout(Directive* directive);
-		void								processErrorPages(Directive* directive, std::unordered_map<int, ErrorPage>);
+		void								processErrorPages(Directive* directive, std::unordered_map<int, ErrorPage>&);
 		ReturnPage							processReturnPage(const Directive* directive);
 
 	public:
@@ -310,7 +310,6 @@ class	ServerConfig
 		const std::string&							getServerName() const { return this->_serverName; }
 		const std::vector<ListenDirective>&			getListenDirectives() const { return this->_listenDirectives; }
 		unsigned long long							getMaxBodySize() const { return this->_maxBodySize; }
-		ErrorPage									getErrorPage() const;
 		const std::unordered_map<int, ErrorPage>&	getErrorPages() const { return this->_errorPages; }
 		const std::vector<Location>&				getLocations() const { return this->_locations; }
 		int 										getKeepaliveTimeout() const { return this->_keepalive_timeout; }

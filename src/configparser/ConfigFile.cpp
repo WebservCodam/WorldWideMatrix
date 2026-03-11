@@ -7,7 +7,7 @@ const Directive*	ConfigFile::findDirective(const std::string& name) const
 	for (const std::unique_ptr<Directive>& directive : this->_directives)
 	{
 		if (directive && directive->getName() == name)
-			return (directive.get()); // Extracts raw pointer from unique_ptr (test if this is a dangling pointer on return...)
+			return (directive.get()); // Extracts raw pointer from unique_ptr
 	}
 	return (nullptr);
 }
@@ -18,37 +18,33 @@ std::vector<Directive*>	ConfigFile::findAllDirectives(const std::string& name) c
 
 	for (size_t i = 0; i < this->_directives.size(); ++i)
 	{
-		const std::unique_ptr<Directive>& directive = this->_directives[i];
+		Directive* directive = this->_directives[i].get();
 
 		if (!directive)
 			continue ;
 
 		if (directive->getName() == name)
-			result.push_back(directive.get());
+			result.push_back(directive);
 	}
 	return (result);
 }
 
-std::vector<Directive*>	ConfigFile::getDirectives()
+std::vector<std::unique_ptr<Directive>>&	ConfigFile::getDirectives()
 {
-    std::vector<Directive*>	result;
-
-    result.reserve(_directives.size());
-
-    for (size_t i = 0; i < _directives.size(); ++i)
-        result.push_back(_directives[i].get());
-
-    return (result);
+    return (_directives);
 }
 
-const ServerConfig&	ConfigFile::getServer(const std::string& serverName)
+ServerConfig	ConfigFile::getServer(const std::string& serverName) const
 {
-	for (const ServerConfig& server : this->_servers)
+	for (const ServerConfig& server : _servers)
 	{
 		if (server.getServerName() == serverName)
-			return (server);
+			return server;
 	}
-	throw std::runtime_error("ServerConfig with name '" + serverName + "' not found");
+
+	throw ConfigError::buildMessage(
+		ErrorType::SEMANTICS,
+		"ServerConfig with name '" + serverName + "' not found");
 }
 
 std::vector<ServerConfig>	ConfigFile::createServers()
@@ -273,9 +269,9 @@ int	ConfigFile::processKeepaliveTimeout(Directive* directive)
  * 
  * @return
  */
-void	ConfigFile::processErrorPages(Directive* directive, std::unordered_map<int, ErrorPage> errorPages)
+void	ConfigFile::processErrorPages(Directive* directive, std::unordered_map<int, ErrorPage>& errorPages)
 {
-	Directive&	serverDirective = directive->getParent();
+	Directive*	serverDirective = directive->getParent();
 	std::string	URI;
 	bool		isRedirect;
 	int			redirectCode = -1;
@@ -308,7 +304,6 @@ void	ConfigFile::processErrorPages(Directive* directive, std::unordered_map<int,
 		current.URI = URI;
 		errorPages.emplace(current.errorCode, current);
 	}
-	return (errorPages);
 }
 
 // If the page is a link, the page must be a valid path and have reading access.
