@@ -1,7 +1,9 @@
 #include "../Configuration.hpp"
 
 /**
- * THIS IS NOT REALLY RIGHT
+ * @brief
+ * 
+ * @return
  */
 void	validateReturnDirective(Directive* node)
 {
@@ -12,6 +14,7 @@ void	validateReturnDirective(Directive* node)
 	// std::cout << "DEBUG: Testing in validateReturn" << std::endl;
 
 	// First parameter must be a valid HTTP status code
+	int	paramsSize = node->getParameters().size();
 	int status_code = std::stoi(node->getParameter(0));
 
 	// Must be a valid HTTP status code (100-599)
@@ -22,20 +25,12 @@ void	validateReturnDirective(Directive* node)
 	// throw ConfigError::validation("TEST", node);
 
 	// If there's a second parameter, validate it as URL or text
-	if (node->getParameters().size() == 2)
+	if (paramsSize == 2)
 	{
 		const std::string& second_param = node->getParameter(1);
 
 		if (second_param.empty())
-			throw ConfigError::validation("Second parameter in " + node->getName() + " directive cannot be empty", node);
-
-		// // For URLs starting with http:// or https://
-		// if (second_param.find("http://") == 0 || second_param.find("https://") == 0)
-		// {
-		// 	// Basic URL validation - must have something after protocol
-		// 	if (second_param.length() <= 8) // "https://" is 8 chars
-		// 		throw ConfigError::validation("Invalid URL in " + node->getName() + " directive: '" + second_param + "'", node);
-		// }
+			throw ConfigError::validation("Second parameter in " + node->getName() + " is empty.", node);
 		
 		// For quoted text
 		if (second_param.front() == '"' && second_param.back() == '"')
@@ -45,7 +40,7 @@ void	validateReturnDirective(Directive* node)
 				throw ConfigError::validation("Invalid quoted text in " + node->getName() + " directive: must have content between quotes", node);
 		}
 		// For relative URLs or paths
-		else if (second_param.front() == '/')
+		else
 		{
 			// Check for valid path characters and format
 			for (size_t i = 0; i < second_param.length(); ++i)
@@ -60,11 +55,5 @@ void	validateReturnDirective(Directive* node)
 			if (second_param.find("//") != std::string::npos)
 				throw ConfigError::validation("Invalid path in " + node->getName() + "  directive: '" + second_param + "' contains consecutive slashes", node);
 		}
-		else
-		{
-			// Other text content is also valid
-		}
 	}
-
-	return ;
 }

@@ -1,5 +1,63 @@
 #include "../Configuration.hpp"
 
+Directive*	getServerDirective(Directive *node)
+{
+	for (node; node != nullptr ; node = node->getParent())
+	{
+		if (node->getName() == "server")
+			return (node);
+	}
+	return (nullptr);
+}
+
+bool	getAutoindex(Directive *node)
+{
+	Directive*	autoindexDirective;
+	std::string	autoindexParam = "";
+
+	if (node->getName() == "autoindex")
+		autoindexDirective = node;
+	else if (node->getName() == "server")
+		autoindexDirective = node->getChild("autoindex");
+	else
+		autoindexDirective = getServerDirective(node)->getChild("autoindex");
+	if (autoindexDirective)
+		autoindexParam = autoindexDirective->getParameter(0);
+	return (autoindexParam == "on" || autoindexParam == "true");
+}
+
+std::string	getRoot(Directive *node)
+{
+	Directive*	rootDirective;
+	std::string	root = "./www/";
+
+	if (!node)
+		throw ConfigError::semantics("Invalid directive given to getRoot()", node);
+	if (node->getName() == "root")
+		rootDirective = node;
+	else if (node->getName() == "server")
+		rootDirective = node->getChild("root");
+	else
+	{
+		for (Directive* iterator = node; iterator != nullptr ; iterator = iterator->getParent())
+		{
+			if (iterator->getName() == "server")
+			{
+				rootDirective = iterator->getChild("root");
+				break ;
+			}
+		}
+	}
+	if (rootDirective)
+	{
+		root = rootDirective->getParameter(0);
+		if (root.at(0) != '.')
+			root = joinPath(".", root);
+		rootDirective->setParameter(0, root);
+	}
+	return (root);
+}
+
 std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address)
 {
 	std::pair<std::string, std::string>	addressAndPort = {"", ""};

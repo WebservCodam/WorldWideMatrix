@@ -182,21 +182,21 @@ struct	ErrorPage
 
 struct	ReturnPage
 {
-	int			code;
+	int			code = -1;
 	bool		isURI = false;
 	std::string	page = "";	// Which can store a path to a page if it is URI or it can simply store the whole page here.
 };
 
 struct	Location
 {
-		std::string					name;			// This represents the location we're trying to access.
-		std::string					dirPath;
-		std::string					indexPath;		// This is the full path that goes to the index. root + location + (index?).
-		ReturnPage					returnPage;
-		bool						autoindex = false;
-		bool						getMethod = false;
-		bool						postMethod = false;
-		bool						deleteMethod = false;
+	std::string					name = "";			// This represents the location we're trying to access.
+	std::string					dirPath = "";
+	std::string					indexPath = "";		// This is the full path that goes to the index. root + location + (index?).
+	ReturnPage					returnPage = ReturnPage();
+	bool						autoindex = false;
+	bool						getMethod = false;
+	bool						postMethod = false;
+	bool						deleteMethod = false;
 };
 
 // =============== --- DIRECTIVE --- ===============
@@ -210,7 +210,7 @@ class	Directive
 		std::string									_name;
 		std::string									_context;
 		std::vector<std::string>					_parameters;
-		Directive*									_parent = nullptr;	// Non-owning pointer; the parent owns its children, not vice versa.
+		Directive*									_parent = nullptr;
 		std::vector<std::unique_ptr<Directive>>		_children;
 
 	public:
@@ -241,7 +241,7 @@ class	Directive
 		void	setColumn(size_t column) { this->_column = column; }
 		void	setName(const std::string& name) { this->_name = name; }
 		void	setContext(const std::string& context) { this->_context = context; }
-		void	setParameter(int index, const std::string& new_parameter) { this->_parameters.at(index) = new_parameter; }
+		void	setParameter(int index, const std::string& new_parameter);
 		void	setParameters(const std::vector<std::string>& parameters) { this->_parameters = parameters; }
 		void	addChild(std::unique_ptr<Directive> child) { this->_children.push_back(std::move(child)); }
 		void	setParent(Directive* parent) { this->_parent = parent; }
@@ -342,6 +342,9 @@ void	validateKeepaliveTimeoutDirective(Directive* node);
 
 // =============== --- Utilities --- ===============
 
+Directive*							getServerDirective(Directive *node);
+bool								getAutoindex(Directive *node);
+std::string							getRoot(Directive *node);
 std::pair<std::string, std::string>	parseAddressAndPort(const std::string& address);
 bool 								isByte(std::string &number);
 bool								validateAddress(const std::string& address);

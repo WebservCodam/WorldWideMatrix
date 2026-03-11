@@ -160,29 +160,19 @@ unsigned long long	ConfigFile::processClientMaxBodySize(const Directive* directi
  */
 Location	ConfigFile::processLocation(Directive* directive)
 {
-	Directive*		server;
-	Directive*		autoindex;
+	Directive*		server = nullptr;
 	Directive*		indexDirective;
-	Location		location;
+	Location		location = Location();
 	std::string		root = "";
 	std::string		index = "";
+	bool			autoindex = false;
 
 	//	Inherit from server (THESE COULD BE OPTIMIZED BY HAVING THE MAIN FUNCTION DO THIS AND PASSING THE PRE-WORKED LOCATION WITH THESE VALUES, for every location)
-	server = directive->getParent();
-	if (!server)
+	server = getServerDirective(directive);
+	if (server == nullptr)
 		throw ConfigError::semantics("Location directive is not in any server.", directive);
-
-	if (server->getChild("root"))
-		root = server->getChild("root")->getParameter(0);
-	else
-		root = "./www/";
-
-	autoindex = server->getChild("autoindex");
-	if (autoindex)
-	{
-		std::string	autoindexParam = autoindex->getParameter(0);
-		location.autoindex = (autoindexParam == "on" || autoindexParam == "true");
-	}
+	root = getRoot(server);
+	autoindex = getAutoindex(server);
 
 	indexDirective = server->getChild("index");
 	if (indexDirective)
@@ -193,7 +183,6 @@ Location	ConfigFile::processLocation(Directive* directive)
 	location.name = directive->getParameter(0);
 
 	std::vector<Directive*> locationChildren = directive->getChildren();
-
 	for (Directive* child : locationChildren)
 	{
 		const std::string& name = child->getName();
@@ -204,7 +193,7 @@ Location	ConfigFile::processLocation(Directive* directive)
 			continue ;
 		}
 
-		if (child->getParameters().empty())
+		if (child->getParameters().empty()) // Would this ever be the case (in our server)?
 			continue ;
 
 		if (name == "root")
@@ -243,6 +232,7 @@ Location	ConfigFile::processLocation(Directive* directive)
 
 	std::cout << "DEBUG in processLocation" << std::endl;
 	std::cout << "Location name: " << location.name << std::endl;
+	std::cout << "Location root: " << root << std::endl;
 	std::cout << "Location dirPath: " << location.dirPath << std::endl;
 	std::cout << "Location indexPath: " << location.indexPath << std::endl;
 	std::cout << "Location autoindex: " << location.autoindex << std::endl;

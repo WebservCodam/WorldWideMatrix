@@ -34,6 +34,7 @@ SRC			=		$(SRC_DIR)/Client.cpp\
 					$(VALIDATION_SRC_DIR)/Utilities.cpp
 OBJ			=		$(SRC:.cpp=.o)
 CC			=		c++
+FLAGS		= -g
 # FLAGS		=		-Wall -Wextra -Werror -g
 # FLAGS		+=		-fsanitize=thread
 # FLAGS		+=		-fsanitize=address

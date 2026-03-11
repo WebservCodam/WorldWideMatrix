@@ -9,17 +9,7 @@ void	validateErrorPageDirective(Directive* node)
 
 	// Last parameter is always the URI
 	const std::string&	uri = node->getParameters().back();
-
-	// This could be done better by validating all error pages at once...
-	Directive*			rootDirective = node->getParent()->getChild("root");
-	std::string			root = "./www/";
-	if (rootDirective)
-	{
-		root = rootDirective->getParameter(0);
-		if (root.at(0) != '.')
-			root = joinPath(".", root);
-		rootDirective->setParameter(0, root);
-	}
+	std::string			root = getRoot(node);
 
 	std::string			errorPagePath = joinPath(joinPath(root, "error_pages"), uri);
 	struct stat			st;

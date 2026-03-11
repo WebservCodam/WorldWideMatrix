@@ -56,3 +56,10 @@ std::vector<Directive*>	Directive::getChildren()
 	}
 	return (result);
 }
+
+void Directive::setParameter(int index, const std::string& new_parameter)
+{
+    if (index < 0 || index >= (int)_parameters.size())
+		throw ConfigError::parsing("Invalid index in setParameter.", _line, _column);
+    _parameters[index] = new_parameter;
+}
