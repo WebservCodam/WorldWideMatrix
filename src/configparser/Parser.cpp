@@ -68,25 +68,40 @@ std::unique_ptr<Directive>	Parser::parseDirective()
 									currentToken().line, currentToken().column);
 	}
 
-	//	Skip all the words and numbers
-	size_t	lookAhead = 1;
-	while (peekToken(lookAhead).type != SEMICOLON && peekToken(lookAhead).type != LBRACE)
-		lookAhead++;
+	std::unique_ptr<Directive>	directive = initializeDirective();
 
-	if (peekToken(lookAhead).type == SEMICOLON)
-		return (parseSimpleDirective());
-	else if (peekToken(lookAhead).type == LBRACE)
-		return (parseBlockDirective());
+	if (currentToken().type == SEMICOLON)
+	{
+		advance();
+		return (directive);
+	}
+	else if (currentToken().type == LBRACE)
+	{
+		advance();
+		while (!isAtEnd() && currentToken().type != RBRACE)
+		{
+			std::unique_ptr<Directive>	child = parseDirective();
+			if (child)
+			{
+				child->setContext(directive->getName());
+				child->setParent(directive.get());
+				directive->addChild(std::move(child));
+			}
+		}
+		expectToken(RBRACE, "Expected '}' to close block");
+		advance();
+		return (directive);
+	}
 	else
 	{
 		throw ConfigError::parsing("Expected ';' or '{' after directive parameters",
-									peekToken(lookAhead).line, peekToken(lookAhead).column);
+									currentToken().line, currentToken().column);
 	}
 }
 
 std::unique_ptr<Directive>	Parser::initializeDirective()
 {
-	std::unique_ptr<Directive>	directive(new Directive());	//Add safeguards?
+	std::unique_ptr<Directive>	directive = std::make_unique<Directive>();
 
 	directive->setLine(currentToken().line);
 	directive->setColumn(currentToken().column);
@@ -101,57 +116,22 @@ std::unique_ptr<Directive>	Parser::initializeDirective()
 	return (directive);
 }
 
-std::unique_ptr<Directive>	Parser::parseSimpleDirective()
-{
-	std::unique_ptr<Directive>	directive = initializeDirective();
-
-	expectToken(SEMICOLON, "Expected ';' to close simple directive");
-	advance();
-
-	return (directive);
-}
-
-std::unique_ptr<Directive>	Parser::parseBlockDirective()
-{
-	std::unique_ptr<Directive>	directive = initializeDirective();
-
-	expectToken(LBRACE, "Expected '{' to start block");
-	advance();
-
-	while (!isAtEnd() && currentToken().type != RBRACE)
-	{
-		std::unique_ptr<Directive>	child = parseDirective();
-		if (child)
-		{
-			child->setContext(directive->getName());
-			child->setParent(directive.get());
-			directive->addChild(std::move(child));
-		}
-	}
-
-	expectToken(RBRACE, "Expected '}' to close block");
-	advance();
-
-	return (directive);
-}
-
 std::vector<std::string>	Parser::parseParameters()
 {
 	std::vector<std::string>	parameters;
+	size_t						startLine = currentToken().line;
 
-	while (currentToken().type == WORD
+	while ((currentToken().type == WORD
 		|| currentToken().type == STRING
 		|| currentToken().type == COMMA)
+		&& currentToken().line == startLine)
 	{
-		// std::cout << "DEBUG in parseParameters - Current token is: " << currentToken().value << std::endl;
 		parameters.push_back(currentToken().value);
 		advance();
 	}
 
 	return (parameters);
 }
-
-
 
 void	Parser::checkDefaultErrorPages(std::vector<std::unique_ptr<Directive>>& directives)
 {

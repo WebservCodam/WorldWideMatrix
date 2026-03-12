@@ -147,8 +147,6 @@ class	Parser
 
 		std::unique_ptr<Directive>			initializeDirective();
 		std::unique_ptr<Directive>			parseDirective();
-		std::unique_ptr<Directive>			parseSimpleDirective();
-		std::unique_ptr<Directive>			parseBlockDirective();
 		std::vector<std::string>			parseParameters();
 
 		void	checkDefaultErrorPages(std::vector<std::unique_ptr<Directive>>& directives);
