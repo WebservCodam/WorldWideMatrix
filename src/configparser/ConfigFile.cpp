@@ -56,12 +56,12 @@ std::vector<ServerConfig>	ConfigFile::createServers()
 		if (serverDirective->getName() != "server")
 			continue ;
 
-		std::string							serverName;
+		std::string							serverName = "unnamed_server";
 		std::vector<ListenDirective>		listenDirectives;
-		unsigned long long					maxBodySize;
+		unsigned long long					maxBodySize = DEFAULT_MAX_BODY_SIZE;
 		std::unordered_map<int, ErrorPage>	errorPages;
 		std::vector<Location>				locations;
-		int									keepalive_timeout;
+		int									keepalive_timeout = DEFAULT_KEEP_ALIVE_TIMEOUT;
 
 		std::vector<Directive*> serverChildren = serverDirective->getChildren();
 
@@ -229,13 +229,6 @@ Location	ConfigFile::processLocation(Directive* directive)
 	if (!index.empty())
 		location.indexPath = joinPath(location.dirPath, index);
 
-	std::cout << "DEBUG in processLocation" << std::endl;
-	std::cout << "Location name: " << location.name << std::endl;
-	std::cout << "Location root: " << root << std::endl;
-	std::cout << "Location dirPath: " << location.dirPath << std::endl;
-	std::cout << "Location indexPath: " << location.indexPath << std::endl;
-	std::cout << "Location autoindex: " << location.autoindex << std::endl;
-	std::cout << "Location returnPage: " << location.returnPage.code << std::endl;
 
 	return (location);
 }
@@ -262,25 +255,22 @@ void	ConfigFile::processErrorPages(Directive* directive, std::unordered_map<int,
 {
 	Directive*	serverDirective = directive->getParent();
 	std::string	URI;
-	bool		isRedirect;
+	bool		isRedirect = false;
 	int			redirectCode = -1;
-	int			numErrorCodes;  // This is the number of error codes.
+	int			numErrorCodes;
 	std::string	root;
-
-	std::cout << "DEBUG: processErrorPages" << std::endl;
 
 	// Include default error pages with codes 4 & 5.
 	root = getRoot(serverDirective);
 	root = joinPath(root, DEFAULT_ERROR_PAGES_PATH);
-
-	errorPages.emplace(4, ErrorPage(4, joinPath(root, DEFAULT_40x_ERROR_PAGE)));
-	errorPages.emplace(5, ErrorPage(5, joinPath(root, DEFAULT_50x_ERROR_PAGE)));
+	errorPages.emplace(DEFAULT_40x_ERROR_CODE, ErrorPage(DEFAULT_40x_ERROR_CODE, joinPath(root, DEFAULT_40x_ERROR_PAGE)));
+	errorPages.emplace(DEFAULT_50x_ERROR_CODE, ErrorPage(DEFAULT_50x_ERROR_CODE, joinPath(root, DEFAULT_50x_ERROR_PAGE)));
 
 	numErrorCodes = directive->getParameters().size() - 1;
-	// std::cout << "DEBUG: number of error codes: " + std::to_string(numErrorCodes) << std::endl;
 	URI = directive->getParameter(numErrorCodes);
-	// std::cout << "DEBUG: URI: " + URI << std::endl;
-	if (directive->getParameter(numErrorCodes - 1).at(0) == '=')
+
+	// Check for redirect syntax (=code) - only if we have at least 3 parameters
+	if (numErrorCodes > 1 && directive->getParameter(numErrorCodes - 1).at(0) == '=')
 	{
 		isRedirect = true;
 		redirectCode = std::stoi(directive->getParameter(numErrorCodes - 1).substr(1));
@@ -309,7 +299,7 @@ ReturnPage	ConfigFile::processReturnPage(const Directive* directive)
 	if (directive->getParameters().size() == 1)
 		return (returnPage);
 	
-	returnPage.page = std::stoi(directive->getParameter(1));
+	returnPage.page = directive->getParameter(1);
 	if (stat(std::string(returnPage.page).c_str(), &st) == 0)
 	{
 		if (access(returnPage.page.c_str(), R_OK) != 0)
@@ -318,5 +308,3 @@ ReturnPage	ConfigFile::processReturnPage(const Directive* directive)
 	}
 	return (returnPage);
 }
-
-

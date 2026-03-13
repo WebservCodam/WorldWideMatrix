@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/03/13 13:34:51 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/03/13 14:28:57 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,19 +22,6 @@ void	printErrorAndExit(const std::string& msg, int errorCode)
 {
 	std::cerr << msg << std::endl;
 	exit(errorCode);
-}
-
-void	errorPageTest(ServerConfig& configuration)
-{
-	ErrorPage errorPageTest;
-	
-	errorPageTest = configuration.getErrorPage(404);
-
-	std::cout << "DEBUG: Error page test in initialize: " << errorPageTest.URI << std::endl;
-
-	errorPageTest = configuration.getErrorPage(405);
-
-	std::cout << "DEBUG: Error page test in initialize: " << errorPageTest.URI << std::endl;
 }
 
 void	initialize(int argc, char **argv, std::vector<ServerConfig>& configurations)
@@ -63,9 +50,6 @@ void	initialize(int argc, char **argv, std::vector<ServerConfig>& configurations
 	{
 		printErrorAndExit(std::string("Unexpected error\n") + e.what(), EXIT_FAILURE);
 	}
-	
-	// std::cout << "DEBUG: Servers created" << std::endl;
-	errorPageTest(configurations.at(0));
 }
 
 int main(int argc, char** argv)

@@ -165,7 +165,6 @@ void	Parser::validateSemantics()
 {
 	std::vector<std::unique_ptr<Directive>>&	directives = _configFile->getDirectives();
 	
-
 	// std::cout << "DEBUG: In validateSemantics" << std::endl;
 	for (std::unique_ptr<Directive>& directive : directives)
 	{

@@ -23,11 +23,17 @@ void	validateListenDirective(Directive* node)
 	}
 	isValidAddress = validateAddress(addressAndPort.first);
 	isValidPort = validatePort(addressAndPort.second);
-	if (isValidAddress && addressAndPort.second.empty())
+	if (isValidAddress && isValidPort)
 		return ;
-	else if (isValidAddress && isValidPort)
+	else if (isValidAddress && addressAndPort.second.empty())
+	{
+		node->setParameter(0, addressAndPort.first);
 		return ;
+	}
 	else if (addressAndPort.first.empty() && isValidPort)
+	{
+		node->setParameter(0, addressAndPort.second);
 		return ;
+	}
 	throw ConfigError::validation("Invalid address:port combination in '" + node->getName() + "' directive: '" + node->getParameter(0) + "'", node);
 }
