@@ -16,6 +16,10 @@
 
 # define DEFAULT_KEEP_ALIVE_TIMEOUT 30
 # define DEFAULT_MAX_BODY_SIZE 2000000
+# define DEFAULT_ROOT_PATH "/www/"
+# define DEFAULT_ERROR_PAGES_PATH "/error_pages/"
+# define DEFAULT_40x_ERROR_PAGE "40x.html"
+# define DEFAULT_50x_ERROR_PAGE "50x.html"
 
 enum	TokenType
 {
@@ -176,6 +180,9 @@ struct	ErrorPage
 	bool		isRedirect = false;
 	int			redirectCode = -1;
 	std::string	URI;
+
+	ErrorPage() = default;
+	ErrorPage(int code, const std::string& uri) : errorCode(code), isRedirect(false), redirectCode(-1), URI(uri) {}
 };
 
 struct	ReturnPage

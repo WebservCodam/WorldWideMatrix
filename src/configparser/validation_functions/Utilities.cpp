@@ -2,10 +2,10 @@
 
 Directive*	getServerDirective(Directive *node)
 {
-	for (node; node != nullptr ; node = node->getParent())
+	for (Directive* iterator = node; iterator != nullptr ; iterator = iterator->getParent())
 	{
-		if (node->getName() == "server")
-			return (node);
+		if (iterator->getName() == "server")
+			return (iterator);
 	}
 	return (nullptr);
 }
@@ -29,7 +29,7 @@ bool	getAutoindex(Directive *node)
 std::string	getRoot(Directive *node)
 {
 	Directive*	rootDirective;
-	std::string	root = "./www/";
+	std::string	root = joinPath(".", DEFAULT_ROOT_PATH);
 
 	if (!node)
 		throw ConfigError::semantics("Invalid directive given to getRoot()", node);

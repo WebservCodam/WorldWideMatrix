@@ -265,14 +265,16 @@ void	ConfigFile::processErrorPages(Directive* directive, std::unordered_map<int,
 	bool		isRedirect;
 	int			redirectCode = -1;
 	int			numErrorCodes;  // This is the number of error codes.
+	std::string	root;
 
-	// std::cout << "DEBUG: processErrorPages" << std::endl;
+	std::cout << "DEBUG: processErrorPages" << std::endl;
 
-	// INCLUDE DEFAULT ERROR PAGES WITH CODES 4 & 5
+	// Include default error pages with codes 4 & 5.
+	root = getRoot(serverDirective);
+	root = joinPath(root, DEFAULT_ERROR_PAGES_PATH);
 
-
-
-	// errorPages.emplace(4, current);
+	errorPages.emplace(4, ErrorPage(4, joinPath(root, DEFAULT_40x_ERROR_PAGE)));
+	errorPages.emplace(5, ErrorPage(5, joinPath(root, DEFAULT_50x_ERROR_PAGE)));
 
 	numErrorCodes = directive->getParameters().size() - 1;
 	// std::cout << "DEBUG: number of error codes: " + std::to_string(numErrorCodes) << std::endl;
