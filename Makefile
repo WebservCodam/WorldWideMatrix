@@ -1,7 +1,7 @@
 NAME		=			webserver
 SRC_DIR 	=			src
 CONFIG_SRC_DIR = 		$(SRC_DIR)/configparser
-VALIDATION_SRC_DIR =	$(CONFIG_SRC_DIR)/validation_functions
+DIRECTIVES_SRC_DIR =	$(CONFIG_SRC_DIR)/directives_functions
 
 SRC			=		$(SRC_DIR)/Client.cpp\
 					$(SRC_DIR)/init.cpp\
@@ -20,18 +20,19 @@ SRC			=		$(SRC_DIR)/Client.cpp\
 					$(CONFIG_SRC_DIR)/Lexer.cpp \
 					$(CONFIG_SRC_DIR)/Parser.cpp \
 					$(CONFIG_SRC_DIR)/ServerConfig.cpp \
-					$(CONFIG_SRC_DIR)/Utils.cpp \
-					$(VALIDATION_SRC_DIR)/AutoindexDirective.cpp \
-					$(VALIDATION_SRC_DIR)/CGIDirectives.cpp \
-					$(VALIDATION_SRC_DIR)/ClientMaxBodySizeDirective.cpp \
-					$(VALIDATION_SRC_DIR)/ErrorPageDirective.cpp \
-					$(VALIDATION_SRC_DIR)/IndexDirective.cpp \
-					$(VALIDATION_SRC_DIR)/KeepaliveTimeout.cpp \
-					$(VALIDATION_SRC_DIR)/ListenDirective.cpp \
-					$(VALIDATION_SRC_DIR)/MethodsDirective.cpp \
-					$(VALIDATION_SRC_DIR)/ReturnDirective.cpp \
-					$(VALIDATION_SRC_DIR)/RootDirective.cpp \
-					$(VALIDATION_SRC_DIR)/Utilities.cpp
+					$(CONFIG_SRC_DIR)/Utilities.cpp \
+					$(DIRECTIVES_SRC_DIR)/AutoindexDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/CGIDirectives.cpp \
+					$(DIRECTIVES_SRC_DIR)/ClientMaxBodySizeDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/ErrorPageDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/IndexDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/KeepaliveTimeout.cpp \
+					$(DIRECTIVES_SRC_DIR)/ListenDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/LocationDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/MethodsDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/ReturnDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/RootDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/ServerDirective.cpp 
 OBJ			=		$(SRC:.cpp=.o)
 CC			=		c++
 FLAGS		= -g

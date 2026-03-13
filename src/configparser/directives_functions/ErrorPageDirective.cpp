@@ -10,11 +10,9 @@ void	validateErrorPageDirective(Directive* node)
 	// Last parameter is always the URI
 	const std::string&	uri = node->getParameters().back();
 	std::string			root = getRoot(node);
-
 	std::string			errorPagePath = joinPath(joinPath(root, "error_pages"), uri);
-	struct stat			st;
 
-	checkPath(errorPagePath, ErrorType::VALIDATOR, "Error page: " + errorPagePath + " not found.", "Error page: " + errorPagePath + " has no reading access.");
+	checkPath(errorPagePath, ErrorType::VALIDATOR, "Error page: " + errorPagePath, false);
 	node->setParameter(node->getParameters().size() - 1, errorPagePath);
 
 	// All parameters except the last one are error codes
@@ -45,4 +43,45 @@ void	validateErrorPageDirective(Directive* node)
 		}
 	}
 	return ;
+}
+
+/**
+ * @brief
+ * 
+ * @return
+ */
+void	ConfigFile::processErrorPages(Directive* directive, std::unordered_map<int, ErrorPage>& errorPages)
+{
+	Directive*	serverDirective = directive->getParent();
+	std::string	URI;
+	bool		isRedirect = false;
+	int			redirectCode = -1;
+	int			numErrorCodes;
+	std::string	root;
+
+	// Include default error pages with codes 4 & 5.
+	root = getRoot(serverDirective);
+	root = joinPath(root, DEFAULT_ERROR_PAGES_PATH);
+	errorPages.emplace(DEFAULT_40x_ERROR_CODE, ErrorPage(DEFAULT_40x_ERROR_CODE, joinPath(root, DEFAULT_40x_ERROR_PAGE)));
+	errorPages.emplace(DEFAULT_50x_ERROR_CODE, ErrorPage(DEFAULT_50x_ERROR_CODE, joinPath(root, DEFAULT_50x_ERROR_PAGE)));
+
+	numErrorCodes = directive->getParameters().size() - 1;
+	URI = directive->getParameter(numErrorCodes);
+
+	// Check for redirect syntax (=code) - only if we have at least 3 parameters
+	if (numErrorCodes > 1 && directive->getParameter(numErrorCodes - 1).at(0) == '=')
+	{
+		isRedirect = true;
+		redirectCode = std::stoi(directive->getParameter(numErrorCodes - 1).substr(1));
+		numErrorCodes -= 1;
+	}
+	for (size_t i = 0; i < numErrorCodes; i++)
+	{
+		ErrorPage	current;
+		current.errorCode = std::stoi(directive->getParameter(i));
+		current.isRedirect = isRedirect;
+		current.redirectCode = redirectCode;
+		current.URI = URI;
+		errorPages.emplace(current.errorCode, current);
+	}
 }

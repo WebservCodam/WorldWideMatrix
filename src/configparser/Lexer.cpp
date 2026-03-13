@@ -44,7 +44,6 @@ std::string	Lexer::consumeString(const std::string& input, size_t& pos, size_t l
 	return (string);
 }
 
-
 std::vector<Token>	Lexer::tokenize()
 {
 	size_t	pos = 0;

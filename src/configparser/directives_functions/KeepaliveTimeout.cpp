@@ -24,3 +24,16 @@ void	validateKeepaliveTimeoutDirective(Directive* node)
 									+ node->getParameter(0), node);
 	return ;
 }
+
+/**
+ * @brief
+ * 
+ * @return
+ */
+int	ConfigFile::processKeepaliveTimeout(Directive* directive)
+{
+	if (directive)
+		return (std::stoi(directive->getParameter(0)));
+	else
+		return (DEFAULT_KEEP_ALIVE_TIMEOUT);
+}

@@ -15,6 +15,7 @@
 const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 {
 	//	=== Main Context Directives ===
+	// {"main", DirectiveDefinition{"main", true, 1, 10, {"main"}, {"server"}, validateMainDirective}},
 	{"user", DirectiveDefinition{"user", false, 0, 2, {"main"}, {}, nullptr}},
 	{"server", DirectiveDefinition{"server", true, 0, 0, {"main"}, {"listen", "client_max_body_size", "location"}, validateServerDirective}},
 
@@ -39,20 +40,7 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 	// {"cgi_pass", DirectiveDefinition{"cgi_pass", false, 1, 1, {"location"}, {}, validateCgiPassDirective}},
 	// {"cgi_param", DirectiveDefinition{"cgi_param", false, 2, 3, {"server", "location"}, {}, validateCgiParamDirective}},
 	// {"cgi_index", DirectiveDefinition{"cgi_index", false, 1, 1, {"server", "location"}, {}, validateCgiIndexDirective}},
-	
 };
-
-// ----- BLOCK VALIDATION FUNCTIONS -----
-
-void	validateServerDirective(Directive* node)
-{
-	return (validateBlockDirective(node));
-}
-
-void	validateLocationDirective(Directive* node)
-{
-	return (validateBlockDirective(node));
-}
 
 //	----- GENERAL VALIDATION FUNCTIONS ------
 

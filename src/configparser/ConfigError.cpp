@@ -11,7 +11,7 @@ ConfigError::ConfigError(ErrorType type, const std::string& message, size_t line
 ConfigError::ConfigError(ErrorType type, const std::string& message, const Directive* directive)
 	: ConfigError(type, message, directive->getLine(), directive->getColumn(), directive->getName()) {}
 
-std::string ConfigError::buildMessage(ErrorType type, const std::string& message)
+std::string	ConfigError::buildMessage(ErrorType type, const std::string& message)
 {
 	std::string typeStr;
 	switch(type)
@@ -68,6 +68,11 @@ std::string ConfigError::buildMessage(ErrorType type, const std::string& message
 	msg += ": " + message;
 
 	return (msg);
+}
+
+ConfigError	ConfigError::custom(ErrorType type, const std::string& message)
+{
+	return (ConfigError(type, message));
 }
 
 ConfigError ConfigError::initialization(const std::string& message)

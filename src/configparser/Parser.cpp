@@ -157,8 +157,8 @@ void	Parser::checkDefaultErrorPages(std::vector<std::unique_ptr<Directive>>& dir
 	uri40x = joinPath(errorPagesRoot, "40x.html");
 	uri50x = joinPath(errorPagesRoot, "50x.html");
 
-	checkPath(uri40x, ErrorType::VALIDATOR, "Missing default 40x error page.", "The default 40x error page has no reading access.");
-	checkPath(uri50x, ErrorType::VALIDATOR, "Missing default 50x error page.", "The default 50x error page has no reading access.");
+	checkPath(uri40x, ErrorType::VALIDATOR, "40x error page: " + uri40x, false);
+	checkPath(uri50x, ErrorType::VALIDATOR, "50x error page: " + uri50x, false);
 }
 
 void	Parser::validateSemantics()
@@ -166,6 +166,8 @@ void	Parser::validateSemantics()
 	std::vector<std::unique_ptr<Directive>>&	directives = _configFile->getDirectives();
 	
 	// std::cout << "DEBUG: In validateSemantics" << std::endl;
+	if (!_configFile->findDirective("server"))
+		throw ConfigError::custom(ErrorType::PARSER, std::string("There was no server directive found in the configuration file."));
 	for (std::unique_ptr<Directive>& directive : directives)
 	{
 		validateDirective(directive.get());

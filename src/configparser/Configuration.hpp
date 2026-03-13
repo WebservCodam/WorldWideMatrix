@@ -91,6 +91,7 @@ class ConfigError : public std::runtime_error
 		size_t		_column;
 		std::string	_context;
 
+		static std::string	buildMessage(ErrorType type, const std::string& message);
 		static std::string	buildMessage(ErrorType type, const std::string& message, size_t line, size_t column, const std::string& context);
 
 	public:
@@ -100,7 +101,7 @@ class ConfigError : public std::runtime_error
 		ConfigError(ErrorType type, const std::string& message, const Directive* directive);
 		~ConfigError() = default;
 
-		static std::string	buildMessage(ErrorType type, const std::string& message);
+		static ConfigError	custom(ErrorType type, const std::string& message);
 		static ConfigError	initialization(const std::string& message);
 		static ConfigError	lexing(const std::string& message, size_t line, size_t column);
 		static ConfigError	parsing(const std::string& message, size_t line, size_t column);
@@ -267,8 +268,8 @@ class	ConfigFile
 		ConfigFile(std::vector<std::unique_ptr<Directive>> directives);
 		~ConfigFile() = default;
 
-		std::vector<std::unique_ptr<Directive>>&	getDirectives(); // Non constant so the validation can modify the directives.
-		std::vector<ServerConfig>	getServers() const { return (this->_servers); }
+		std::vector<std::unique_ptr<Directive>>&	getDirectives() { return (_directives); }; // Non constant so the validation can modify the directives.
+		std::vector<ServerConfig>	getServers() const { return (_servers); }
 		ServerConfig				getServer(const std::string& serverName) const;
 
 		std::vector<ServerConfig>	createServers();
@@ -357,6 +358,5 @@ std::pair<std::string, std::string>	parseAddressAndPort(const std::string& addre
 bool 								isByte(std::string &number);
 bool								validateAddress(const std::string& address);
 bool								validatePort(const std::string& port);
-
-std::string	joinPath(const std::string& a, const std::string& b);
-void		checkPath(const std::string& path, ErrorType errorType, const std::string& msg1, const std::string& msg2);
+std::string							joinPath(const std::string& a, const std::string& b);
+void								checkPath(const std::string& path, ErrorType errorType, const std::string& msg1, bool checkDir);

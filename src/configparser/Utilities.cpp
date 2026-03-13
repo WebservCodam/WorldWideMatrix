@@ -1,4 +1,30 @@
-#include "../Configuration.hpp"
+#include "Configuration.hpp"
+
+std::string	joinPath(const std::string& a, const std::string& b)
+{
+	if (a.empty())
+		return (b);
+	if (b.empty())
+		return (a);
+	if (a.back() == '/' && b.front() == '/')
+		return (a + b.substr(1));
+	if (a.back() != '/' && b.front() != '/')
+		return (a + "/" + b);
+	return (a + b);
+}
+
+void	checkPath(const std::string& path, ErrorType errorType, const std::string& msg, bool checkDir)
+{
+	struct stat	st;
+
+	// Check URIs
+	if (stat(std::string(path).c_str(), &st) != 0)
+		throw ConfigError(errorType, msg + std::string(" doesn't exist."));
+	if (checkDir == true && !S_ISDIR(st.st_mode))
+		throw ConfigError(errorType, msg + std::string(" is not a directory."));
+	if (access(path.c_str(), R_OK) != 0)
+		throw ConfigError(errorType, msg + std::string(" doesn't have reading or executing permissions."));
+}
 
 Directive*	getServerDirective(Directive *node)
 {
@@ -35,7 +61,7 @@ std::string	getRoot(Directive *node)
 		throw ConfigError::semantics("Invalid directive given to getRoot()", node);
 	if (node->getName() == "root")
 		rootDirective = node;
-	else if (node->getName() == "server")
+	else if (node->getChild("root")) // In case directive is either server or location.
 		rootDirective = node->getChild("root");
 	else
 	{

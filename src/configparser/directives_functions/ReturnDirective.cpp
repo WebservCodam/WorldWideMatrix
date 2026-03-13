@@ -57,3 +57,26 @@ void	validateReturnDirective(Directive* node)
 		}
 	}
 }
+
+
+// If the page is a link, the page must be a valid path and have reading access.
+// If the link exists but has no reading access it throws an error,
+// Otherwise the string is considered a page by itself.
+ReturnPage	ConfigFile::processReturnPage(const Directive* directive)
+{
+	ReturnPage	returnPage;
+	struct stat	st;
+
+	returnPage.code = std::stoi(directive->getParameter(0));
+	if (directive->getParameters().size() == 1)
+		return (returnPage);
+	
+	returnPage.page = directive->getParameter(1);
+	if (stat(std::string(returnPage.page).c_str(), &st) == 0)
+	{
+		if (access(returnPage.page.c_str(), R_OK) != 0)
+			throw ConfigError::semantics("Return page: " + returnPage.page + " has no reading access.", directive);
+		returnPage.isURI = true;
+	}
+	return (returnPage);
+}

@@ -76,3 +76,16 @@ void	validateClientMaxBodySizeDirective(Directive* node)
 	}
 	return ;
 }
+
+/**
+ * @brief
+ * During validation the valid parameters that had letters have been changed to the number equivalent.
+ * @return
+ * This function simply returns the conversion of that number stored in a string into an unsigned long long.
+ */
+unsigned long long	ConfigFile::processClientMaxBodySize(const Directive* directive)
+{
+	if (directive)
+		return (std::stoull(directive->getParameter(0)));
+	return (DEFAULT_MAX_BODY_SIZE);
+}
