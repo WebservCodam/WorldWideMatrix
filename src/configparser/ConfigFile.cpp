@@ -165,14 +165,13 @@ Location	ConfigFile::processLocation(Directive* directive)
 	Location		location = Location();
 	std::string		root = "";
 	std::string		index = "";
-	bool			autoindex = false;
 
 	//	Inherit from server (THESE COULD BE OPTIMIZED BY HAVING THE MAIN FUNCTION DO THIS AND PASSING THE PRE-WORKED LOCATION WITH THESE VALUES, for every location)
 	server = getServerDirective(directive);
 	if (server == nullptr)
 		throw ConfigError::semantics("Location directive is not in any server.", directive);
 	root = getRoot(server);
-	autoindex = getAutoindex(server);
+	location.autoindex = getAutoindex(server);
 
 	indexDirective = server->getChild("index");
 	if (indexDirective)

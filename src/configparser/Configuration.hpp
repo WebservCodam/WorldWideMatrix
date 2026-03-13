@@ -308,6 +308,7 @@ class	ServerConfig
 		const std::string&							getServerName() const { return this->_serverName; }
 		const std::vector<ListenDirective>&			getListenDirectives() const { return this->_listenDirectives; }
 		unsigned long long							getMaxBodySize() const { return this->_maxBodySize; }
+		ErrorPage									getErrorPage(int code) const;
 		const std::unordered_map<int, ErrorPage>&	getErrorPages() const { return this->_errorPages; }
 		const std::vector<Location>&				getLocations() const { return this->_locations; }
 		int 										getKeepaliveTimeout() const { return this->_keepalive_timeout; }
