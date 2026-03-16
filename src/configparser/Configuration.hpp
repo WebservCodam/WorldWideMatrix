@@ -161,7 +161,7 @@ class	Parser
 
 	public:
 		Parser() = delete;
-		Parser(const std::string& input);
+		Parser(const std::string& input) : _input(input), _currentIndex(0) {}
 		~Parser() = default;
 
 		std::unique_ptr<ConfigFile>	parse();
@@ -269,8 +269,8 @@ class	ConfigFile
 		~ConfigFile() = default;
 
 		std::vector<std::unique_ptr<Directive>>&	getDirectives() { return (_directives); }; // Non constant so the validation can modify the directives.
-		std::vector<ServerConfig>	getServers() const { return (_servers); }
-		ServerConfig				getServer(const std::string& serverName) const;
+		std::vector<ServerConfig>					getServers() const { return (_servers); }
+		ServerConfig								getServer(const std::string& serverName) const;
 
 		std::vector<ServerConfig>	createServers();
 

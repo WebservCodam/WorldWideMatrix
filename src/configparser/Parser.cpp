@@ -1,7 +1,6 @@
 #include "Configuration.hpp"
 
-// Very basic for now.
-Parser::Parser(const std::string& input) : _input(input), _currentIndex(0) {}
+
 
 const	Token&	Parser::currentToken() const
 {

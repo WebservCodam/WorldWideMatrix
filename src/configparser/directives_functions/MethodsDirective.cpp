@@ -2,12 +2,18 @@
 
 void	validateMethodsDirective(Directive* node)
 {
-	const std::vector<std::string> httpMethods = {"GET", "POST", "DELETE", "HEAD"};
+	const std::vector<std::string>	httpMethods = {"GET", "POST", "DELETE"};
+	const std::vector<std::string>	methods = node->getParameters();
 
-	// if (node->getParameters().empty() || node->getChildren().empty())
-	// 	throw ConfigError::validation("Directive " + node->getName() + "  requires at least one HTTP method parameter and child directives", node);
-
-	// COMPLETE 
-
-	return ;
+	for (const std::string& method : methods)
+	{
+		bool	valid = false;
+		for (const std::string& httpMethod : httpMethods)
+		{
+			if (method == httpMethod)
+				valid = true;
+		}
+		if (valid == false)
+			throw ConfigError::validation("The provided method: '" + method + "' is invalid.", node);
+	}
 }
