@@ -27,10 +27,10 @@ void	validateCgiHandlerDirective(Directive* node)
 		throw ConfigError::validation("The CGI handler was given an invalid extension.", node);
 }
 
-void	validateCgiIndexDirective(Directive* node)
-{
-	// Sets a file name that will be appended after a URI that ends with a slash,
-	// in the value of the $cgi_script_name variable.
-	// In other words, it sets a value for the variable $cgi_script_name.
-	return ;
-}
+// void	validateCgiIndexDirective(Directive* node)
+// {
+// 	// Sets a file name that will be appended after a URI that ends with a slash,
+// 	// in the value of the $cgi_script_name variable.
+// 	// In other words, it sets a value for the variable $cgi_script_name.
+// 	return ;
+// }
