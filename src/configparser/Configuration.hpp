@@ -43,6 +43,11 @@ enum class ErrorType
 	SEMANTICS
 };
 
+namespace CGIExtensions {
+	const std::pair<std::string, std::string>	PYTHON = {".py", "/usr/bin/python3/"};
+	const std::pair<std::string, std::string>	PHP    = {".php", "/usr/bin/php"};
+}
+
 class			ServerConfig;
 class			Directive;
 class			ConfigFile;
@@ -197,14 +202,16 @@ struct	ReturnPage
 
 struct	Location
 {
-	std::string					name = "";			// This represents the location we're trying to access.
-	std::string					dirPath = "";
-	std::string					indexPath = "";		// This is the full path that goes to the index. root + location + (index?).
-	ReturnPage					returnPage = ReturnPage();
-	bool						autoindex = false;
-	bool						getMethod = false;
-	bool						postMethod = false;
-	bool						deleteMethod = false;
+	std::string		name = "";			// This represents the location we're trying to access.
+	std::string		dirPath = "";		// This is the name with root prepended.
+	std::string		indexPath = "";		// This is the full path that goes to the index. root + location + (index?).
+	std::string		cgiParam = "";
+	bool			isCGI = false;
+	ReturnPage		returnPage = ReturnPage();
+	bool			autoindex = false;
+	bool			getMethod = false;
+	bool			postMethod = false;
+	bool			deleteMethod = false;
 };
 
 // =============== --- DIRECTIVE --- ===============
@@ -339,15 +346,13 @@ void	validateRootDirective(Directive* node);
 void	validateIndexDirective(Directive* node);
 void	validateAutoIndexDirective(Directive* node);
 void	validateErrorPageDirective(Directive* node);
-// void	validateFastcgiPassDirective(Directive* node);
-// void	validateFastcgiParamDirective(Directive* node);
-// void	validateFastcgiIndexDirective(Directive* node);
 void	validateReturnDirective(Directive* node);
 void	validateMethodsDirective(Directive* node);
 void	validateClientMaxBodySizeDirective(Directive* node);
 // void	validateAllowOrDenyDirective(Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
 void	validateKeepaliveTimeoutDirective(Directive* node);
 // void	validateUploadPathDirective(Directive* node);
+void	validateCgiHandlerDirective(Directive* node);
 
 // =============== --- Utilities --- ===============
 
