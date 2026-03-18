@@ -38,6 +38,16 @@ void	validateListenDirective(Directive* node)
 	throw ConfigError::validation("Invalid address:port combination in '" + node->getName() + "' directive: '" + node->getParameter(0) + "'", node);
 }
 
+void	ConfigFile::checkUsedPorts(const Directive* directive, const std::string& port)
+{
+	for (const std::string& usedPort : this->_usedPorts)
+	{
+		if (port == usedPort)
+			throw ConfigError::validation("The port '" + port + "' is already being used.", directive);
+	}
+	this->_usedPorts.push_back(port);
+}
+
 /**
  * @brief
  * This function takes a vector of ListenDirective objects to store the resulting address & port pair.
@@ -60,14 +70,21 @@ void	ConfigFile::processListen(const Directive* directive, std::vector<ListenDir
 		{
 			std::string address = listenParam.substr(0, colonPos);
 			std::string port = listenParam.substr(colonPos + 1);
+			checkUsedPorts(directive, port);
 			listenDirectives.push_back(ListenDirective(address, port));
 		}
 		else
 		{
 			if (validateAddress(listenParam))
+			{
+				checkUsedPorts(directive, "8080");
 				listenDirectives.push_back(ListenDirective(listenParam, "8080"));
+			}
 			else if (validatePort(listenParam))
+			{
+				checkUsedPorts(directive, listenParam);
 				listenDirectives.push_back(ListenDirective("127.0.0.1", listenParam));
+			}
 			else
 				throw ConfigError::semantics("Invalid address & port", directive);
 		}

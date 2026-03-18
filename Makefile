@@ -35,7 +35,7 @@ SRC			=		$(SRC_DIR)/Client.cpp\
 					$(DIRECTIVES_SRC_DIR)/ServerDirective.cpp 
 OBJ			=		$(SRC:.cpp=.o)
 CC			=		c++
-FLAGS		= -g
+FLAGS		=		-g
 # FLAGS		=		-Wall -Wextra -Werror -g
 # FLAGS		+=		-fsanitize=thread
 # FLAGS		+=		-fsanitize=address
