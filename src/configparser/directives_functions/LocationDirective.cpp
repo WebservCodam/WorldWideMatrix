@@ -34,7 +34,7 @@ Location	ConfigFile::processLocation(Directive* directive)
 	else
 		index = "index.html";
 
-	location.name = directive->getParameter(0);
+	location.name = trimPathName(directive->getParameter(0));
 
 	std::vector<Directive*> locationChildren = directive->getChildren();
 	for (Directive* child : locationChildren)

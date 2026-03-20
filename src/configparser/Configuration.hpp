@@ -331,6 +331,7 @@ class	ServerConfig
 		ErrorPage									getErrorPage(int code) const;
 		const std::unordered_map<int, ErrorPage>&	getErrorPages() const { return this->_errorPages; }
 		const std::vector<Location>&				getLocations() const { return this->_locations; }
+		const Location&								getLocation(const std::string& name) const;
 		int 										getKeepaliveTimeout() const { return this->_keepalive_timeout; }
 };
 
@@ -368,3 +369,4 @@ bool								validateAddress(const std::string& address);
 bool								validatePort(const std::string& port);
 std::string							joinPath(const std::string& a, const std::string& b);
 void								checkPath(const std::string& path, ErrorType errorType, const std::string& msg1, bool checkDir);
+std::string							trimPathName(const std::string& name);

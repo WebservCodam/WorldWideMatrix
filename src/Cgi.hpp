@@ -19,11 +19,11 @@ class	Cgi
 			std::string method,
 			std::string queryString,
 			std::string contentType,
-			std::string contentLength
-			// std::string scriptName,
-			// std::string pathInfo,
-			// std::string serverName,
-			// std::string serverPort,
+			std::string contentLength,
+			std::string scriptName,
+			std::string pathInfo,
+			std::string serverName,
+			std::string serverPort
 			);
 
 
