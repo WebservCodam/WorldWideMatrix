@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 15:04:10 by vknape        #+#    #+#                 */
-/*   Updated: 2026/02/23 15:52:10 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/10 15:52:52 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,25 +20,32 @@ class Client;
 class Server
 {
 	private:
+		std::vector<int>			_serverFds;
+		const int					_epfd;
+		std::map<int, Client>		_clientList;
+		std::vector<ServerConfig>	_serverConfigs;
 
 	public:
-		Server(int epfd1);
+		// Orthodox Canonical Form (missing copy constructor, copy assignment operator, and move...)
+		Server(int epfd);
 		~Server();
-		// const int server_fd;
-		std::vector<int> server_fds;
-		const int epfd;
-		std::map<int, Client> list;
-		std::vector<ServerConfig> servers;
+
+		// Getters & Setters
+		// ServerConfig				getServerConfig(int server);
+		// ServerConfig				getServerConfig(const std::string& serverName);
+		std::vector<ServerConfig>	getServerConfigs();
 		
-		void init_server();
-		void add_servers_to_epoll(int server_fd);
-		void start_server();
-		void close_client(int fd);
-		void check_health();
-		void add_fd_map(int client_fd);
-		void connect_new(int server_fd);
-		void connect_in(int client_fd);
-		void connect_out(int client_fd);
-		void print_buffers();
-		void parse(int client_fd);
+		
+		
+		void	parse(int clientFd);
+		void	initServer();
+		void	registerServerFd(int serverFd);
+		void	startServer();
+		void	close_client(int fd);
+		void	check_health();
+		void	add_fd_map(int clientFd);
+		void	connect_new(int serverFd);
+		void	connect_in(int clientFd);
+		void	connect_out(int clientFd);
+		void	print_buffers();
 };

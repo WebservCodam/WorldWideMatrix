@@ -6,13 +6,13 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:20:54 by vknape        #+#    #+#                 */
-/*   Updated: 2026/02/02 14:10:08 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/10 15:51:08 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "utils.hpp"
 
-// void	init_server(int& server_fd, int& epfd)
+// void	initServer(int& serverFd, int& epfd)
 // {
 // 	int epfd;
 
@@ -27,9 +27,9 @@
 // 	}
 // 	//epoll start
 // 	static struct epoll_event event;
-// 	event.data.fd = server_fd;
+// 	event.data.fd = serverFd;
 // 	event.events = EPOLLIN | EPOLLET | EPOLLPRI | EPOLLHUP;
-// 	if (epoll_ctl(epfd, EPOLL_CTL_ADD, server_fd, &event) == -1)
+// 	if (epoll_ctl(epfd, EPOLL_CTL_ADD, serverFd, &event) == -1)
 // 		throw std::runtime_error("Server add to epoll failed");
 // }
 
@@ -49,36 +49,36 @@ int createSocket(const char* ip, const char* port)
 	if (status != 0)
 		throw std::runtime_error("Server socket addrinfo failed");
 
-	int server_fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-	if (server_fd < 0)
+	int serverFd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+	if (serverFd < 0)
 	{
 		freeaddrinfo(res);
 		throw std::runtime_error("Server socket creation failed");
 	}
 	
 	int opt = 1;
-	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+	if (setsockopt(serverFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 	{
-		close(server_fd);
+		close(serverFd);
 		freeaddrinfo(res);
 		throw std::runtime_error("Server socket setsockopt failed");
 	}
 	
-	if (bind(server_fd, res->ai_addr, res->ai_addrlen) < 0)
+	if (bind(serverFd, res->ai_addr, res->ai_addrlen) < 0)
 	{
-		close(server_fd);
+		close(serverFd);
 		freeaddrinfo(res);
 		throw std::runtime_error("Server socket bind failed");
 	}
 	
-	set_non_blocking(server_fd);
+	set_non_blocking(serverFd);
 	freeaddrinfo(res);
 
-	if (listen(server_fd, 1000) < 0)
+	if (listen(serverFd, 1000) < 0)
 	{
-		close(server_fd);
+		close(serverFd);
 		throw std::runtime_error("Server socket listen failed");
 	}
 	std::cout << "Server with address: " << ip << " at port: " << port << " created" << std::endl;
-	return (server_fd);
+	return (serverFd);
 }

@@ -20,8 +20,8 @@
 
 // int main() {
 //     const int port = 8080;
-//     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
-//     if (server_fd < 0) { perror("socket"); return 1; }
+//     int serverFd = socket(AF_INET, SOCK_STREAM, 0);
+//     if (serverFd < 0) { perror("socket"); return 1; }
 
 //     sockaddr_in addr{};
 //     addr.sin_family = AF_INET;
@@ -29,18 +29,18 @@
 //     addr.sin_port = htons(port);
 
 //     int opt = 1;
-//     setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+//     setsockopt(serverFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-//     if (bind(server_fd, (sockaddr*)&addr, sizeof(addr)) < 0) { perror("bind"); return 1; }
-//     if (listen(server_fd, 1) < 0) { perror("listen"); return 1; }
+//     if (bind(serverFd, (sockaddr*)&addr, sizeof(addr)) < 0) { perror("bind"); return 1; }
+//     if (listen(serverFd, 1) < 0) { perror("listen"); return 1; }
 
 //     std::cout << "Listening on port " << port << "...\n";
 
-//     int client_fd = accept(server_fd, nullptr, nullptr);
-//     if (client_fd < 0) { perror("accept"); return 1; }
+//     int clientFd = accept(serverFd, nullptr, nullptr);
+//     if (clientFd < 0) { perror("accept"); return 1; }
 
 //     std::vector<char> buffer(8192);
-//     ssize_t bytes = read(client_fd, buffer.data(), buffer.size());
+//     ssize_t bytes = read(clientFd, buffer.data(), buffer.size());
 //     if (bytes < 0) { perror("read"); return 1; }
 
 //     std::string data(buffer.data(), bytes);
@@ -72,8 +72,8 @@
 //         std::cerr << "Exception: " << e.what() << "\n";
 //     }
 
-//     close(client_fd);
-//     close(server_fd);
+//     close(clientFd);
+//     close(serverFd);
 //     return 0;
 // }
 

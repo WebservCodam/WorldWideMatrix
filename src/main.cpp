@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/03/20 15:10:10 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/10 15:51:07 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 
 #include "configparser/Configuration.hpp"
 
-// void	start_server(int server_fd, int epfd);
+// void	startServer(int serverFd, int epfd);
 
 void	printErrorAndExit(const std::string& msg, int errorCode)
 {
@@ -59,7 +59,8 @@ int main(int argc, char** argv)
 	initialize(argc, argv, configurations);
 	while (true)
 	{
-		try {
+		try
+		{
 			int epfd;
 
 			epfd = epoll_create(1000);
@@ -67,26 +68,27 @@ int main(int argc, char** argv)
 			if (epfd < 0)
 				throw std::runtime_error("Failed to create epoll fd");
 				
-			Server server(epfd);
-			server.servers = configurations;
-			std::cout << server.servers.at(0).getServerName() << std::endl;
+			Server	server(epfd);
 			
-			server.init_server();
-			server.start_server();
+			server.getServerConfigs() = configurations;
+			std::cout << configurations.at(0).getServerName() << std::endl;
+			
+			server.initServer();
+			server.startServer();
 			
 		}	catch (const std::runtime_error& e) {
-			std::cout << "Runtime error: " << e.what() << std::endl;
+				std::cout << "Runtime error: " << e.what() << std::endl;
 		}	catch (const std::exception& e) {
-			std::cout << "Exception: " << e.what() << std::endl;
+				std::cout << "Exception: " << e.what() << std::endl;
 		}
 		
 		exit(0);
 	}
 }
 
-// void	start_server(int server_fd, int epfd)
+// void	startServer(int serverFd, int epfd)
 // {
-// 	Server server(server_fd, epfd);
+// 	Server server(serverFd, epfd);
 // 	epoll_event events[1000];
 // 	int num_events = 0;
 // 	int connections = 0;
@@ -101,7 +103,7 @@ int main(int argc, char** argv)
 		
 // 		for (int i = 0; i < num_events; i++)
 // 		{
-// 			if (events[i].data.fd == server_fd)
+// 			if (events[i].data.fd == serverFd)
 // 			{
 // 				server.connect_new();
 // 				connections++;
