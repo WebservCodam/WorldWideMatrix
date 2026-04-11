@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/11 15:16:09 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/11 18:14:38 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,31 +22,38 @@ Server::~Server()
 
 void Server::initServer()
 {
-	for (ServerConfig server : _serverConfigs)
+	std::cout << "DEBUG: In initServer()" << std::endl;
+	std::cout << "Size: " << _serverConfigs.size() << std::endl;
+	for (const ServerConfig& server : _serverConfigs)
 	{
-		std::vector<ListenDirective>	addresses = server.getListenDirectives();
+		std::cout << "DEBUG: In the loop" << std::endl;
+		const std::vector<ListenDirective>&	addresses = server.getListenDirectives();
 
-		auto it = addresses.begin();
-		_serverFds.push_back(createSocket(it->address.c_str(), it->port.c_str()));
-		// break ;
+		std::cout << "DEBUG: In the loop" << std::endl;
+		for (const ListenDirective& addr : addresses)
+		{
+			// We're treating each one as a new server, but one server should be able to handle multiple listen directives.
+			int	listenFd = createSocket(addr.address.c_str(), addr.port.c_str());
+			_listenFds.push_back(listenFd);
+		}	
 	}
 
-	for (int fd: _serverFds)
+	for (int fd: _listenFds)
 	{
-		registerServerFd(fd);
+		addServerToEpoll(fd);
 	}
 }
 
 /**
  * Adds the server fd to epoll.
  */
-void Server::registerServerFd(int serverFd)
+void Server::addServerToEpoll(int listenFd)
 {
 	static struct epoll_event	event;
 
-	event.data.fd = serverFd;
+	event.data.fd = listenFd;
 	event.events = EPOLLIN | EPOLLET | EPOLLPRI | EPOLLHUP;
-	if (epoll_ctl(_epfd, EPOLL_CTL_ADD, serverFd, &event) == -1)
+	if (epoll_ctl(_epfd, EPOLL_CTL_ADD, listenFd, &event) == -1)
 		throw std::runtime_error("Server add to epoll failed");
 }
 
@@ -68,7 +75,7 @@ void Server::startServer()
 		
 		for (int i = 0; i < numEvents; i++)
 		{
-			if (std::find(_serverFds.begin(), _serverFds.end(), events[i].data.fd) != _serverFds.end())
+			if (std::find(_listenFds.begin(), _listenFds.end(), events[i].data.fd) != _listenFds.end())
 			{
 				server.connectNew(events[i].data.fd);
 				connections++;
@@ -99,7 +106,7 @@ void Server::addFdToClientList(int clientFd)
 	_clientList.emplace(clientFd, clientFd);
 }
 
-void Server::connectNew(int serverFd)
+void Server::connectNew(int listenFd)
 {
 	int	clientFd;
 
@@ -108,7 +115,7 @@ void Server::connectNew(int serverFd)
 		struct sockaddr_in	clientAddr;
 		socklen_t			clientLen = sizeof(clientAddr);
 
-		clientFd = accept(serverFd, (struct sockaddr*)&clientAddr, &clientLen);
+		clientFd = accept(listenFd, (struct sockaddr*)&clientAddr, &clientLen);
 		if (clientFd == -1)
 		{
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -299,7 +306,12 @@ void Server::parse(int clientFd)
 
 // Getters & Setters
 
-std::vector<ServerConfig>	Server::getServerConfigs()
+const std::vector<ServerConfig>&	Server::getServerConfigs() const
 {
 	return (this->_serverConfigs);
+}
+
+void	Server::setServerConfigs(std::vector<ServerConfig> serverConfigs)
+{
+	this->_serverConfigs = serverConfigs;
 }

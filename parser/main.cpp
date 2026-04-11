@@ -20,8 +20,8 @@
 
 // int main() {
 //     const int port = 8080;
-//     int serverFd = socket(AF_INET, SOCK_STREAM, 0);
-//     if (serverFd < 0) { perror("socket"); return 1; }
+//     int listenFd = socket(AF_INET, SOCK_STREAM, 0);
+//     if (listenFd < 0) { perror("socket"); return 1; }
 
 //     sockaddr_in addr{};
 //     addr.sin_family = AF_INET;
@@ -29,14 +29,14 @@
 //     addr.sin_port = htons(port);
 
 //     int opt = 1;
-//     setsockopt(serverFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+//     setsockopt(listenFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-//     if (bind(serverFd, (sockaddr*)&addr, sizeof(addr)) < 0) { perror("bind"); return 1; }
-//     if (listen(serverFd, 1) < 0) { perror("listen"); return 1; }
+//     if (bind(listenFd, (sockaddr*)&addr, sizeof(addr)) < 0) { perror("bind"); return 1; }
+//     if (listen(listenFd, 1) < 0) { perror("listen"); return 1; }
 
 //     std::cout << "Listening on port " << port << "...\n";
 
-//     int clientFd = accept(serverFd, nullptr, nullptr);
+//     int clientFd = accept(listenFd, nullptr, nullptr);
 //     if (clientFd < 0) { perror("accept"); return 1; }
 
 //     std::vector<char> buffer(8192);
@@ -73,7 +73,7 @@
 //     }
 
 //     close(clientFd);
-//     close(serverFd);
+//     close(listenFd);
 //     return 0;
 // }
 

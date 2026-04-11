@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/11 14:52:52 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/11 18:30:01 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 
 #include "configparser/Configuration.hpp"
 
-// void	startServer(int serverFd, int epfd);
+// void	startServer(int listenFd, int epfd);
 
 void	printErrorAndExit(const std::string& msg, int errorCode)
 {
@@ -61,7 +61,7 @@ int main(int argc, char** argv)
 	{
 		try
 		{
-			int epfd;
+			int	epfd;
 
 			epfd = epoll_create(1000);
 			
@@ -70,14 +70,15 @@ int main(int argc, char** argv)
 				
 			Server	server(epfd);
 			
-			server.getServerConfigs() = configurations;
+			server.setServerConfigs(configurations); // Each different server should receive only the config file for that server. But then, we're creating a god object with this server.
 			std::cout << configurations.at(0).getServerName() << std::endl;
-			
+
 			server.initServer();
 			server.startServer();
-			
+
 		}	catch (const std::runtime_error& e) {
 				std::cout << "Runtime error: " << e.what() << std::endl;
+				exit(EXIT_FAILURE);
 		}	catch (const std::exception& e) {
 				std::cout << "Exception: " << e.what() << std::endl;
 		}
@@ -86,9 +87,9 @@ int main(int argc, char** argv)
 	}
 }
 
-// void	startServer(int serverFd, int epfd)
+// void	startServer(int listenFd, int epfd)
 // {
-// 	Server server(serverFd, epfd);
+// 	Server server(listenFd, epfd);
 // 	epoll_event events[1000];
 // 	int num_events = 0;
 // 	int connections = 0;
@@ -103,7 +104,7 @@ int main(int argc, char** argv)
 		
 // 		for (int i = 0; i < num_events; i++)
 // 		{
-// 			if (events[i].data.fd == serverFd)
+// 			if (events[i].data.fd == listenFd)
 // 			{
 // 				server.connectNew();
 // 				connections++;
