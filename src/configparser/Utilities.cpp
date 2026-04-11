@@ -1,5 +1,16 @@
 #include "Configuration.hpp"
 
+std::string	trimPathName(const std::string& name)
+{
+	if (name.front() == '/' && name.back() == '/')
+		return (name.substr(1, name.length() - 2));
+	if (name.front() == '/')
+		return (name.substr(1));
+	if (name.back() == '/')
+		return(name.substr(0, name.length() - 1));
+	return (name);
+}
+
 std::string	joinPath(const std::string& a, const std::string& b)
 {
 	if (a.empty())

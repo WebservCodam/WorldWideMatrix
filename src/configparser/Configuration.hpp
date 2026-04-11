@@ -43,6 +43,11 @@ enum class ErrorType
 	SEMANTICS
 };
 
+namespace CGIExtensions {
+	const std::pair<std::string, std::string>	PYTHON = {".py", "/usr/bin/python3"};
+	const std::pair<std::string, std::string>	PHP    = {".php", "/usr/bin/php"};
+}
+
 class			ServerConfig;
 class			Directive;
 class			ConfigFile;
@@ -197,14 +202,16 @@ struct	ReturnPage
 
 struct	Location
 {
-	std::string					name = "";			// This represents the location we're trying to access.
-	std::string					dirPath = "";
-	std::string					indexPath = "";		// This is the full path that goes to the index. root + location + (index?).
-	ReturnPage					returnPage = ReturnPage();
-	bool						autoindex = false;
-	bool						getMethod = false;
-	bool						postMethod = false;
-	bool						deleteMethod = false;
+	std::string		name = "";			// This represents the location we're trying to access.
+	std::string		dirPath = "";		// This is the name with root prepended.
+	std::string		indexPath = "";		// This is the full path that goes to the index. root + location + (index?).
+	std::string		cgiParam = "";
+	bool			isCGI = false;
+	ReturnPage		returnPage = ReturnPage();
+	bool			autoindex = false;
+	bool			getMethod = false;
+	bool			postMethod = false;
+	bool			deleteMethod = false;
 };
 
 // =============== --- DIRECTIVE --- ===============
@@ -262,6 +269,7 @@ class	ConfigFile
 	private:
 		std::vector<std::unique_ptr<Directive>>	_directives;
 		std::vector<ServerConfig>				_servers;
+		std::vector<std::string>				_usedPorts;
 		
 	public:
 		ConfigFile() = delete;
@@ -283,6 +291,8 @@ class	ConfigFile
 		int									processKeepaliveTimeout(Directive* directive);
 		void								processErrorPages(Directive* directive, std::unordered_map<int, ErrorPage>&);
 		ReturnPage							processReturnPage(const Directive* directive);
+
+		void								checkUsedPorts(const Directive* directive, const std::string& port);
 
 	public:
 		// Query methods
@@ -321,6 +331,7 @@ class	ServerConfig
 		ErrorPage									getErrorPage(int code) const;
 		const std::unordered_map<int, ErrorPage>&	getErrorPages() const { return this->_errorPages; }
 		const std::vector<Location>&				getLocations() const { return this->_locations; }
+		const Location&								getLocation(const std::string& name) const;
 		int 										getKeepaliveTimeout() const { return this->_keepalive_timeout; }
 };
 
@@ -339,15 +350,13 @@ void	validateRootDirective(Directive* node);
 void	validateIndexDirective(Directive* node);
 void	validateAutoIndexDirective(Directive* node);
 void	validateErrorPageDirective(Directive* node);
-// void	validateFastcgiPassDirective(Directive* node);
-// void	validateFastcgiParamDirective(Directive* node);
-// void	validateFastcgiIndexDirective(Directive* node);
 void	validateReturnDirective(Directive* node);
 void	validateMethodsDirective(Directive* node);
 void	validateClientMaxBodySizeDirective(Directive* node);
 // void	validateAllowOrDenyDirective(Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
 void	validateKeepaliveTimeoutDirective(Directive* node);
 // void	validateUploadPathDirective(Directive* node);
+void	validateCgiHandlerDirective(Directive* node);
 
 // =============== --- Utilities --- ===============
 
@@ -360,3 +369,4 @@ bool								validateAddress(const std::string& address);
 bool								validatePort(const std::string& port);
 std::string							joinPath(const std::string& a, const std::string& b);
 void								checkPath(const std::string& path, ErrorType errorType, const std::string& msg1, bool checkDir);
+std::string							trimPathName(const std::string& name);

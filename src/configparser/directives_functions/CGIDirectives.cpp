@@ -1,29 +1,36 @@
 #include "../Configuration.hpp"
 
-void	validateCgiPassDirective(Directive* node)
+void	validateCgiHandlerDirective(Directive* node)
 {
-	// Sets the address for a CGI server.
-	// The address can be specified as a domain name or IP address, and a port (e.g.): localhost:9000;
-	// If a domain name resolves to several addresses, all of them will be used in a round-robin fashion. But we don't need that...
-	return ;
+	std::string	extension = node->getParameter(0);
+	std::string	path = node->getParameter(1);
+	bool		isValidExtension = false;
+
+	if (extension.empty())
+		throw ConfigError::validation("The CGI handler was given an empty extension.", node);
+	if (path.empty())
+		throw ConfigError::validation("The CGI handler was given an empty path.", node);
+
+	if (extension == CGIExtensions::PYTHON.first)
+	{
+		isValidExtension = true;
+		if (path != CGIExtensions::PYTHON.second)
+			throw ConfigError::validation("The CGI handler's path is invalid.", node);
+	}
+	// else if (extension == CGIExtensions::PHP.first)
+	// {
+	// 	isValidExtension = true;
+	// 	if (path != CGIExtensions::PHP.second)
+	// 		throw ConfigError::validation("The CGI handler's path is invalid.", node);
+	// }
+	if (!isValidExtension)
+		throw ConfigError::validation("The CGI handler was given an invalid extension.", node);
 }
 
-void	validateCgiParamDirective(Directive* node)
-{
-	// Sets a parameter that should be passed to the CGI server.
-	// The value can contain text, variables, and their combination.
-
-	// If the directive is specified with if_not_empty
-	// then such a parameter will be passed to the server only if its value is not empty.
-	// We can skip that.
-
-	return ;
-}
-
-void	validateCgiIndexDirective(Directive* node)
-{
-	// Sets a file name that will be appended after a URI that ends with a slash,
-	// in the value of the $cgi_script_name variable.
-	// In other words, it sets a value for the variable $cgi_script_name.
-	return ;
-}
+// void	validateCgiIndexDirective(Directive* node)
+// {
+// 	// Sets a file name that will be appended after a URI that ends with a slash,
+// 	// in the value of the $cgi_script_name variable.
+// 	// In other words, it sets a value for the variable $cgi_script_name.
+// 	return ;
+// }

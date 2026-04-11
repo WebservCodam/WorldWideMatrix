@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/03/03 18:51:13 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/03/18 13:02:44 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ void Server::init_server()
 {
 	for (auto server: servers)
 	{
-		std::vector<ListenDirective> addresses = server.getListenDirectives();
+		std::vector<ListenDirective>	addresses = server.getListenDirectives();
 		auto it = addresses.begin();
 		server_fds.push_back(createSocket(it->address.c_str(), it->port.c_str()));
 		// break ;

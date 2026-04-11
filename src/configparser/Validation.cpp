@@ -37,8 +37,7 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 	// {"upload_path", DirectiveDefinition{"upload_path", false, 1, 1, {"location"}, {}, validateUploadPathDirective}} // Check this is valid.
 
 	// === CGI ===
-	// {"cgi_pass", DirectiveDefinition{"cgi_pass", false, 1, 1, {"location"}, {}, validateCgiPassDirective}},
-	// {"cgi_param", DirectiveDefinition{"cgi_param", false, 2, 3, {"server", "location"}, {}, validateCgiParamDirective}},
+	{"cgi_handler", DirectiveDefinition{"cgi_handler", false, 2, 2, {"server", "location"}, {}, validateCgiHandlerDirective}},
 	// {"cgi_index", DirectiveDefinition{"cgi_index", false, 1, 1, {"server", "location"}, {}, validateCgiIndexDirective}},
 };
 

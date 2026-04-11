@@ -25,3 +25,15 @@ ErrorPage	ServerConfig::getErrorPage(int code) const
 	}
 	return (errorPage);
 }
+
+const Location&	ServerConfig::getLocation(const std::string& name) const
+{
+	std::string	trimmedName = trimPathName(name);
+
+	for (const Location& location : _locations)
+	{
+		if (trimmedName == location.name)
+			return (location);
+	}
+	throw ConfigError::semantics("Couldn't find a location with the given name: " + name, nullptr);
+}
