@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 15:04:10 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/10 15:52:52 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/11 14:52:52 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,11 +41,11 @@ class Server
 		void	initServer();
 		void	registerServerFd(int serverFd);
 		void	startServer();
-		void	close_client(int fd);
-		void	check_health();
-		void	add_fd_map(int clientFd);
-		void	connect_new(int serverFd);
-		void	connect_in(int clientFd);
-		void	connect_out(int clientFd);
-		void	print_buffers();
+		void	closeClient(int fd);
+		void	checkHealth();
+		void	addFdToClientList(int clientFd);
+		void	connectNew(int serverFd);
+		void	connectIn(int clientFd);
+		void	connectOut(int clientFd);
+		void	printBuffers();
 };

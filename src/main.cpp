@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/10 15:51:07 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/11 14:52:52 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 // 	while (true)
 // 	{
 // 		printf("Connections made = %d\n", connections);
-// 		server.print_buffers();
+// 		server.printBuffers();
 // 		num_events = epoll_wait(epfd, events, 1000, 5000);
 // 		printf("Number of events waiting: %d\n", num_events);
 // 		if (num_events == -1)
@@ -105,20 +105,20 @@ int main(int argc, char** argv)
 // 		{
 // 			if (events[i].data.fd == serverFd)
 // 			{
-// 				server.connect_new();
+// 				server.connectNew();
 // 				connections++;
 // 			}
 
 // 			else if (events[i].events & EPOLLIN)
 // 			{
-// 				server.connect_in(events[i].data.fd);
+// 				server.connectIn(events[i].data.fd);
 // 			}
 			
 // 			else if (events[i].events & EPOLLOUT)
 // 			{
-// 				server.connect_out(events[i].data.fd);
+// 				server.connectOut(events[i].data.fd);
 // 			}
 // 		}
-// 		server.check_health();
+// 		server.checkHealth();
 // 	}
 // }

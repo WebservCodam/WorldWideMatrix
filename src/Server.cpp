@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/10 15:53:01 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/11 15:16:09 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ void Server::startServer()
 	while (true)
 	{
 		// printf("Connections made = %d\n", connections);
-		// server.print_buffers();
+		// server.printBuffers();
 		numEvents = epoll_wait(_epfd, events, 1000, 5000);
 		// printf("Number of events waiting: %d\n", numEvents);
 		if (numEvents == -1)
@@ -70,45 +70,45 @@ void Server::startServer()
 		{
 			if (std::find(_serverFds.begin(), _serverFds.end(), events[i].data.fd) != _serverFds.end())
 			{
-				server.connect_new(events[i].data.fd);
+				server.connectNew(events[i].data.fd);
 				connections++;
 			}
 
 			else if (events[i].events & EPOLLIN)
 			{
-				server.connect_in(events[i].data.fd);
+				server.connectIn(events[i].data.fd);
 			}
 			
 			else if (events[i].events & EPOLLOUT)
 			{
-				server.connect_out(events[i].data.fd);
+				server.connectOut(events[i].data.fd);
 			}
 		}
-		server.check_health();
+		server.checkHealth();
 	}
 }
 
-void Server::close_client(int fd)
+void Server::closeClient(int fd)
 {
 	epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, NULL);
 	close(fd);
 	// _clientList.erase(fd);
 }
-void Server::add_fd_map(int clientFd)
+void Server::addFdToClientList(int clientFd)
 {
 	_clientList.emplace(clientFd, clientFd);
 }
 
-void Server::connect_new(int serverFd)
+void Server::connectNew(int serverFd)
 {
 	int	clientFd;
+
 	while (true)
 	{
 		struct sockaddr_in	clientAddr;
-		socklen_t	clientLen = sizeof(clientAddr);
+		socklen_t			clientLen = sizeof(clientAddr);
 
 		clientFd = accept(serverFd, (struct sockaddr*)&clientAddr, &clientLen);
-		
 		if (clientFd == -1)
 		{
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -117,19 +117,24 @@ void Server::connect_new(int serverFd)
 				throw std::runtime_error("Client accept failed");
 		}
 		
-		if (set_non_blocking(clientFd) == -1)
+		if (setNonBlocking(clientFd) == -1)
 		{
 			// perror("Set flags failed");
 			// return (-1);
 			throw std::runtime_error("Client set flags failed");
 		}
-		try {
-			add_fd_map(clientFd);
-		} catch (const std::exception& e) {
-			std::cout << "Failed to create and add Client object: " << e.what() << std::endl;
-			throw;
+		try
+		{
+			addFdToClientList(clientFd);
 		}
-		struct epoll_event event;
+		catch (const std::exception& e)
+		{
+			std::cout << "Failed to create and add Client object: " << e.what() << std::endl;
+			throw ;
+		}
+
+		struct epoll_event	event;
+
 		event.events = EPOLLIN | EPOLLET;
 		event.data.fd = clientFd;
 		if (epoll_ctl(_epfd, EPOLL_CTL_ADD, clientFd, &event) == -1)
@@ -143,11 +148,11 @@ void Server::connect_new(int serverFd)
 	}
 }
 
-void Server::connect_in(int clientFd)
+void Server::connectIn(int clientFd)
 {
 	printf("\n----------------------------------------\nRead start\n");
-	char buffer[8192] = {0};
-	ssize_t count = 0;
+	char	buffer[8192] = {0};
+	ssize_t	count = 0;
 
 	count = recv(clientFd, buffer, sizeof(buffer), 0);
 	_clientList.at(clientFd)._buf += buffer;
@@ -170,7 +175,9 @@ void Server::connect_in(int clientFd)
 	// }
 	parse(clientFd);
 	printf("\n----------------------------------------\nParse end\n\n");
-	struct epoll_event event;
+
+	struct epoll_event	event;
+
 	event.events = EPOLLOUT | EPOLLET;
 	event.data.fd = clientFd;
 	if (epoll_ctl(_epfd, EPOLL_CTL_MOD, clientFd, &event) == -1)
@@ -181,24 +188,28 @@ void Server::connect_in(int clientFd)
 	// printf("Read still open\n");
 }
 
-void Server::connect_out(int clientFd)
+void Server::connectOut(int clientFd)
 {
 	printf("Writing now\n");
-	std::ifstream file_stream("index.html");
+	std::ifstream		file_stream("index.html");
+	std::stringstream	buffer;
+	std::string			html;
+	std::string			header;
+	std::string			response;
+	struct epoll_event	event;
+	
 	// if (!file_stream.is_open()) {
 	//     return ""; // Return empty string if the file can't be opened
 	// }
-	std::stringstream buffer;
+	
 	buffer << file_stream.rdbuf();
-	std::string html =  buffer.str();
+	html =  buffer.str();
 	file_stream.close();
-	
-	
 	// const char* hello = "Hello from the server";
 	// const char *hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
-	std::string header = "HTTP/1.1 200 OK\nContent-Type: text/html\n";
+	header = "HTTP/1.1 200 OK\nContent-Type: text/html\n";
 	header += "Content-Length: " + std::to_string(html.length()) + "\n\n";
-	std::string response = header + html;
+	response = header + html;
 	
 	// write(clientFd, "hello", 5);
 	// // close(clientFd);
@@ -206,11 +217,10 @@ void Server::connect_out(int clientFd)
 	write(clientFd, response.c_str(), response.length());
 	if (_clientList.at(clientFd)._alive == false)
 	{
-		close_client(clientFd);
+		closeClient(clientFd);
 		_clientList.erase(clientFd);
-		return;
+		return ;
 	}
-	struct epoll_event event;
 	event.events = EPOLLIN | EPOLLET;
 	event.data.fd = clientFd;
 	if (epoll_ctl(_epfd, EPOLL_CTL_MOD, clientFd, &event) == -1)
@@ -220,14 +230,14 @@ void Server::connect_out(int clientFd)
 	}
 }
 
-void Server::check_health()
+void Server::checkHealth()
 {
 	for (auto it = _clientList.begin(); it != _clientList.end();)
 	{
 		printf("Timecheck\n");
 		if (it->second.CheckTime() == -1)
 		{
-			close_client(it->first);
+			closeClient(it->first);
 			it = _clientList.erase(it);
 			printf("Connection timed out after 15 seconds of inactivity\n");
 		}
@@ -237,7 +247,7 @@ void Server::check_health()
 	}
 }
 
-void Server::print_buffers()
+void Server::printBuffers()
 {
 	std::cout << "----------All stored data-----------" << std::endl;
 	for (const auto& pair : _clientList)
@@ -250,8 +260,8 @@ void Server::print_buffers()
 // 
 void Server::parse(int clientFd)
 {
-	HttpParser parser;
-	ConnectionContext ctx;
+	HttpParser			parser;
+	ConnectionContext	ctx;
 	// parser.appendData(ctx, data.c_str(), data.size());
 	ctx.buffer = _clientList.at(clientFd)._buf;
 

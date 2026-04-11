@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 13:53:29 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/10 15:51:08 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/11 15:14:08 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,6 @@
 
 #pragma once
 
-int set_non_blocking(int fd);
+int setNonBlocking(int fd);
 void initServer(int& serverFd, int& epfd);
 int createSocket(const char* ip, const char* port);
