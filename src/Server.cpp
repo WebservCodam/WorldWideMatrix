@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/11 18:14:38 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/12 16:02:43 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,32 +22,29 @@ Server::~Server()
 
 void Server::initServer()
 {
-	std::cout << "DEBUG: In initServer()" << std::endl;
-	std::cout << "Size: " << _serverConfigs.size() << std::endl;
 	for (const ServerConfig& server : _serverConfigs)
 	{
-		std::cout << "DEBUG: In the loop" << std::endl;
 		const std::vector<ListenDirective>&	addresses = server.getListenDirectives();
 
-		std::cout << "DEBUG: In the loop" << std::endl;
 		for (const ListenDirective& addr : addresses)
 		{
-			// We're treating each one as a new server, but one server should be able to handle multiple listen directives.
+			// Are we treating each socket as a server of its own? A server should be able to handle multiple listening sockets.
+			// Also, there's currently no separation of the different servers (corresponding to the different server configs).
 			int	listenFd = createSocket(addr.address.c_str(), addr.port.c_str());
 			_listenFds.push_back(listenFd);
-		}	
+		}
 	}
 
 	for (int fd: _listenFds)
 	{
-		addServerToEpoll(fd);
+		addListeningSocketToEpoll(fd);
 	}
 }
 
 /**
- * Adds the server fd to epoll.
+ * Adds the listening socket fd to epoll.
  */
-void Server::addServerToEpoll(int listenFd)
+void Server::addListeningSocketToEpoll(int listenFd)
 {
 	static struct epoll_event	event;
 
@@ -72,7 +69,7 @@ void Server::startServer()
 		// printf("Number of events waiting: %d\n", numEvents);
 		if (numEvents == -1)
 			throw std::runtime_error("Epoll_wait failed");
-		
+
 		for (int i = 0; i < numEvents; i++)
 		{
 			if (std::find(_listenFds.begin(), _listenFds.end(), events[i].data.fd) != _listenFds.end())
@@ -85,7 +82,7 @@ void Server::startServer()
 			{
 				server.connectIn(events[i].data.fd);
 			}
-			
+
 			else if (events[i].events & EPOLLOUT)
 			{
 				server.connectOut(events[i].data.fd);

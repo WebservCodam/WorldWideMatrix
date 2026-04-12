@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/11 18:30:01 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/12 15:42:44 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,10 +67,10 @@ int main(int argc, char** argv)
 			
 			if (epfd < 0)
 				throw std::runtime_error("Failed to create epoll fd");
-				
+
 			Server	server(epfd);
 			
-			server.setServerConfigs(configurations); // Each different server should receive only the config file for that server. But then, we're creating a god object with this server.
+			server.setServerConfigs(configurations); // We're creating a god object. Perhaps we should split it in different servers, each receiving it's own server config.
 			std::cout << configurations.at(0).getServerName() << std::endl;
 
 			server.initServer();
@@ -82,7 +82,7 @@ int main(int argc, char** argv)
 		}	catch (const std::exception& e) {
 				std::cout << "Exception: " << e.what() << std::endl;
 		}
-		
+
 		exit(0);
 	}
 }

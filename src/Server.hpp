@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 15:04:10 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/11 18:14:16 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/12 15:51:14 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ class Server
 		
 		void	parse(int clientFd);
 		void	initServer();
-		void	addServerToEpoll(int listenFd);
+		void	addListeningSocketToEpoll(int listenFd);
 		void	startServer();
 		void	closeClient(int fd);
 		void	checkHealth();
