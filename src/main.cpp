@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/12 15:42:44 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/20 14:26:55 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,14 +63,14 @@ int main(int argc, char** argv)
 		{
 			int	epfd;
 
-			epfd = epoll_create(1000);
+			epfd = epoll_create(EPOLL_NBR_EVENTS);
 			
 			if (epfd < 0)
 				throw std::runtime_error("Failed to create epoll fd");
 
 			Server	server(epfd);
 			
-			server.setServerConfigs(configurations); // We're creating a god object. Perhaps we should split it in different servers, each receiving it's own server config.
+			server.setServerConfigs(configurations); // Should we should split it in different servers, each receiving it's own server config?
 			std::cout << configurations.at(0).getServerName() << std::endl;
 
 			server.initServer();

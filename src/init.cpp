@@ -6,11 +6,12 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:20:54 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/11 17:07:04 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/20 15:03:29 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "utils.hpp"
+#include "Server.hpp" // For EPOLL_NBR_EVENTS
 
 // void	initServer(int& listenFd, int& epfd)
 // {
@@ -47,11 +48,10 @@ int createSocket(const char* ip, const char* port)
 	// const char* port_str = portstr.c_str();
 
 	int status = getaddrinfo(ip, port, &hints, &res);
-	status = -1;
-	std::cout << std::to_string(status) << std::endl;
+	// status = -1; // DEBUG
+	// std::cout << "DEBUG: " + std::to_string(status) << std::endl;
 	if (status != 0)
 	{
-		std::cout << "Do we come here?" << std::endl;
 		throw std::runtime_error("Server socket addrinfo failed");
 		return (-1);
 	}
@@ -64,24 +64,26 @@ int createSocket(const char* ip, const char* port)
 	}
 	
 	int opt = 1;
+	// SOL_SOCKET -> Socket level option; applies this option at the generic socket layer. Other options would be e.g. IPPROTO_TCP, IPPROTO_IP.
+	// SO_REUSEADDR -> This is the actual option you’re setting. It allows your socket to bind to an address/port that is still considered “in use” by the OS.
 	if (setsockopt(listenFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 	{
 		close(listenFd);
 		freeaddrinfo(res);
 		throw std::runtime_error("Server socket setsockopt failed");
 	}
-	
+
 	if (bind(listenFd, res->ai_addr, res->ai_addrlen) < 0)
 	{
 		close(listenFd);
 		freeaddrinfo(res);
 		throw std::runtime_error("Server socket bind failed");
 	}
-	
-	setNonBlocking(listenFd);
+
+	setNonBlocking(listenFd); // fcntl can fail, that's why I modified this function to throw an error if that happens. Also since we're not using the return value, it returns void now.
 	freeaddrinfo(res);
 
-	if (listen(listenFd, 1000) < 0)
+	if (listen(listenFd, EPOLL_NBR_EVENTS) < 0)
 	{
 		close(listenFd);
 		throw std::runtime_error("Server socket listen failed");

@@ -6,14 +6,17 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 15:04:10 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/12 15:51:14 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/20 14:31:37 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
+
+#pragma once
 
 #include "utils.hpp"
 #include "../parser/HttpParser.hpp"
 #include "configparser/Configuration.hpp"
-#pragma once
+
+# define EPOLL_NBR_EVENTS 1000
 
 class Client;
 
@@ -35,8 +38,6 @@ class Server
 		// ServerConfig				getServerConfig(const std::string& serverName);
 		const std::vector<ServerConfig>&	getServerConfigs() const;
 		void								setServerConfigs(std::vector<ServerConfig> serverConfigs);
-		
-		
 		
 		void	parse(int clientFd);
 		void	initServer();

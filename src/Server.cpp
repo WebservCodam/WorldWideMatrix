@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/12 16:02:43 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/20 14:25:25 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ void Server::addListeningSocketToEpoll(int listenFd)
 void Server::startServer()
 {
 	Server		server(_epfd);
-	epoll_event	events[1000];
+	epoll_event	events[EPOLL_NBR_EVENTS];
 	int			numEvents = 0;
 	int			connections = 0;
 
@@ -65,10 +65,11 @@ void Server::startServer()
 	{
 		// printf("Connections made = %d\n", connections);
 		// server.printBuffers();
-		numEvents = epoll_wait(_epfd, events, 1000, 5000);
+		numEvents = epoll_wait(_epfd, events, EPOLL_NBR_EVENTS, 5000);
 		// printf("Number of events waiting: %d\n", numEvents);
+		numEvents = -1;
 		if (numEvents == -1)
-			throw std::runtime_error("Epoll_wait failed");
+			throw std::runtime_error("Epoll_wait failed"); // 
 
 		for (int i = 0; i < numEvents; i++)
 		{
@@ -112,7 +113,7 @@ void Server::connectNew(int listenFd)
 		struct sockaddr_in	clientAddr;
 		socklen_t			clientLen = sizeof(clientAddr);
 
-		clientFd = accept(listenFd, (struct sockaddr*)&clientAddr, &clientLen);
+		clientFd = accept(listenFd, (struct sockaddr*) &clientAddr, &clientLen);
 		if (clientFd == -1)
 		{
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
