@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/20 14:25:25 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/20 17:03:13 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ void Server::startServer()
 	Server		server(_epfd);
 	epoll_event	events[EPOLL_NBR_EVENTS];
 	int			numEvents = 0;
-	int			connections = 0;
+	int			connections = 0; // What is this going to be used for?
 
 	while (true)
 	{
@@ -67,12 +67,12 @@ void Server::startServer()
 		// server.printBuffers();
 		numEvents = epoll_wait(_epfd, events, EPOLL_NBR_EVENTS, 5000);
 		// printf("Number of events waiting: %d\n", numEvents);
-		numEvents = -1;
 		if (numEvents == -1)
 			throw std::runtime_error("Epoll_wait failed"); // 
 
 		for (int i = 0; i < numEvents; i++)
 		{
+			// 
 			if (std::find(_listenFds.begin(), _listenFds.end(), events[i].data.fd) != _listenFds.end())
 			{
 				server.connectNew(events[i].data.fd);
@@ -110,24 +110,24 @@ void Server::connectNew(int listenFd)
 
 	while (true)
 	{
-		struct sockaddr_in	clientAddr;
+		struct sockaddr_in	clientAddr;	// When we accept we configure this struct to match the address of the connecting peer.
 		socklen_t			clientLen = sizeof(clientAddr);
 
 		clientFd = accept(listenFd, (struct sockaddr*) &clientAddr, &clientLen);
 		if (clientFd == -1)
 		{
-			if (errno == EAGAIN || errno == EWOULDBLOCK)
+			if (errno == EAGAIN || errno == EWOULDBLOCK)	// Remember to remove these checks. Check the Edge Cases notes in Obsidian.
 				return ;
 			else
 				throw std::runtime_error("Client accept failed");
 		}
-		
-		if (setNonBlocking(clientFd) == -1)
-		{
-			// perror("Set flags failed");
-			// return (-1);
-			throw std::runtime_error("Client set flags failed");
-		}
+
+		setNonBlocking(clientFd); // Changed the function to void because in init we didn't check the return value, so now it directly throws an error from within the function.
+		// {
+		// 	// perror("Set flags failed");
+		// 	// return (-1);
+		// 	throw std::runtime_error("Client set flags failed");
+		// }
 		try
 		{
 			addFdToClientList(clientFd);
