@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/20 17:03:13 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/21 15:10:26 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ void Server::startServer()
 				connections++;
 			}
 
-			else if (events[i].events & EPOLLIN)
+			else if (events[i].events & EPOLLIN) // The & is similar to ==, but since more events can be stored in events that's why we're bitmasking rather than checking for equality.
 			{
 				server.connectIn(events[i].data.fd);
 			}
@@ -140,7 +140,7 @@ void Server::connectNew(int listenFd)
 
 		struct epoll_event	event;
 
-		event.events = EPOLLIN | EPOLLET;
+		event.events = EPOLLIN | EPOLLET; // We want to be notified when the fd is ready for reading. We also want it to be edge-triggered rather than level-triggered, but in reality that might be impossible to implement with the errno constraint.
 		event.data.fd = clientFd;
 		if (epoll_ctl(_epfd, EPOLL_CTL_ADD, clientFd, &event) == -1)
 		{
@@ -157,12 +157,14 @@ void Server::connectIn(int clientFd)
 {
 	printf("\n----------------------------------------\nRead start\n");
 	char	buffer[8192] = {0};
-	ssize_t	count = 0;
+	ssize_t	count = 0; // Bytes read.
 
 	count = recv(clientFd, buffer, sizeof(buffer), 0);
 	_clientList.at(clientFd)._buf += buffer;
 	// write(STDOUT_FILENO, buffer, count);
-	printf("%s\n", buffer);
+	
+	std::cout << "DEBUG in connectIn: PRINTING BUFFER" << std::endl;
+	std::cout << buffer << std::endl;
 		
 	// perror("Read error: ");
 	// if (count == 0)
@@ -178,14 +180,17 @@ void Server::connectIn(int clientFd)
 	// 	// close(clientFd);
 	// 	server.list.at(clientFd).readstate = count;
 	// }
+
 	parse(clientFd);
-	printf("\n----------------------------------------\nParse end\n\n");
+
+	std::cout << "DEBUG in connectIn" << std::endl;
+	std::cout << "\n ---------- PARSE END ----------\n" << std::endl;
 
 	struct epoll_event	event;
 
 	event.events = EPOLLOUT | EPOLLET;
 	event.data.fd = clientFd;
-	if (epoll_ctl(_epfd, EPOLL_CTL_MOD, clientFd, &event) == -1)
+	if (epoll_ctl(_epfd, EPOLL_CTL_MOD, clientFd, &event) == -1) // When this function goes out of scope, what happens to event? It gets transfered? Does epoll_ctl copy it?
 	{
 		perror("Epoll_ctl: switch to EPOLLOUT failed");
 		close(clientFd);
@@ -237,9 +242,11 @@ void Server::connectOut(int clientFd)
 
 void Server::checkHealth()
 {
-	for (auto it = _clientList.begin(); it != _clientList.end();)
+	auto	it = _clientList.begin();
+
+	while (it != _clientList.end()) // Because the iterator is incremented within the loop, I changed this to a while loop.
 	{
-		printf("Timecheck\n");
+		std::cout << "DEBUG in checkHealth: Timecheck\n" << std::endl;
 		if (it->second.CheckTime() == -1)
 		{
 			closeClient(it->first);
@@ -248,7 +255,6 @@ void Server::checkHealth()
 		}
 		else
 			it++;
-		// printf("check2\n");
 	}
 }
 
@@ -300,7 +306,6 @@ void Server::parse(int clientFd)
 		std::cerr << "Exception during parsing: " << e.what() << "\n";
 	}
 }
-
 
 // Getters & Setters
 
