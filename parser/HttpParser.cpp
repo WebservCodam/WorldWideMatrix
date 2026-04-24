@@ -82,11 +82,22 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 
 ParseStatus HttpParser::initParser(Client &client)
 {
-	ConnectionContext ctx;
+	ParseStatus			status;
+	ConnectionContext	ctx;
+
 	ctx.buffer = client._buf;
-	
-	ParseStatus status = parseRequest(ctx);
-	
+	try
+	{
+		status = parseRequest(ctx);
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << "Parse exception: " << e.what() << std::endl;
+		client._alive = false;
+		client._buf.clear();
+		return (ParseStatus::ERROR);
+	}
+
 	if (status == ParseStatus::COMPLETE)
 	{		
 		std::map<std::string, std::string>::iterator it = ctx.request.headers.find("connection");

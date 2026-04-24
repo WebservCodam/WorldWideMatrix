@@ -155,32 +155,40 @@ void Server::connectNew(int listenFd)
 
 void Server::connectIn(int clientFd)
 {
-	printf("\n----------------------------------------\nRead start\n");
-	char	buffer[8192] = {0};
-	ssize_t	count = 0; // Bytes read.
+	char		buffer[8192] = {0};
+	ssize_t		count = 0; // Bytes read.
+	ParseStatus	status;
 
 	count = recv(clientFd, buffer, sizeof(buffer), 0);
+
+	if (count == 0 || count == -1)
+	{
+		if (count == -1)
+			perror("recv failed");
+		close(clientFd); // Closing removes from epoll, so no epoll_ctl is needed to remove it.
+		_clientList.erase(clientFd);
+		return ;
+	}
+
+	_clientList.at(clientFd).setTime(); // Reset time after a succesful read.
 	_clientList.at(clientFd)._buf.append(buffer, count); // Changed this line to the CPP version.
 	// write(STDOUT_FILENO, buffer, count);
 	
 	std::cout << "DEBUG in connectIn: PRINTING BUFFER" << std::endl;
 	std::cout << buffer << std::endl;
 
-	if (count == 0)
-	{
-		close(clientFd);
-		_clientList.erase(clientFd);
-		std::cout << "In connectIn: Client disconnected." << std::endl;
-		return ;
-	}
-	else if (count == -1)
-	{
-		perror("Read failed");
-		close(clientFd);
-		_clientList.at(clientFd)._readstate = count;
-	}
+	status = parse(clientFd); // Branch the status received into conditionals.
 
-	parse(clientFd); // Branch the status received.
+	if (status == INCOMPLETE)
+	{
+		return ; // So it goes back to connectIn on next loop. And since it's level-triggered, the event will still be there.
+	}
+	else if (status == ERROR)
+	{
+		std::cerr << "DEBUG: ERROR thrown while parsing HTTP request." << std::endl;
+		// And we want the event to be switched to EPOLLOUT?
+	}
+	//else status == COMPLETE and we can switch the epoll event to EPOLLOUT
 
 	std::cout << "DEBUG in connectIn" << std::endl;
 	std::cout << "\n ---------- PARSE END ----------\n" << std::endl;
