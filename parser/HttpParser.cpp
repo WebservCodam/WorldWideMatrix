@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 
 #include "HttpParser.hpp"
-// #include "../server/Client.hpp"
+#include "../src/Client.hpp"
 
 ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 {
@@ -101,14 +101,14 @@ ParseStatus HttpParser::initParser(Client &client)
 			client._alive = false;
 			
 		client._buf.clear();
-
-		
 	}
 	else if (status == ParseStatus::ERROR)
 	{
 		client._alive = false;
 		client._buf.clear();
 	}
+
+	client._request = ctx.request; // Adding this line, because don't we need to store it in the Client object?
 
 	return (status);
 }

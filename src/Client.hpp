@@ -10,6 +10,10 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#pragma once
+
+// Pragma once should be at the top to avoid circular dependencies
+
 // #include <string>
 // #include <vector>
 // #include <map>
@@ -19,10 +23,9 @@
 // #include <sys/epoll.h>
 // #include <unistd.h>
 #include "utils.hpp"
+#include "../parser/HttpParser.hpp"
 
-#pragma once
-
-class Server;
+class	Server;
 
 class Client
 {
@@ -32,13 +35,14 @@ class Client
 		const int 			_fd;
 		int 				_time;
 		bool 				_alive = false;
-		int					readstate = 0;
-		int					parseready = 0;
-		int 				content_length = 0;
+		int					_readstate = 0;
+		int					_parseready = 0;
+		int 				_content_length = 0;
 		std::string			_buf;
-		std::string			response;
+		std::string			_response;
 		unsigned long long	_maxBodySize;
-		
+		HttpRequest			_request;
+
 		Client(int fd);
 		~Client();
 	
