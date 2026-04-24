@@ -39,15 +39,15 @@ class Server
 		const std::vector<ServerConfig>&	getServerConfigs() const;
 		void								setServerConfigs(std::vector<ServerConfig> serverConfigs);
 		
-		void	parse(int clientFd);
-		void	initServer();
-		void	addListeningSocketToEpoll(int listenFd);
-		void	startServer();
-		void	closeClient(int fd);
-		void	checkHealth();
-		void	addFdToClientList(int clientFd);
-		void	connectNew(int listenFd);
-		void	connectIn(int clientFd);
-		void	connectOut(int clientFd);
-		void	printBuffers();
+		ParseStatus	parse(int clientFd);
+		void		initServer();
+		void		addListeningSocketToEpoll(int listenFd);
+		void		startServer();
+		void		closeClient(int fd);
+		void		checkHealth();
+		void		addFdToClientList(int clientFd);
+		void		connectNew(int listenFd);
+		void		connectIn(int clientFd);
+		void		connectOut(int clientFd);
+		void		printBuffers();
 };

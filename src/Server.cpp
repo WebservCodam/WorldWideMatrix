@@ -269,47 +269,16 @@ void	Server::printBuffers()
 }
 
 // 
-void Server::parse(int clientFd)
+ParseStatus	Server::parse(int clientFd)
 {
-	HttpParser			parser;
-	ConnectionContext	ctx;
-	// parser.appendData(ctx, data.c_str(), data.size());
-	ctx.buffer = _clientList.at(clientFd)._buf;
+	HttpParser	parser;
 
-	try
-	{
-		ParseStatus status = parser.parseRequest(ctx);
-
-		if (status == ParseStatus::COMPLETE)
-		{
-			std::cout << "✅ Request parsed successfully!\n";
-			std::cout << "Method: " << ctx.request.method << "\n";
-			std::cout << "URI: " << ctx.request.uri << "\n";
-			std::cout << "Version: " << ctx.request.version << "\n";
-			std::cout << "Headers:\n";
-			for (std::map<std::string, std::string>::const_iterator it = ctx.request.headers.begin();
-				 it != ctx.request.headers.end(); ++it)
-				std::cout << "  " << it->first << ": " << it->second << "\n";
-
-			if (ctx.request.body.empty())
-				std::cout << "(no body)\n";
-			else
-				std::cout << "Body: " << ctx.request.body << "\n";
-		}
-		else if (status == ParseStatus::INCOMPLETE)
-			std::cout << "⚠️ Parsing incomplete – more data needed.\n";
-		else
-			std::cout << "❌ Parsing failed.\n";
-	}
-	catch (const std::exception &e)
-	{
-		std::cerr << "Exception during parsing: " << e.what() << "\n";
-	}
+	return (parser.initParser(_clientList.at(clientFd)));
 }
 
 // Getters & Setters
 
-const std::vector<ServerConfig>&	Server::getServerConfigs() const
+const	std::vector<ServerConfig>&	Server::getServerConfigs() const
 {
 	return (this->_serverConfigs);
 }
