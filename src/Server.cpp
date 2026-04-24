@@ -140,7 +140,7 @@ void Server::connectNew(int listenFd)
 
 		struct epoll_event	event;
 
-		event.events = EPOLLIN | EPOLLET; // We want to be notified when the fd is ready for reading. We also want it to be edge-triggered rather than level-triggered, but in reality that might be impossible to implement with the errno constraint.
+		event.events = EPOLLIN; // We want to be notified when the fd is ready for reading. Removed the edge-triggered event, because it might be impossible to implement with the errno constraint.
 		event.data.fd = clientFd;
 		if (epoll_ctl(_epfd, EPOLL_CTL_ADD, clientFd, &event) == -1)
 		{
@@ -231,7 +231,7 @@ void Server::connectOut(int clientFd)
 		_clientList.erase(clientFd);
 		return ;
 	}
-	event.events = EPOLLIN | EPOLLET;
+	event.events = EPOLLIN;
 	event.data.fd = clientFd;
 	if (epoll_ctl(_epfd, EPOLL_CTL_MOD, clientFd, &event) == -1)
 	{
