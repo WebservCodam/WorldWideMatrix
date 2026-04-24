@@ -244,7 +244,7 @@ void Server::checkHealth()
 {
 	auto	it = _clientList.begin();
 
-	while (it != _clientList.end()) // Because the iterator is incremented within the loop, I changed this to a while loop.
+	while (it != _clientList.end()) // Since the iterator was incremented within the loop, I changed this to a while loop.
 	{
 		std::cout << "DEBUG in checkHealth: Timecheck\n" << std::endl;
 		if (it->second.CheckTime() == -1)
@@ -258,7 +258,7 @@ void Server::checkHealth()
 	}
 }
 
-void Server::printBuffers()
+void	Server::printBuffers()
 {
 	std::cout << "----------All stored data-----------" << std::endl;
 	for (const auto& pair : _clientList)
