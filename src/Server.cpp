@@ -160,35 +160,35 @@ void Server::connectIn(int clientFd)
 	ssize_t	count = 0; // Bytes read.
 
 	count = recv(clientFd, buffer, sizeof(buffer), 0);
-	_clientList.at(clientFd)._buf += buffer;
+	_clientList.at(clientFd)._buf.append(buffer, count); // Changed this line to the CPP version.
 	// write(STDOUT_FILENO, buffer, count);
 	
 	std::cout << "DEBUG in connectIn: PRINTING BUFFER" << std::endl;
 	std::cout << buffer << std::endl;
-		
-	// perror("Read error: ");
-	// if (count == 0)
-	// {
-	// 	printf("Client %d disconnected\n", clientFd);
-	// 	close(clientFd);
-	// 	server.list.erase(clientFd);
-	// 	return (0);
-	// }
-	// else if (count == -1)
-	// {
-	// 	// perror("Read failed");
-	// 	// close(clientFd);
-	// 	server.list.at(clientFd).readstate = count;
-	// }
 
-	parse(clientFd);
+	if (count == 0)
+	{
+		close(clientFd);
+		_clientList.erase(clientFd);
+		std::cout << "In connectIn: Client disconnected." << std::endl;
+		return ;
+	}
+	else if (count == -1)
+	{
+		perror("Read failed");
+		close(clientFd);
+		_clientList.at(clientFd)._readstate = count;
+	}
+
+	parse(clientFd); // Branch the status received.
 
 	std::cout << "DEBUG in connectIn" << std::endl;
 	std::cout << "\n ---------- PARSE END ----------\n" << std::endl;
 
 	struct epoll_event	event;
 
-	event.events = EPOLLOUT | EPOLLET;
+	//Before flipping to EPOLLOUT, is the parsing complete and without errors?
+	event.events = EPOLLOUT;
 	event.data.fd = clientFd;
 	if (epoll_ctl(_epfd, EPOLL_CTL_MOD, clientFd, &event) == -1) // When this function goes out of scope, what happens to event? It gets transfered? Does epoll_ctl copy it?
 	{
