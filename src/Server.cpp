@@ -255,7 +255,7 @@ void Server::checkHealth()
 	while (it != _clientList.end()) // Since the iterator was incremented within the loop, I changed this to a while loop.
 	{
 		std::cout << "DEBUG in checkHealth: Timecheck\n" << std::endl;
-		if (it->second.CheckTime() == -1)
+		if (it->second.checkTime() == -1)
 		{
 			closeClient(it->first);
 			it = _clientList.erase(it);

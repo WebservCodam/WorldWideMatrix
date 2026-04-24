@@ -13,28 +13,28 @@
 #include "Client.hpp"
 #include "Server.hpp"
 
-Client::Client(int fd) : _fd(fd), _time(0), _alive(false) {SetTime();};
+Client::Client(int fd) : _fd(fd), _time(0), _alive(false) {setTime();};
 
 // Client::~Client() {std::cout << "destructed: " << _fd << std::endl;};
 
 Client::~Client() {close(_fd);};
 
-int Client::GetFd() const
+int Client::getFd() const
 {
 	return (_fd);
 }
-void Client::SetTime()
+void Client::setTime()
 {
 	_time = time(0);
 	if (_time < 0)
 		perror("Time retrieval failed");
 }
-int Client::GetTime()
+int Client::getTime()
 {
 	return (_time);
 }
 
-int Client::CheckTime() const
+int Client::checkTime() const
 {
 	if (time(0) - _time > TIMEOUT)
 		return (-1);
