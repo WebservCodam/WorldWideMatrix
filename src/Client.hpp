@@ -46,8 +46,8 @@ class Client
 		Client(int fd);
 		~Client();
 	
-		int getFd() const;
-		void setTime();
-		int getTime();
-		int checkTime() const;
+		int		getFd() const;
+		void	setTime();
+		int		getTime();
+		int		checkTime() const;
 };

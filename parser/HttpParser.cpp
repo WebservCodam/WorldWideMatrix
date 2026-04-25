@@ -111,7 +111,8 @@ ParseStatus HttpParser::initParser(Client &client)
 		else
 			client._alive = false;
 			
-		client._buf.clear();
+		// client._buf.clear();
+		client._buf = ctx.buffer; // Preserves any pipelined leftover.
 	}
 	else if (status == ParseStatus::ERROR)
 	{
