@@ -6,91 +6,23 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/21 15:10:26 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/27 13:58:05 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 #include "Client.hpp"
 
-Server::Server(int epfd): _epfd(epfd) {}
+Server::Server(const ServerConfig& serverConfig): _serverConfig(serverConfig) {}
 
-Server::~Server()
+void	Server::addListenFd(int listenFd)
 {
-	close(_epfd);
+	_listenFds.push_back(listenFd);
 }
 
-void Server::initServer()
+const std::vector<int>&	Server::getListenFds() const
 {
-	for (const ServerConfig& server : _serverConfigs)
-	{
-		const std::vector<ListenDirective>&	addresses = server.getListenDirectives();
-
-		for (const ListenDirective& addr : addresses)
-		{
-			// Are we treating each socket as a server of its own? A server should be able to handle multiple listening sockets.
-			// Also, there's currently no separation of the different servers (corresponding to the different server configs).
-			int	listenFd = createSocket(addr.address.c_str(), addr.port.c_str());
-			_listenFds.push_back(listenFd);
-		}
-	}
-
-	for (int fd: _listenFds)
-	{
-		addListeningSocketToEpoll(fd);
-	}
-}
-
-/**
- * Adds the listening socket fd to epoll.
- */
-void Server::addListeningSocketToEpoll(int listenFd)
-{
-	static struct epoll_event	event;
-
-	event.data.fd = listenFd;
-	event.events = EPOLLIN | EPOLLET | EPOLLPRI | EPOLLHUP;
-	if (epoll_ctl(_epfd, EPOLL_CTL_ADD, listenFd, &event) == -1)
-		throw std::runtime_error("Server add to epoll failed");
-}
-
-void Server::startServer()
-{
-	Server		server(_epfd);
-	epoll_event	events[EPOLL_NBR_EVENTS];
-	int			numEvents = 0;
-	int			connections = 0; // What is this going to be used for?
-
-	while (true)
-	{
-		// printf("Connections made = %d\n", connections);
-		// server.printBuffers();
-		numEvents = epoll_wait(_epfd, events, EPOLL_NBR_EVENTS, 5000);
-		// printf("Number of events waiting: %d\n", numEvents);
-		if (numEvents == -1)
-			throw std::runtime_error("Epoll_wait failed"); // 
-
-		for (int i = 0; i < numEvents; i++)
-		{
-			// 
-			if (std::find(_listenFds.begin(), _listenFds.end(), events[i].data.fd) != _listenFds.end())
-			{
-				server.connectNew(events[i].data.fd);
-				connections++;
-			}
-
-			else if (events[i].events & EPOLLIN) // The & is similar to ==, but since more events can be stored in events that's why we're bitmasking rather than checking for equality.
-			{
-				server.connectIn(events[i].data.fd);
-			}
-
-			else if (events[i].events & EPOLLOUT)
-			{
-				server.connectOut(events[i].data.fd);
-			}
-		}
-		server.checkHealth();
-	}
+	return (_listenFds);
 }
 
 void Server::closeClient(int fd)

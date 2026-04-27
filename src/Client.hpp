@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/12 14:00:27 by vknape        #+#    #+#                 */
-/*   Updated: 2026/02/26 16:05:48 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/27 11:22:46 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ class Client
 	private:
 	
 	public:
+		const ServerConfig&	_serverConfig;
 		const int 			_clientFd;
 		int					_listenFd;
 		int 				_time;

@@ -6,13 +6,14 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/20 14:26:55 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/27 12:12:14 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 #include "utils.hpp"
 #include "Server.hpp"
+#include "Webserver.hpp"
 
 #include "configparser/Configuration.hpp"
 
@@ -68,13 +69,12 @@ int main(int argc, char** argv)
 			if (epfd < 0)
 				throw std::runtime_error("Failed to create epoll fd");
 
-			Server	server(epfd);
+			Webserver	webserver(epfd);
 			
-			server.setServerConfigs(configurations); // Should we should split it in different servers, each receiving it's own server config?
-			std::cout << configurations.at(0).getServerName() << std::endl;
+			webserver.setServerConfigs(configurations);
 
-			server.initServer();
-			server.startServer();
+			webserver.initServers();
+			webserver.startWebserver();
 
 		}	catch (const std::runtime_error& e) {
 				std::cout << "Runtime error: " << e.what() << std::endl;
@@ -82,7 +82,6 @@ int main(int argc, char** argv)
 		}	catch (const std::exception& e) {
 				std::cout << "Exception: " << e.what() << std::endl;
 		}
-
 		exit(0);
 	}
 }
