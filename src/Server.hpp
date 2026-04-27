@@ -37,6 +37,7 @@ class Server
 		// ServerConfig				getServerConfig(int server);
 		// ServerConfig				getServerConfig(const std::string& serverName);
 		const std::vector<ServerConfig>&	getServerConfigs() const;
+		const ServerConfig&					getServerConfig(int listenFd) const;
 		void								setServerConfigs(std::vector<ServerConfig> serverConfigs);
 		
 		ParseStatus	parse(int clientFd);

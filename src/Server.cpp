@@ -108,6 +108,9 @@ void Server::connectNew(int listenFd)
 {
 	int	clientFd;
 
+	std::cout << "DEBUG in connnectNew" << std::endl;
+	getServerConfig(listenFd);
+
 	while (true)
 	{
 		struct sockaddr_in	clientAddr;	// When we accept we configure this struct to match the address of the connecting peer.
@@ -188,7 +191,8 @@ void Server::connectIn(int clientFd)
 		std::cerr << "DEBUG: ERROR thrown while parsing HTTP request." << std::endl;
 		// And we want the event to be switched to EPOLLOUT?
 	}
-	//else status == COMPLETE and we can switch the epoll event to EPOLLOUT
+
+	//else -> status == COMPLETE and we can switch the epoll event to EPOLLOUT
 
 	std::cout << "DEBUG in connectIn" << std::endl;
 	std::cout << "\n ---------- PARSE END ----------\n" << std::endl;
@@ -203,7 +207,8 @@ void Server::connectIn(int clientFd)
 		perror("Epoll_ctl: switch to EPOLLOUT failed");
 		close(clientFd);
 	}
-	// printf("Read still open\n");
+
+
 }
 
 void Server::connectOut(int clientFd)
@@ -289,6 +294,23 @@ ParseStatus	Server::parse(int clientFd)
 const	std::vector<ServerConfig>&	Server::getServerConfigs() const
 {
 	return (this->_serverConfigs);
+}
+
+const ServerConfig&	Server::getServerConfig(int listenFd) const
+{
+	struct sockaddr_in	addr;
+	socklen_t			sockLen = sizeof(addr);
+	uint16_t			port;
+	uint16_t			address;
+
+	if (getsockname(listenFd, (struct sockaddr*) &addr, &sockLen) != 0)
+		throw std::runtime_error("Error retrieving the socket address in getServerConfig");
+
+	port = ntohs(addr.sin_port);	// Network-byte order (Big endian) to Host byte order (depends on operating system).
+	address = ntohs(addr.sin_addr.s_addr);
+	std::cout << "Port: " << std::to_string(port) << std::endl;
+
+	return (this->getServerConfigs().at(0)); // Temp
 }
 
 void	Server::setServerConfigs(std::vector<ServerConfig> serverConfigs)

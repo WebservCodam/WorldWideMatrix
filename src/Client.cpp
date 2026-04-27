@@ -13,15 +13,30 @@
 #include "Client.hpp"
 #include "Server.hpp"
 
-Client::Client(int fd) : _fd(fd), _time(0), _alive(false) {setTime();};
+Client::Client(int fd) : _clientFd(fd), _time(0), _alive(false) {setTime();};
 
-// Client::~Client() {std::cout << "destructed: " << _fd << std::endl;};
+// Client::~Client() {std::cout << "destructed: " << _clientFd << std::endl;};
 
-Client::~Client() {close(_fd);};
+Client::~Client() {close(_clientFd);};
+
+std::string	Client::serializeResponse()
+{
+	return (nullptr);
+}
+
+void Client::setListenFd(int listenFd)
+{
+	_listenFd = listenFd;
+}
+
+int Client::getListenFd() const
+{
+	return (_listenFd);
+}
 
 int Client::getFd() const
 {
-	return (_fd);
+	return (_clientFd);
 }
 void Client::setTime()
 {
