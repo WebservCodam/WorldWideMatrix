@@ -6,17 +6,18 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 15:04:10 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/27 13:50:28 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/28 14:23:41 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
+#include "Webserv.hpp"
 #include "utils.hpp"
 #include "../parser/HttpParser.hpp"
 #include "configparser/Configuration.hpp"
 
-# define EPOLL_NBR_EVENTS 1000
+
 
 class Client;
 
@@ -24,8 +25,8 @@ class Server
 {
 	private:
 		std::vector<int>		_listenFds;
-		std::map<int, Client>	_clientList;
 		const ServerConfig&		_serverConfig;
+		std::map<int, Client>	_clients;
 
 	public:
 		// Orthodox Canonical Form (missing copy constructor, copy assignment operator, and move...)
@@ -36,9 +37,9 @@ class Server
 		// Getters & Setters
 		void					addListenFd(int listenFd);
 
-		const ServerConfig&		getServerConfig() const;
-		const Client&			getClient(int fd) const;
-		const std::vector<int>&	getListenFds() const;
+		const ServerConfig&		getServerConfig() const { return _serverConfig; };
+		// const Client&			getClient(int fd) const;
+		const std::vector<int>&	getListenFds() const { return _listenFds; };
 		
 		
 		// ParseStatus	parse(int clientFd);
