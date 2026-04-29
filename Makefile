@@ -6,6 +6,7 @@ DIRECTIVES_SRC_DIR =	$(CONFIG_SRC_DIR)/directives_functions
 SRC			=		$(SRC_DIR)/Client.cpp \
 					$(SRC_DIR)/init.cpp \
 					$(SRC_DIR)/main.cpp \
+					$(SRC_DIR)/Webserv.cpp \
 					$(SRC_DIR)/Server.cpp \
 					$(SRC_DIR)/utils.cpp \
 					parser/Body.cpp \

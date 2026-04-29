@@ -4,9 +4,12 @@
 #include "../parser/HttpParser.hpp"
 #include "configparser/Configuration.hpp"
 #include "Server.hpp"
+#include "Client.hpp"
 
 # define EPOLL_NBR_EVENTS 1000
 # define EPOLL_TIMEOUT 5000
+
+class Server;
 
 class Webserv
 {

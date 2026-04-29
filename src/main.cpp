@@ -6,14 +6,14 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/27 12:12:14 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/29 18:17:17 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 #include "utils.hpp"
 #include "Server.hpp"
-#include "Webserver.hpp"
+#include "Webserv.hpp"
 
 #include "configparser/Configuration.hpp"
 
@@ -69,12 +69,12 @@ int main(int argc, char** argv)
 			if (epfd < 0)
 				throw std::runtime_error("Failed to create epoll fd");
 
-			Webserver	webserver(epfd);
+			Webserv	webserver(epfd);
 			
 			webserver.setServerConfigs(configurations);
 
-			webserver.initServers();
-			webserver.startWebserver();
+			webserver.initWebserv();
+			webserver.startServers();
 
 		}	catch (const std::runtime_error& e) {
 				std::cout << "Runtime error: " << e.what() << std::endl;
