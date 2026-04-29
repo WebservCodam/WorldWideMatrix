@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/12 14:00:27 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/27 11:22:46 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/29 13:48:04 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ class Client
 	private:
 	
 	public:
-		const ServerConfig&	_serverConfig;
+		// const ServerConfig&	_serverConfig;
 		const int 			_clientFd;
 		int					_listenFd;
 		int 				_time;
@@ -51,6 +51,7 @@ class Client
 		HttpResponse		_response;
 		unsigned long long	_maxBodySize;
 		HttpRequest			_request;
+		Server*				_server; //Is this needed?
 
 		Client(int fd);
 		~Client();

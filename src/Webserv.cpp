@@ -1,4 +1,5 @@
 #include "Webserv.hpp"
+#include "Client.hpp"
 
 void	Webserv::initWebserv()
 {
@@ -79,14 +80,10 @@ void Webserv::connectNew(int listenFd)
 		}
 
 		setNonBlocking(clientFd); // Changed the function to void because in init we didn't check the return value, so now it directly throws an error from within the function.
-		// {
-		// 	// perror("Set flags failed");
-		// 	// return (-1);
-		// 	throw std::runtime_error("Client set flags failed");
-		// }
+
 		try
 		{
-			addFdToClientList(clientFd);
+			addFdToClientList(clientFd, listenFd);
 		}
 		catch (const std::exception& e)
 		{
@@ -109,6 +106,28 @@ void Webserv::connectNew(int listenFd)
 	}
 }
 
+void	Webserv::addFdToClientList(int clientFd, int listenFd)
+{
+	Server*	server = _listenFdToServer.at(listenFd);
+	_clientFdToServer.insert(std::make_pair(clientFd, server));
+	_clients.emplace(clientFd, clientFd);
+
+//  Search for the server the client belongs to in the map of listenFdsToServer.
+//  Create an entry in the map of clientFdsToServer with that server pointer.
+//  Then within that server call the function to add the client into the list of clients. (Maybe in the end it's not even used.)
+	// Server*	server = _listenFdToServer.at(listenFd);
+	// _clientFdToServer.insert(std::make_pair(clientFd, server));
+	// server->addClientFd(clientFd);
+}
+
+void	Webserv::closeAndRemoveFdFromClientList(int clientFd)
+{
+	// Server*	server = _clientFdToServer.at(clientFd);
+	close(clientFd); // Closing removes from epoll, so no epoll_ctl is needed to remove it.
+	_clients.erase(clientFd);
+	_clientFdToServer.erase(clientFd);
+}
+
 void Webserv::connectIn(int clientFd)
 {
 	char		buffer[8192] = {0};
@@ -116,18 +135,18 @@ void Webserv::connectIn(int clientFd)
 	ParseStatus	status;
 
 	count = recv(clientFd, buffer, sizeof(buffer), 0);
-
 	if (count == 0 || count == -1)
 	{
 		if (count == -1)
 			perror("recv failed");
-		close(clientFd); // Closing removes from epoll, so no epoll_ctl is needed to remove it.
-		_clientList.erase(clientFd);
+		closeAndRemoveFdFromClientList(clientFd);
 		return ;
 	}
 
-	_clientList.at(clientFd).setTime(); // Reset time after a succesful read.
-	_clientList.at(clientFd)._buf.append(buffer, count); // Changed this line to the CPP version.
+	Client&	client = _clients.at(clientFd); //If unsuccesful it throws an std::out_of_range
+
+	client.setTime(); // Reset time after a succesful read.
+	client._buf.append(buffer, count); // Changed this line to the CPP version.
 	// write(STDOUT_FILENO, buffer, count);
 	
 	std::cout << "DEBUG in connectIn: PRINTING BUFFER" << std::endl;
@@ -158,10 +177,8 @@ void Webserv::connectIn(int clientFd)
 	if (epoll_ctl(_epfd, EPOLL_CTL_MOD, clientFd, &event) == -1) // When this function goes out of scope, what happens to event? It gets transfered? Does epoll_ctl copy it?
 	{
 		perror("Epoll_ctl: switch to EPOLLOUT failed");
-		close(clientFd);
+		closeAndRemoveFdFromClientList(clientFd);
 	}
-
-
 }
 
 void Webserv::connectOut(int clientFd)
@@ -185,15 +202,16 @@ void Webserv::connectOut(int clientFd)
 	header = "HTTP/1.1 200 OK\nContent-Type: text/html\n";
 	header += "Content-Length: " + std::to_string(html.length()) + "\n\n";
 	response = header + html;
+
+	Client&	client = _clients.at(clientFd);
 	
 	// write(clientFd, "hello", 5);
 	// // close(clientFd);
-	_clientList.at(clientFd)._buf.clear();
+	client._buf.clear();
 	write(clientFd, response.c_str(), response.length());
-	if (_clientList.at(clientFd)._alive == false)
+	if (client._alive == false)
 	{
-		closeClient(clientFd);
-		_clientList.erase(clientFd);
+		closeAndRemoveFdFromClientList(clientFd);
 		return ;
 	}
 	event.events = EPOLLIN;
@@ -207,18 +225,24 @@ void Webserv::connectOut(int clientFd)
 
 void Webserv::checkHealth()
 {
-	auto	it = _clientList.begin();
+	auto	it = _clients.begin();
 
-	while (it != _clientList.end()) // Since the iterator was incremented within the loop, I changed this to a while loop.
+	while (it != _clients.end()) // Since the iterator was incremented within the loop, I changed this to a while loop.
 	{
 		std::cout << "DEBUG in checkHealth: Timecheck\n" << std::endl;
 		if (it->second.checkTime() == -1)
 		{
-			closeClient(it->first);
-			it = _clientList.erase(it);
-			printf("Connection timed out after 15 seconds of inactivity\n");
+			closeAndRemoveFdFromClientList(it->first);
+			std::cout << "Connection timed out after 15 seconds of inactivity" << std::endl;
 		}
 		else
 			it++;
 	}
+}
+
+ParseStatus	Webserv::parse(int clientFd)
+{
+	HttpParser	parser;
+
+	return (parser.initParser(_clients.at(clientFd)));
 }

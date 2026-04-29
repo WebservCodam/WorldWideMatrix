@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/28 11:35:27 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/29 13:35:43 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,16 @@ void	Server::addListenFd(int listenFd)
 {
 	_listenFds.push_back(listenFd);
 }
+
+// void	Server::addClientFd(int clientFd)
+// {
+// 	_clients.emplace(clientFd, clientFd);
+// }
+
+// void	Server::removeClientFd(int clientFd)
+// {
+// 	_clients.erase(clientFd);
+// }
 
 // void Server::closeClient(int fd)
 // {
@@ -44,9 +54,3 @@ void	Server::addListenFd(int listenFd)
 // }
 
 // 
-ParseStatus	Server::parse(int clientFd)
-{
-	HttpParser	parser;
-
-	return (parser.initParser(_clientList.at(clientFd)));
-}
