@@ -97,12 +97,9 @@ void Webserv::connectNew(int listenFd)
 		event.data.fd = clientFd;
 		if (epoll_ctl(_epfd, EPOLL_CTL_ADD, clientFd, &event) == -1)
 		{
-			// perror("Epoll_ctl: add clientFd failed");
-			// close(clientFd);
-			
+			closeAndRemoveFdFromClientList(clientFd);
 			throw std::runtime_error("Failed to add client to epoll");
 		}
-		// printf("here\n");
 	}
 }
 
@@ -111,13 +108,6 @@ void	Webserv::addFdToClientList(int clientFd, int listenFd)
 	Server*	server = _listenFdToServer.at(listenFd);
 	_clientFdToServer.insert(std::make_pair(clientFd, server));
 	_clients.emplace(clientFd, clientFd);
-
-//  Search for the server the client belongs to in the map of listenFdsToServer.
-//  Create an entry in the map of clientFdsToServer with that server pointer.
-//  Then within that server call the function to add the client into the list of clients. (Maybe in the end it's not even used.)
-	// Server*	server = _listenFdToServer.at(listenFd);
-	// _clientFdToServer.insert(std::make_pair(clientFd, server));
-	// server->addClientFd(clientFd);
 }
 
 void	Webserv::closeAndRemoveFdFromClientList(int clientFd)
@@ -183,37 +173,38 @@ void Webserv::connectIn(int clientFd)
 
 void Webserv::connectOut(int clientFd)
 {
-	std::ifstream		file_stream("index.html");
-	std::stringstream	buffer;
-	std::string			html;
-	std::string			header;
-	std::string			response;
+	// std::ifstream		file_stream("index.html");
+	// std::stringstream	buffer;
+	// std::string			html;
+	// std::string			header;
+	// std::string			response;
 	struct epoll_event	event;
 	
 	// if (!file_stream.is_open()) {
 	//     return ""; // Return empty string if the file can't be opened
 	// }
 	
-	buffer << file_stream.rdbuf();
-	html =  buffer.str();
-	file_stream.close();
-	// const char* hello = "Hello from the server";
-	// const char *hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
-	header = "HTTP/1.1 200 OK\nContent-Type: text/html\n";
-	header += "Content-Length: " + std::to_string(html.length()) + "\n\n";
-	response = header + html;
+	// buffer << file_stream.rdbuf();
+	// html =  buffer.str();
+	// file_stream.close();
+	// header = "HTTP/1.1 200 OK\nContent-Type: text/html\n";
+	// header += "Content-Length: " + std::to_string(html.length()) + "\n\n";
+	// response = header + html;
 
 	Client&	client = _clients.at(clientFd);
+	Server* server = _clientFdToServer.at(clientFd);
+
+	server->handleRequest(client);
 	
 	// write(clientFd, "hello", 5);
 	// // close(clientFd);
-	client._buf.clear();
-	write(clientFd, response.c_str(), response.length());
-	if (client._alive == false)
-	{
-		closeAndRemoveFdFromClientList(clientFd);
-		return ;
-	}
+	// client._buf.clear();
+	// write(clientFd, response.c_str(), response.length());
+	// if (client._alive == false)
+	// {
+	// 	closeAndRemoveFdFromClientList(clientFd);
+	// 	return ;
+	// }
 	event.events = EPOLLIN;
 	event.data.fd = clientFd;
 	if (epoll_ctl(_epfd, EPOLL_CTL_MOD, clientFd, &event) == -1)
@@ -234,6 +225,7 @@ void Webserv::checkHealth()
 		{
 			closeAndRemoveFdFromClientList(it->first);
 			std::cout << "Connection timed out after 15 seconds of inactivity" << std::endl;
+			return ;
 		}
 		else
 			it++;

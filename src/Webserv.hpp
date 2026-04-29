@@ -9,8 +9,6 @@
 # define EPOLL_NBR_EVENTS 1000
 # define EPOLL_TIMEOUT 5000
 
-class Server;
-
 class Webserv
 {
 	private:
@@ -41,5 +39,4 @@ class Webserv
 		void	checkHealth();
 
 		ParseStatus	parse(int clientFd);
-		
 };

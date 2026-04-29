@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/29 13:35:43 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/04/29 18:54:01 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,37 +20,17 @@ void	Server::addListenFd(int listenFd)
 	_listenFds.push_back(listenFd);
 }
 
-// void	Server::addClientFd(int clientFd)
-// {
-// 	_clients.emplace(clientFd, clientFd);
-// }
+void	Server::handleRequest(Client& client)
+{
+	std::cout << "DEBUG - handleRequest" << std::endl;
+ 
+	std::cout << "Version: " << client._request.version << std::endl;
+	std::cout << "Method: " << client._request.method << std::endl;
+	std::cout << "URI: " << client._request.uri << std::endl;
+	for (const auto& header : client._request.headers)
+	{
+		std::cout << "Header: " << header.first << "=>" << header.second << std::endl;
+	}
+	std::cout << "Body: " << client._request.body << std::endl;
+}
 
-// void	Server::removeClientFd(int clientFd)
-// {
-// 	_clients.erase(clientFd);
-// }
-
-// void Server::closeClient(int fd)
-// {
-// 	epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, NULL);
-// 	close(fd);
-// 	// _clientList.erase(fd);
-// }
-// void Server::addFdToClientList(int clientFd)
-// {
-// 	_clientList.emplace(clientFd, clientFd);
-// }
-
-
-
-// void	Server::printBuffers()
-// {
-// 	std::cout << "----------All stored data-----------" << std::endl;
-// 	for (const auto& pair : _clientList)
-// 	{
-// 		std::cout << "FD = " << pair.first << std::endl;
-// 		std::cout << "Buffer =\n" << pair.second._buf << "\n" << std::endl;
-// 	}
-// }
-
-// 
