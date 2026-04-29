@@ -133,11 +133,3 @@
   learning — you can stop at any point and still have a working server.
 
 ※ recap: Goal: refactor webserv into Webserver (orchestrator, owns epfd and clients) + Server (one ServerConfig, owns its listenFds) on branch changingServerPrinciples. Next: fix the shadowing bug in startServer, then rename current Server to Webserver. (disable recaps in /config)
-
-❯ /remote-control 
-  ⎿  (no content)
-
-  /remote-control is active · Code in CLI or at https://claude.ai/code/session_01D3wMmjxNXkhnBf9Tp7sCk4
-
-❯ /teleport 
-  ⎿  Teleport cancelled
