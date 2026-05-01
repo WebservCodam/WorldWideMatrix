@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/29 18:17:17 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/05/01 13:40:16 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include "Webserv.hpp"
 
 #include "configparser/Configuration.hpp"
+#include "configparser/ServerConfig.hpp"
 
 // void	startServer(int listenFd, int epfd);
 

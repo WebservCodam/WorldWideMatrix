@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/12 14:12:28 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/29 13:32:56 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/05/01 15:21:34 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ Client::~Client()
 
 std::string	Client::serializeResponse()
 {
-	return (nullptr);
+	return (_response.headers.at("header") + _response.body);
 }
 
 void Client::setListenFd(int listenFd)

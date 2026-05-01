@@ -1,4 +1,4 @@
-#include "Configuration.hpp"
+#include "ServerConfig.hpp"
 
 //	----- SERVER -----
 

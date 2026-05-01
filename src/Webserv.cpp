@@ -3,6 +3,7 @@
 
 void	Webserv::initWebserv()
 {
+	_servers.reserve(_serverConfigs.size());
 	for (const ServerConfig& serverConfig : _serverConfigs)
 	{
 		_servers.push_back(Server(serverConfig));
@@ -195,16 +196,16 @@ void Webserv::connectOut(int clientFd)
 	Server* server = _clientFdToServer.at(clientFd);
 
 	server->handleRequest(client);
-	
-	// write(clientFd, "hello", 5);
-	// // close(clientFd);
-	// client._buf.clear();
-	// write(clientFd, response.c_str(), response.length());
-	// if (client._alive == false)
-	// {
-	// 	closeAndRemoveFdFromClientList(clientFd);
-	// 	return ;
-	// }
+
+	std::string	response = client.serializeResponse();
+
+	client._buf.clear();
+	write(clientFd, response.c_str(), response.length());
+	if (client._alive == false)
+	{
+		closeAndRemoveFdFromClientList(clientFd);
+		return ;
+	}
 	event.events = EPOLLIN;
 	event.data.fd = clientFd;
 	if (epoll_ctl(_epfd, EPOLL_CTL_MOD, clientFd, &event) == -1)
@@ -223,9 +224,9 @@ void Webserv::checkHealth()
 		std::cout << "DEBUG in checkHealth: Timecheck\n" << std::endl;
 		if (it->second.checkTime() == -1)
 		{
+			int fd = it->first;
 			closeAndRemoveFdFromClientList(it->first);
 			std::cout << "Connection timed out after 15 seconds of inactivity" << std::endl;
-			return ;
 		}
 		else
 			it++;

@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/12 14:00:27 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/29 13:48:04 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/05/01 15:45:40 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ class	Server;
 struct HttpResponse
 {
 	int									status;
+	std::string							header;
 	std::map<std::string, std::string>	headers;
 	std::string							body;
 };
@@ -51,7 +52,6 @@ class Client
 		HttpResponse		_response;
 		unsigned long long	_maxBodySize;
 		HttpRequest			_request;
-		Server*				_server; //Is this needed?
 
 		Client(int fd);
 		~Client();

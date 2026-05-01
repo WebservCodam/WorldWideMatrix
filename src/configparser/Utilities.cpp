@@ -2,12 +2,14 @@
 
 std::string	trimPathName(const std::string& name)
 {
-	if (name.front() == '/' && name.back() == '/')
-		return (name.substr(1, name.length() - 2));
-	if (name.front() == '/')
+	std::size_t len = name.length();
+
+	if (name.front() == '/' && name.back() == '/' && len > 1)
+		return (name.substr(1, len - 2));
+	if (name.front() == '/' && len > 1)
 		return (name.substr(1));
-	if (name.back() == '/')
-		return(name.substr(0, name.length() - 1));
+	if (name.back() == '/' && len > 1)
+		return(name.substr(0, len - 1));
 	return (name);
 }
 
