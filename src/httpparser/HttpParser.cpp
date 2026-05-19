@@ -1,17 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   HttpParser.cpp                                     :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: vknape <vknape@student.codam.nl>           +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/25 15:36:17 by rkaras            #+#    #+#             */
-/*   Updated: 2025/11/21 11:31:24 by vknape           ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   HttpParser.cpp                                     :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vknape <vknape@student.codam.nl>             +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/09/25 15:36:17 by rkaras        #+#    #+#                 */
+/*   Updated: 2026/05/19 19:02:58 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpParser.hpp"
-#include "../src/Client.hpp"
+#include "../Client.hpp"
 
 ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 {

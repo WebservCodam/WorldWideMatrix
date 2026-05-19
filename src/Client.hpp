@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/12 14:00:27 by vknape        #+#    #+#                 */
-/*   Updated: 2026/05/19 17:19:42 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/05/19 18:59:54 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@
 // #include <sys/epoll.h>
 // #include <unistd.h>
 #include "utils.hpp"
-#include "../parser/HttpParser.hpp"
+#include "httpparser/HttpParser.hpp"
 
 class	Server;
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "utils.hpp"
-#include "../parser/HttpParser.hpp"
+#include "httpparser/HttpParser.hpp"
 #include "configparser/Configuration.hpp"
 #include "configparser/ServerConfig.hpp"
 #include "Server.hpp"
