@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 
 #include "HttpParser.hpp"
-// #include "../server/Client.hpp"
+#include "../src/Client.hpp"
 
 ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 {
@@ -82,11 +82,22 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 
 ParseStatus HttpParser::initParser(Client &client)
 {
-	ConnectionContext ctx;
+	ParseStatus			status;
+	ConnectionContext	ctx;
+
 	ctx.buffer = client._buf;
-	
-	ParseStatus status = parseRequest(ctx);
-	
+	try
+	{
+		status = parseRequest(ctx);
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << "Parse exception: " << e.what() << std::endl;
+		client._alive = false;
+		client._buf.clear();
+		return (ParseStatus::ERROR);
+	}
+
 	if (status == ParseStatus::COMPLETE)
 	{		
 		std::map<std::string, std::string>::iterator it = ctx.request.headers.find("connection");
@@ -100,15 +111,16 @@ ParseStatus HttpParser::initParser(Client &client)
 		else
 			client._alive = false;
 			
-		client._buf.clear();
-
-		
+		// client._buf.clear();
+		client._buf = ctx.buffer; // Preserves any pipelined leftover.
 	}
 	else if (status == ParseStatus::ERROR)
 	{
 		client._alive = false;
 		client._buf.clear();
 	}
+
+	client._request = ctx.request; // Adding this line, because don't we need to store it in the Client object?
 
 	return (status);
 }

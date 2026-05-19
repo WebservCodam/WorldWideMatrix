@@ -3,16 +3,17 @@ SRC_DIR 	=			src
 CONFIG_SRC_DIR = 		$(SRC_DIR)/configparser
 DIRECTIVES_SRC_DIR =	$(CONFIG_SRC_DIR)/directives_functions
 
-SRC			=		$(SRC_DIR)/Client.cpp\
-					$(SRC_DIR)/init.cpp\
-					$(SRC_DIR)/main.cpp\
-					$(SRC_DIR)/Server.cpp\
-					$(SRC_DIR)/utils.cpp\
-					parser/Body.cpp\
-					parser/Headers.cpp\
-					parser/HttpParser.cpp\
-					parser/RequestLine.cpp\
-					parser/utils2.cpp\
+SRC			=		$(SRC_DIR)/Client.cpp \
+					$(SRC_DIR)/init.cpp \
+					$(SRC_DIR)/main.cpp \
+					$(SRC_DIR)/Webserv.cpp \
+					$(SRC_DIR)/Server.cpp \
+					$(SRC_DIR)/utils.cpp \
+					parser/Body.cpp \
+					parser/Headers.cpp \
+					parser/HttpParser.cpp \
+					parser/RequestLine.cpp \
+					parser/utils2.cpp \
 					$(CONFIG_SRC_DIR)/Directive.cpp \
 					$(CONFIG_SRC_DIR)/ConfigError.cpp \
 					$(CONFIG_SRC_DIR)/ConfigFile.cpp \

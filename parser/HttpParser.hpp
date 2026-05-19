@@ -14,7 +14,7 @@
 #define HTTPPARSER_H
 
 // #include "../server/Client.hpp"
-#include "../src/Client.hpp"
+// #include "../src/Client.hpp"
 
 #include <iostream>
 #include <map>
@@ -23,6 +23,7 @@
 #include <fstream>
 #include <algorithm>
 
+class Client; // Forward declaration is enough, and we can include the header in the .cpp file that uses it (so we don't include it in the others that don't use it).
 
 struct HttpRequest
 {
