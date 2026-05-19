@@ -45,6 +45,7 @@ void	Webserv::startServers()
 		{
 			int	eventFd = events[i].data.fd;
 
+			std::cout << "DEBUG: We're in the startServers for loop." << std::endl;
 			if (_listenFdToServer.find(eventFd) != _listenFdToServer.end())
 			{
 				connectNew(eventFd);
@@ -116,9 +117,9 @@ void	Webserv::addFdToClientList(int clientFd, int listenFd)
 void	Webserv::closeAndRemoveFdFromClientList(int clientFd)
 {
 	// Server*	server = _clientFdToServer.at(clientFd);
-	close(clientFd); // Closing removes from epoll, so no epoll_ctl is needed to remove it.
+	// close(clientFd); // Closing removes from epoll, so no epoll_ctl is needed to remove it.
 	_clients.erase(clientFd);
-	_clientFdToServer.erase(clientFd);
+	_clientFdToServer.erase(clientFd); // The deconstructor closes the client.
 }
 
 void Webserv::connectIn(int clientFd)
@@ -148,6 +149,7 @@ void Webserv::connectIn(int clientFd)
 
 	if (status == INCOMPLETE)
 	{
+		std::cout << "Parsing incomplete; returning so we connectIn again." << std::endl;
 		return ; // So it goes back to connectIn on next loop. And since it's level-triggered, the event will still be there.
 	}
 	else if (status == ERROR)
@@ -177,20 +179,22 @@ void Webserv::connectOut(int clientFd)
 {
 	struct epoll_event	event;
 
-	Client&	client = _clients.at(clientFd);
-	Server* server = _clientFdToServer.at(clientFd);
+	// Client&	client = _clients.at(clientFd);
+	// Server* server = _clientFdToServer.at(clientFd);
 
-	server->handleRequest(client);
+	// server->handleRequest(client);
 
-	std::string	response = client.serializeResponse();
+	// std::string	response = client.serializeResponse();
 
-	client._buf.clear();
-	write(clientFd, response.c_str(), response.length());
-	if (client._alive == false)
-	{
-		closeAndRemoveFdFromClientList(clientFd);
-		return ;
-	}
+	// client._buf.clear();
+	// write(clientFd, response.c_str(), response.length());
+	// if (client._alive == false)
+	// {
+	// 	closeAndRemoveFdFromClientList(clientFd);
+	// 	return ;
+	// }
+
+	std::cout << "------------ RESPONSE END -----------------" << std::endl;
 	event.events = EPOLLIN;
 	event.data.fd = clientFd;
 	if (epoll_ctl(_epfd, EPOLL_CTL_MOD, clientFd, &event) == -1)
@@ -212,10 +216,11 @@ void Webserv::checkHealth()
 			int fd = it->first;
 			closeAndRemoveFdFromClientList(it->first);
 			std::cout << "Connection timed out after 15 seconds of inactivity" << std::endl;
+			break ; // The client is closed and the iterator becomes invalid, so we have to break out.
 		}
-		else
-			it++;
+		it++;
 	}
+	std::cout << "Went out of the loop" << std::endl;
 }
 
 ParseStatus	Webserv::parse(int clientFd)

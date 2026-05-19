@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/12 14:00:27 by vknape        #+#    #+#                 */
-/*   Updated: 2026/05/01 15:45:40 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/05/19 17:19:42 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ class Client
 
 		Client(int fd);
 		~Client();
-	
+
 		std::string	serializeResponse(); // This creates the ready to send response that'll be written to the socket.
 		void		setListenFd(int listenFd);
 		int			getListenFd() const;
