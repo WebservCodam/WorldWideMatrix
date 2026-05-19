@@ -6,14 +6,14 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 15:04:10 by vknape        #+#    #+#                 */
-/*   Updated: 2026/05/01 13:40:37 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/05/19 19:00:30 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "utils.hpp"
-#include "../parser/HttpParser.hpp"
+#include "httpparser/HttpParser.hpp"
 #include "configparser/Configuration.hpp"
 #include "configparser/ServerConfig.hpp"
 

@@ -2,6 +2,7 @@ NAME		=			webserver
 SRC_DIR 	=			src
 CONFIG_SRC_DIR = 		$(SRC_DIR)/configparser
 DIRECTIVES_SRC_DIR =	$(CONFIG_SRC_DIR)/directives_functions
+HTTP_SRC_DIR =			$(SRC_DIR)/httpparser
 
 SRC			=		$(SRC_DIR)/Client.cpp \
 					$(SRC_DIR)/init.cpp \
@@ -9,11 +10,11 @@ SRC			=		$(SRC_DIR)/Client.cpp \
 					$(SRC_DIR)/Webserv.cpp \
 					$(SRC_DIR)/Server.cpp \
 					$(SRC_DIR)/utils.cpp \
-					parser/Body.cpp \
-					parser/Headers.cpp \
-					parser/HttpParser.cpp \
-					parser/RequestLine.cpp \
-					parser/utils2.cpp \
+					$(HTTP_SRC_DIR)/Body.cpp \
+					$(HTTP_SRC_DIR)/Headers.cpp \
+					$(HTTP_SRC_DIR)/HttpParser.cpp \
+					$(HTTP_SRC_DIR)/RequestLine.cpp \
+					$(HTTP_SRC_DIR)/utils2.cpp \
 					$(CONFIG_SRC_DIR)/Directive.cpp \
 					$(CONFIG_SRC_DIR)/ConfigError.cpp \
 					$(CONFIG_SRC_DIR)/ConfigFile.cpp \
