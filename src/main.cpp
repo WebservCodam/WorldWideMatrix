@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/05/01 13:40:16 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/05/19 15:55:19 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ int main(int argc, char** argv)
 			int	epfd;
 
 			epfd = epoll_create(EPOLL_NBR_EVENTS);
-			
+
 			if (epfd < 0)
 				throw std::runtime_error("Failed to create epoll fd");
 

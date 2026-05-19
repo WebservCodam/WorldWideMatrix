@@ -57,6 +57,8 @@ void	Webserv::startServers()
 				else if (events[i].events & EPOLLOUT)
 					connectOut(eventFd);
 			}
+			else
+				throw std::runtime_error("This FD doesn't belong to a server nor a client.");
 		}
 		checkHealth();
 	}
@@ -138,10 +140,9 @@ void Webserv::connectIn(int clientFd)
 
 	client.setTime(); // Reset time after a succesful read.
 	client._buf.append(buffer, count); // Changed this line to the CPP version.
-	// write(STDOUT_FILENO, buffer, count);
 	
-	std::cout << "DEBUG in connectIn: PRINTING BUFFER" << std::endl;
-	std::cout << buffer << std::endl;
+	// std::cout << "DEBUG in connectIn: PRINTING BUFFER" << std::endl;
+	// std::cout << buffer << std::endl;
 
 	status = parse(clientFd); // Branch the status received into conditionals.
 
@@ -174,23 +175,7 @@ void Webserv::connectIn(int clientFd)
 
 void Webserv::connectOut(int clientFd)
 {
-	// std::ifstream		file_stream("index.html");
-	// std::stringstream	buffer;
-	// std::string			html;
-	// std::string			header;
-	// std::string			response;
 	struct epoll_event	event;
-	
-	// if (!file_stream.is_open()) {
-	//     return ""; // Return empty string if the file can't be opened
-	// }
-	
-	// buffer << file_stream.rdbuf();
-	// html =  buffer.str();
-	// file_stream.close();
-	// header = "HTTP/1.1 200 OK\nContent-Type: text/html\n";
-	// header += "Content-Length: " + std::to_string(html.length()) + "\n\n";
-	// response = header + html;
 
 	Client&	client = _clients.at(clientFd);
 	Server* server = _clientFdToServer.at(clientFd);
