@@ -116,8 +116,7 @@ void	Webserv::addFdToClientList(int clientFd, int listenFd)
 void	Webserv::closeAndRemoveFdFromClientList(int clientFd)
 {
 	// Server*	server = _clientFdToServer.at(clientFd);
-	close(clientFd); // Closing removes from epoll, so no epoll_ctl is needed to remove it.
-	_clients.erase(clientFd);
+	_clients.erase(clientFd); // Client destruction closes the socket and removes it from epoll.
 	_clientFdToServer.erase(clientFd);
 }
 
