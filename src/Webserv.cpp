@@ -118,8 +118,8 @@ void	Webserv::closeAndRemoveFdFromClientList(int clientFd)
 {
 	// Server*	server = _clientFdToServer.at(clientFd);
 	// close(clientFd); // Closing removes from epoll, so no epoll_ctl is needed to remove it.
-	_clients.erase(clientFd);
 	_clientFdToServer.erase(clientFd); // The deconstructor closes the client.
+	_clients.erase(clientFd);
 }
 
 void Webserv::connectIn(int clientFd)
