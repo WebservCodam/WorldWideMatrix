@@ -109,9 +109,13 @@ void Webserv::connectNew(int listenFd)
 
 void	Webserv::addFdToClientList(int clientFd, int listenFd)
 {
-	Server*	server = _listenFdToServer.at(listenFd);
+	std::pair<std::map<int, Client>::iterator, bool>	result;
+	Server*												server;
+
+	server = _listenFdToServer.at(listenFd);
 	_clientFdToServer.insert(std::make_pair(clientFd, server));
-	_clients.emplace(clientFd, clientFd);
+	result = _clients.emplace(clientFd, clientFd);
+	result.first->second.setListenFd(listenFd);
 }
 
 void	Webserv::closeAndRemoveFdFromClientList(int clientFd)
