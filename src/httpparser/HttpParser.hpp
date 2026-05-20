@@ -15,10 +15,9 @@
 
 #pragma once
 
-#include "../Client.hpp"
-#include "../responder/Responder.hpp"
 #include "HttpException.hpp"
 
+#include <cstddef>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -26,6 +25,7 @@
 #include <fstream>
 #include <algorithm>
 
+class Client;
 
 struct HttpRequest
 {
@@ -41,8 +41,8 @@ struct HttpRequest
 struct ConnectionContext
 {
 	std::string buffer;
-	unsigned long long maxBodySize;
 	size_t headerEnd = std::string::npos;
+	unsigned long long maxBodySize;
 	HttpRequest request;
 };
 
@@ -50,7 +50,7 @@ enum ParseStatus
 {
 	INCOMPLETE,
 	COMPLETE,
-	// ERROR
+	ERROR
 };
 
 class HttpParser
@@ -63,15 +63,15 @@ class HttpParser
 		bool								isChunked(const HttpRequest &req);
 		ParseStatus							parseChunkedBody(ConnectionContext &ctx, size_t bodyStart);
 		std::map<std::string, std::string>	parseQueryString(const std::string &query);
-		
-		public:
+
+	public:
 		HttpParser() = default;
 		HttpParser(const HttpParser& other) = delete;
 		HttpParser&	operator=(const HttpParser& other) = delete;
 		~HttpParser() = default;
-		
-		// ParseStatus initParser(Client &client);
+
+		ParseStatus	initParser(Client &client);
 		ParseStatus	parseRequest(ConnectionContext &ctx);
 };
 
-#endif /* !HTTPPARSER_H */
+#endif /* !HTTPPARSER_H */

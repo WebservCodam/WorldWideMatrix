@@ -1,0 +1,87 @@
+#include "../Configuration.hpp"
+
+// Figure out how we want to change the error code... where do we want to store that data.
+void	validateErrorPageDirective(Directive* node)
+{
+	// error_page 404 /404.html;			The last value is a URI.
+	// error_page 500 502 503 /50x.html;	There can be multiple codes.
+	// error_page 404 =200 /empty.gif;		An equals changes the code.
+
+	// Last parameter is always the URI
+	const std::string&	uri = node->getParameters().back();
+	std::string			root = getRoot(node);
+	std::string			errorPagePath = joinPath(joinPath(root, "error_pages"), uri);
+
+	checkPath(errorPagePath, ErrorType::VALIDATOR, "Error page: " + errorPagePath, false);
+	node->setParameter(node->getParameters().size() - 1, errorPagePath);
+
+	// All parameters except the last one are error codes
+	for (size_t i = 0; i < node->getParameters().size() - 1; ++i)
+	{
+		const std::string& param = node->getParameter(i);
+
+		// Check for response code change (e.g., "=200")
+		if (param[0] == '=')
+		{
+			// std::cout << "DEBUG: ErrorPageDirective: " << param << std::endl;
+			if (param.length() < 2)
+				throw ConfigError::validation("Invalid response code change in " + node->getName() + " directive: '" + param + "'", node);
+			
+			int new_code = std::stoi(param.substr(1)); // In try-catch block to throw a different error than the one from stoi.
+			// std::cout << "DEBUG: New code is: " << new_code << std::endl;
+			// Check it's a valid HTTP status code
+			if (new_code < 100 || new_code > 599)
+				throw ConfigError::validation("Invalid HTTP status code in " + node->getName() + " directive: '" + param + "' must be between 100-599", node);
+		}
+		else
+		{
+			// Regular error code
+			int error_code = std::stoi(param);
+			// Must be a 4xx or 5xx error code
+			if (error_code < 400 || error_code > 599)
+				throw ConfigError::validation("Invalid error code in " + node->getName() + " directive: '" + param + "' must be between 400-599", node);
+		}
+	}
+	return ;
+}
+
+/**
+ * @brief
+ * 
+ * @return
+ */
+void	ConfigFile::processErrorPages(Directive* directive, std::unordered_map<int, ErrorPage>& errorPages)
+{
+	Directive*	serverDirective = directive->getParent();
+	std::string	URI;
+	bool		isRedirect = false;
+	int			redirectCode = -1;
+	int			numErrorCodes;
+	std::string	root;
+
+	// Include default error pages with codes 4 & 5.
+	root = getRoot(serverDirective);
+	root = joinPath(root, DEFAULT_ERROR_PAGES_PATH);
+	errorPages.emplace(DEFAULT_40x_ERROR_CODE, ErrorPage(DEFAULT_40x_ERROR_CODE, joinPath(root, DEFAULT_40x_ERROR_PAGE)));
+	errorPages.emplace(DEFAULT_50x_ERROR_CODE, ErrorPage(DEFAULT_50x_ERROR_CODE, joinPath(root, DEFAULT_50x_ERROR_PAGE)));
+
+	numErrorCodes = directive->getParameters().size() - 1;
+	URI = directive->getParameter(numErrorCodes);
+
+	// Check for redirect syntax (=code) - only if we have at least 3 parameters
+	if (numErrorCodes > 1 && directive->getParameter(numErrorCodes - 1).at(0) == '=')
+	{
+		isRedirect = true;
+		redirectCode = std::stoi(directive->getParameter(numErrorCodes - 1).substr(1));
+		numErrorCodes -= 1;
+	}
+	for (size_t i = 0; i < numErrorCodes; i++)
+	{
+		ErrorPage	current;
+		current.errorCode = std::stoi(directive->getParameter(i));
+		current.isRedirect = isRedirect;
+		current.redirectCode = redirectCode;
+		current.URI = URI;
+		errorPages.emplace(current.errorCode, current);
+	}
+}

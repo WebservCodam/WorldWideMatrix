@@ -41,3 +41,10 @@
 *.dwo
 
 .vscode
+
+tests/invalid_index_no_read.html
+
+webserv
+
+output.txt
+

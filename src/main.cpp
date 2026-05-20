@@ -6,32 +6,34 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/01/30 16:22:17 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/05/19 15:55:19 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 #include "utils.hpp"
 #include "Server.hpp"
+#include "Webserv.hpp"
 
-#include "configparser/include/Configuration.hpp"
+#include "configparser/Configuration.hpp"
+#include "configparser/ServerConfig.hpp"
 
-// void	start_server(int server_fd, int epfd);
+// void	startServer(int listenFd, int epfd);
 
-void	initialize(int argc, char **argv, std::unique_ptr<ConfigFile>& ast)
+void	printErrorAndExit(const std::string& msg, int errorCode)
+{
+	std::cerr << msg << std::endl;
+	exit(errorCode);
+}
+
+void	initialize(int argc, char **argv, std::vector<ServerConfig>& configurations)
 {
 	if (argc != 2)
-	{
-		std::cerr << "Error: Expecting an input file." << std::endl;
-		exit(EXIT_FAILURE);
-	}
+		printErrorAndExit("Error: Expecting an input file.", EXIT_FAILURE);
 
 	std::ifstream	file(argv[1]);
 	if (!file)
-	{
-		std::cerr << "Error: Could not open file" << std::endl;
-		exit(EXIT_FAILURE);
-	}
+		printErrorAndExit("Error: Could not open file.", EXIT_FAILURE);
 
 	std::stringstream	buffer;
 	buffer << file.rdbuf();
@@ -39,73 +41,62 @@ void	initialize(int argc, char **argv, std::unique_ptr<ConfigFile>& ast)
 	
 	try
 	{
-		ast = Parser(input).parse();
-		if (!ast)
-		{
-			std::cerr << "Error: Failed to parse configuration" << std::endl;
-			exit(EXIT_FAILURE);
-		}
+		std::unique_ptr<ConfigFile> ast = Parser(input).parse();
+		configurations = ast->createServers();
 	}
 	catch (const ConfigError& e)
 	{
-		std::cerr << e.what() << std::endl;
-		exit(EXIT_FAILURE);
+		printErrorAndExit(e.what(), EXIT_FAILURE);
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << "Unexpected error: " << e.what() << std::endl;
-		exit(EXIT_FAILURE);
+		printErrorAndExit(std::string("Unexpected error\n") + e.what(), EXIT_FAILURE);
 	}
-
-	// Phase 4: Create servers
-	ast->createServers();
-
-	std::cout << "Servers created" << std::endl;
 }
 
 int main(int argc, char** argv)
 {
-	std::unique_ptr<ConfigFile>	ast = NULL;
+	std::vector<ServerConfig>	configurations;
 
-	initialize(argc, argv, ast);
+	initialize(argc, argv, configurations);
 	while (true)
 	{
-		try {
-			int epfd;
+		try
+		{
+			int	epfd;
 
-			epfd = epoll_create(1000);
-			
+			epfd = epoll_create(EPOLL_NBR_EVENTS);
+
 			if (epfd < 0)
 				throw std::runtime_error("Failed to create epoll fd");
-				
-			Server server(epfd);
-			server.servers = ast->getServers();
-			std::cout << server.servers.at(0).getServerName() << std::endl;
+
+			Webserv	webserver(epfd);
 			
-			server.init_server();
-			server.start_server();
-			
+			webserver.setServerConfigs(configurations);
+
+			webserver.initWebserv();
+			webserver.startServers();
+
 		}	catch (const std::runtime_error& e) {
-			std::cout << "Runtime error: " << e.what() << std::endl;
+				std::cout << "Runtime error: " << e.what() << std::endl;
+				exit(EXIT_FAILURE);
 		}	catch (const std::exception& e) {
-			std::cout << "Exception: " << e.what() << std::endl;
+				std::cout << "Exception: " << e.what() << std::endl;
 		}
-		
 		exit(0);
 	}
-	
 }
 
-// void	start_server(int server_fd, int epfd)
+// void	startServer(int listenFd, int epfd)
 // {
-// 	Server server(server_fd, epfd);
+// 	Server server(listenFd, epfd);
 // 	epoll_event events[1000];
 // 	int num_events = 0;
 // 	int connections = 0;
 // 	while (true)
 // 	{
 // 		printf("Connections made = %d\n", connections);
-// 		server.print_buffers();
+// 		server.printBuffers();
 // 		num_events = epoll_wait(epfd, events, 1000, 5000);
 // 		printf("Number of events waiting: %d\n", num_events);
 // 		if (num_events == -1)
@@ -113,22 +104,22 @@ int main(int argc, char** argv)
 		
 // 		for (int i = 0; i < num_events; i++)
 // 		{
-// 			if (events[i].data.fd == server_fd)
+// 			if (events[i].data.fd == listenFd)
 // 			{
-// 				server.connect_new();
+// 				server.connectNew();
 // 				connections++;
 // 			}
 
 // 			else if (events[i].events & EPOLLIN)
 // 			{
-// 				server.connect_in(events[i].data.fd);
+// 				server.connectIn(events[i].data.fd);
 // 			}
 			
 // 			else if (events[i].events & EPOLLOUT)
 // 			{
-// 				server.connect_out(events[i].data.fd);
+// 				server.connectOut(events[i].data.fd);
 // 			}
 // 		}
-// 		server.check_health();
+// 		server.checkHealth();
 // 	}
 // }

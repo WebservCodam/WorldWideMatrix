@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 
 #include "HttpParser.hpp"
-// #include "../server/Client.hpp"
+#include "../Client.hpp"
 
 ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 {
@@ -89,30 +89,47 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 	return ParseStatus::COMPLETE;
 }
 
-// ParseStatus HttpParser::initParser(Client &client)
-// {
-// 	ConnectionContext ctx;
-// 	ctx.buffer = client._buf;
-// 	// ctx.maxBodySize = client._maxBodySize;
+ParseStatus HttpParser::initParser(Client &client)
+{
+	ParseStatus			status;
+	ConnectionContext	ctx;
 
-// 	// Responder responder;
-	
-// 	ParseStatus status = parseRequest(ctx);
-		
-// 	if (status == ParseStatus::COMPLETE)
-// 	{		
-// 		std::map<std::string, std::string>::iterator it = ctx.request.headers.find("connection");
-// 		if (it != ctx.request.headers.end())
-// 		{
-// 			std::string value = it->second;
-// 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
-// 			if (value == "keep-alive")
-// 				client._alive = true;
-// 		}
-// 		else
-// 			client._alive = false;			
-// 			client._buf.clear();
-// 		}
+	ctx.buffer = client._buf;
+	ctx.maxBodySize = client._maxBodySize;
+	try
+	{
+		status = parseRequest(ctx);
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << "Parse exception: " << e.what() << std::endl;
+		client._alive = false;
+		client._buf.clear();
+		return (ParseStatus::ERROR);
+	}
 
-// 	return (status);
-// }
+	if (status == ParseStatus::COMPLETE)
+	{
+		std::map<std::string, std::string>::iterator it = ctx.request.headers.find("connection");
+		if (it != ctx.request.headers.end())
+		{
+			std::string value = it->second;
+			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			if (value == "keep-alive")
+				client._alive = true;
+		}
+		else
+			client._alive = false;
+
+		client._buf = ctx.buffer;
+	}
+	else if (status == ParseStatus::ERROR)
+	{
+		client._alive = false;
+		client._buf.clear();
+	}
+
+	client._request = ctx.request;
+
+	return (status);
+}

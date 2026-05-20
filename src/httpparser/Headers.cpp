@@ -28,15 +28,15 @@ void	HttpParser::parseHeaderLine(const std::string &line, HttpRequest &req)
 		throw HttpException(400, "Malformed header: missing ':'");
 
 	std::string rawKey = line.substr(0, colon);
-	
+
 	if (!rawKey.empty() && (rawKey.back() == ' ' || rawKey.back() == '\t'))
 		throw HttpException(400, "Malformed header: whitespace before colon");
-	
+
 	rawKey.erase(0, rawKey.find_first_not_of(" \t"));
-	
+
 	if (rawKey.empty())
 		throw HttpException(400, "Malformed header: empty field name");
-	
+
 	for (char c : rawKey)
 	{
 		if (!isTchar(c))

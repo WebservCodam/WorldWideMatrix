@@ -6,39 +6,36 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 15:04:10 by vknape        #+#    #+#                 */
-/*   Updated: 2026/02/24 17:10:58 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/05/20 10:46:25 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
+#pragma once
+
 #include "utils.hpp"
 #include "httpparser/HttpParser.hpp"
-#include "configparser/include/Configuration.hpp"
-#pragma once
+#include "configparser/Configuration.hpp"
+#include "configparser/ServerConfig.hpp"
 
 class Client;
 
 class Server
 {
 	private:
+		std::vector<int>		_listenFds;
+		const ServerConfig&		_serverConfig;
 
 	public:
-		Server(int epfd1);
-		~Server();
-		// const int server_fd;
-		std::vector<int> server_fds;
-		const int epfd;
-		std::map<int, Client> list;
-		std::vector<ServerConfig> servers;
-		
-		void init_server();
-		void add_servers_to_epoll(int server_fd);
-		void start_server();
-		void close_client(int fd);
-		void check_health();
-		void add_fd_map(int client_fd);
-		void connect_new(int server_fd);
-		void connect_in(int client_fd);
-		void connect_out(int client_fd);
-		void print_buffers();
-		void parse(int client_fd);
+		// Orthodox Canonical Form (missing copy constructor, copy assignment operator, and move...)
+		Server() = delete;
+		Server(const ServerConfig& serverConfig);
+		~Server() = default;
+
+		// Getters & Setters
+		void	addListenFd(int listenFd);
+
+		const ServerConfig&		getServerConfig() const { return _serverConfig; };
+		const std::vector<int>&	getListenFds() const { return _listenFds; };
+
+		void	handleRequest(Client& client);
 };

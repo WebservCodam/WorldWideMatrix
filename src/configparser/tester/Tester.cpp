@@ -1,9 +1,5 @@
-#include "../include/Configuration.hpp"
-#include "../include/Lexer.hpp"
-#include "../include/Parser.hpp"
-#include "../include/ConfigError.hpp"
+#include "../Configuration.hpp"
 #include "PrintUtilities.hpp"
-#include "../include/Validator.hpp"
 
 int	main(int argc, char *argv[])
 {

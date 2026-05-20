@@ -1,36 +1,44 @@
-NAME		=		webserver
-CONFIG_SRC = 		configparser/src
-VALIDATION_SRC =	$(CONFIG_SRC)/validation_functions
-SRC			=		Client.cpp\
-					init.cpp\
-					main.cpp\
-					Server.cpp\
-					utils.cpp\
-					httpparser/Body.cpp\
-					httpparser/Headers.cpp\
-					httpparser/HttpParser.cpp\
-					httpparser/RequestLine.cpp\
-					httpparser/utils2.cpp\
-					httpparser/HttpException.cpp \
-					$(CONFIG_SRC)/ConfigError.cpp \
-					$(CONFIG_SRC)/Configuration.cpp \
-					$(CONFIG_SRC)/DirectiveSpecs.cpp \
-					$(CONFIG_SRC)/Lexer.cpp \
-					$(CONFIG_SRC)/Parser.cpp \
-					$(CONFIG_SRC)/ServerConfig.cpp \
-					$(VALIDATION_SRC)/AllowOrDenyDirectives.cpp \
-					$(VALIDATION_SRC)/AutoindexDirective.cpp \
-					$(VALIDATION_SRC)/CGIDirectives.cpp \
-					$(VALIDATION_SRC)/ClientMaxBodySizeDirective.cpp \
-					$(VALIDATION_SRC)/ErrorPageDirective.cpp \
-					$(VALIDATION_SRC)/IndexDirective.cpp \
-					$(VALIDATION_SRC)/ListenDirective.cpp \
-					$(VALIDATION_SRC)/MethodsDirective.cpp \
-					$(VALIDATION_SRC)/ReturnDirective.cpp \
-					$(VALIDATION_SRC)/RootDirective.cpp \
-					$(VALIDATION_SRC)/Utilities.cpp
+NAME		=			webserver
+SRC_DIR 	=			src
+CONFIG_SRC_DIR = 		$(SRC_DIR)/configparser
+DIRECTIVES_SRC_DIR =	$(CONFIG_SRC_DIR)/directives_functions
+HTTP_SRC_DIR =			$(SRC_DIR)/httpparser
+
+SRC			=		$(SRC_DIR)/Client.cpp \
+					$(SRC_DIR)/init.cpp \
+					$(SRC_DIR)/main.cpp \
+					$(SRC_DIR)/Webserv.cpp \
+					$(SRC_DIR)/Server.cpp \
+					$(SRC_DIR)/utils.cpp \
+					$(HTTP_SRC_DIR)/Body.cpp \
+					$(HTTP_SRC_DIR)/Headers.cpp \
+					$(HTTP_SRC_DIR)/HttpException.cpp \
+					$(HTTP_SRC_DIR)/HttpParser.cpp \
+					$(HTTP_SRC_DIR)/RequestLine.cpp \
+					$(HTTP_SRC_DIR)/utils2.cpp \
+					$(CONFIG_SRC_DIR)/Directive.cpp \
+					$(CONFIG_SRC_DIR)/ConfigError.cpp \
+					$(CONFIG_SRC_DIR)/ConfigFile.cpp \
+					$(CONFIG_SRC_DIR)/Validation.cpp \
+					$(CONFIG_SRC_DIR)/Lexer.cpp \
+					$(CONFIG_SRC_DIR)/Parser.cpp \
+					$(CONFIG_SRC_DIR)/ServerConfig.cpp \
+					$(CONFIG_SRC_DIR)/Utilities.cpp \
+					$(DIRECTIVES_SRC_DIR)/AutoindexDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/CGIDirectives.cpp \
+					$(DIRECTIVES_SRC_DIR)/ClientMaxBodySizeDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/ErrorPageDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/IndexDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/KeepaliveTimeout.cpp \
+					$(DIRECTIVES_SRC_DIR)/ListenDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/LocationDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/MethodsDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/ReturnDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/RootDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/ServerDirective.cpp 
 OBJ			=		$(SRC:.cpp=.o)
 CC			=		c++
+FLAGS		=		-g
 # FLAGS		=		-Wall -Wextra -Werror -g
 # FLAGS		+=		-fsanitize=thread
 # FLAGS		+=		-fsanitize=address
@@ -66,9 +74,9 @@ test:
 			siege -t $(V1)s -c $(V2) http://localhost:8080
 
 teststart:
-			./webserver example5.conf && siege -t $(V1)s -c $(V2) http://localhost:8080
+			./webserver config_files/valid/example.conf && siege -t $(V1)s -c $(V2) http://localhost:8080
 
 o:
-			./webserver example5.conf > output.txt 2>&1
+			./webserver config_files/valid/example.conf > output.txt 2>&1
 
 .PHONY:		all clean fclean re test teststart o

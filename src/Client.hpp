@@ -6,9 +6,13 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/12 14:00:27 by vknape        #+#    #+#                 */
-/*   Updated: 2026/02/27 16:44:09 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/05/20 10:45:13 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
+
+#pragma once
+
+// Pragma once should be at the top to avoid circular dependencies
 
 // #include <string>
 // #include <vector>
@@ -19,34 +23,44 @@
 // #include <sys/epoll.h>
 // #include <unistd.h>
 #include "utils.hpp"
+#include "httpparser/HttpParser.hpp"
 
-#pragma once
+class	Server;
 
-class Server;
+struct HttpResponse
+{
+	int									status;
+	std::string							header;
+	std::map<std::string, std::string>	headers;
+	std::string							body;
+};
 
 class Client
 {
 	private:
 	
 	public:
-		const int _fd;
-		int _time;
-		bool _alive = false;
-		int readstate = 0;
-		int	parseready = 0;
-		int content_length = 0;
-		std::string _buf;
-		std::string _response;
-		const unsigned long long _maxBodySize;
-		HttpRequest _request;
-		
-		
+		// const ServerConfig&	_serverConfig;
+		const int 			_clientFd;
+		int					_listenFd;
+		int 				_time;
+		bool 				_alive = false;
+		int					_readstate = 0;
+		int					_parseready = 0;
+		int 				_content_length = 0;
+		std::string			_buf;
+		HttpResponse		_response;
+		unsigned long long	_maxBodySize;
+		HttpRequest			_request;
+
 		Client(int fd);
 		~Client();
-	
-		int GetFd() const;
-		void SetTime();
-		int GetTime();
-		int CheckTime() const;
-		
+
+		std::string	serializeResponse(); // This creates the ready to send response that'll be written to the socket.
+		void		setListenFd(int listenFd);
+		int			getListenFd() const;
+		int			getFd() const;
+		void		setTime();
+		int			getTime();
+		int			checkTime() const;
 };

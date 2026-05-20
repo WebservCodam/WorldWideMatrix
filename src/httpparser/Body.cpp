@@ -6,11 +6,12 @@
 /*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/10/31 12:41:30 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/20 13:25:48 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/05/20 10:55:50 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpParser.hpp"
+#include <vector>
 
 size_t	HttpParser::bodyLength(const HttpRequest &req, const unsigned long long maxBodySize)
 {
@@ -21,15 +22,15 @@ size_t	HttpParser::bodyLength(const HttpRequest &req, const unsigned long long m
 	const std::string &value = it->second;
 	if (value.empty())
 		throw HttpException(400, "Invalid Content-Length: non-digit characters");
-	
+
 	for (size_t i = 0; i < value.length(); i++)
 	{
 		if (!std::isdigit(value[i]))
 			throw HttpException(400, "Invalid Content-Length");
 	}
-	
+
 	unsigned long long len = 0;
-	
+
 	try {
 		len = std::stoull(value);
 	} catch (const std::out_of_range &) {
@@ -37,10 +38,10 @@ size_t	HttpParser::bodyLength(const HttpRequest &req, const unsigned long long m
 	} catch (...) {
 		throw HttpException(400, "Invalid Content-Length");
 	}
-	
+
 	if (len > maxBodySize)
 		throw HttpException(413, "Payload too large");
-	
+
 	return static_cast<size_t>(len);
 }
 
