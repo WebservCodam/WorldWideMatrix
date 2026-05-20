@@ -1,18 +1,19 @@
 #pragma once
 
-#include "Configuration.hpp"
+#include <string>
+#include <vector>
+#include <map>
+#include <unordered_map>
+
+#include "ConfigTypes.hpp"
 
 class			Directive;
 class			ConfigFile;
 struct			DirectiveDefinition;
 extern const	std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS;
-class			Location;
 class			Lexer;
 class			Parser;
 class			Validator;
-struct			ListenDirective;
-struct			ErrorPage;
-struct			ReturnPage;
 
 class	ServerConfig
 {
