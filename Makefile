@@ -12,6 +12,7 @@ SRC			=		$(SRC_DIR)/Client.cpp \
 					$(SRC_DIR)/utils.cpp \
 					$(HTTP_SRC_DIR)/Body.cpp \
 					$(HTTP_SRC_DIR)/Headers.cpp \
+					$(HTTP_SRC_DIR)/HttpException.cpp \
 					$(HTTP_SRC_DIR)/HttpParser.cpp \
 					$(HTTP_SRC_DIR)/RequestLine.cpp \
 					$(HTTP_SRC_DIR)/utils2.cpp \

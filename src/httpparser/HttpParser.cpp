@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/25 15:36:17 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/05/19 19:02:58 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/02/27 15:22:09 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,26 +18,39 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 	ctx.headerEnd = ctx.buffer.find("\r\n\r\n");
 	if (ctx.headerEnd == std::string::npos)
 		return ParseStatus::INCOMPLETE;
+	
+	if (ctx.headerEnd > 8000)
+		throw HttpException(431, "Request headers too long");
 
 	const char *buf = ctx.buffer.data();
 	size_t length = ctx.buffer.size();
 	size_t pos = 0;
-	std::string line;
+	std::string line;	
 	
 	/* request line */
-	if (!readLine(buf, length, pos, line))
-		return ParseStatus::ERROR;
+	while (readLine(buf, length, pos, line) && line.empty())
+	{
+		//do nothing, just skip the possible leading CRLFs
+	}
+	if (line.empty())
+		throw HttpException(400, "Bad request");
 	parseRequestLine(line, ctx.request);
 
+	
 	/* headers */
 	while (readLine(buf, length, pos, line))
 	{
 		if (line.empty())
 			break ;
 		if (line[0] == ' ' || line[0] == '\t')
-			throw std::runtime_error("Malformed header: leading whitespace");
+			throw HttpException(400, "Malformed header: leading whitespace");
 		parseHeaderLine(line, ctx.request);
 	}
+	
+	//enforcing the host header
+	if (ctx.request.headers.find("host") == ctx.request.headers.end())
+		throw HttpException(400, "Missing Host header");
+
 
 	/* body */
 	size_t bodyStart = ctx.headerEnd + 4;
@@ -50,34 +63,30 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 	bool hasContentLength = ctx.request.headers.count("content-length") > 0;
 
 	if (hasChunked && hasContentLength)
-	{
-		std::cerr << "Warning: both Transfer-Encoding and Content-Length present; ignoring Content-Length. \n";
+		throw HttpException(400, "Conflicting length headers");
+	
+	if (hasChunked)
 		return (parseChunkedBody(ctx, bodyStart));
-	}
-	else if (hasChunked)
-		return (parseChunkedBody(ctx, bodyStart));
-	else if (hasContentLength)
+	
+	if (hasContentLength)
 	{
-		size_t expectedBody = bodyLength(ctx.request);
+		size_t expectedBody = bodyLength(ctx.request, ctx.maxBodySize);
 		if (availableBody < expectedBody)
 			return ParseStatus::INCOMPLETE;
 
-		if (availableBody > expectedBody)
-			throw std::runtime_error("Body size exceeds Content-Length");
+		// if (availableBody > expectedBody)
+		// 	throw HttpException(400, "Body larger than Content-Length");
 			
 		ctx.request.body = ctx.buffer.substr(bodyStart, expectedBody);
 		ctx.buffer.erase(0, bodyStart + expectedBody);
 		ctx.headerEnd = std::string::npos;
 		return (ParseStatus::COMPLETE);
 	}
-	else
-	{
-		ctx.request.body.clear();
-		ctx.buffer.erase(0, bodyStart);
-		ctx.headerEnd = std::string::npos;
-		return ParseStatus::COMPLETE;
-	}
-	
+
+	ctx.request.body.clear();
+	ctx.buffer.erase(0, bodyStart);
+	ctx.headerEnd = std::string::npos;
+	return ParseStatus::COMPLETE;
 }
 
 ParseStatus HttpParser::initParser(Client &client)
@@ -86,6 +95,7 @@ ParseStatus HttpParser::initParser(Client &client)
 	ConnectionContext	ctx;
 
 	ctx.buffer = client._buf;
+	ctx.maxBodySize = client._maxBodySize;
 	try
 	{
 		status = parseRequest(ctx);
@@ -99,7 +109,7 @@ ParseStatus HttpParser::initParser(Client &client)
 	}
 
 	if (status == ParseStatus::COMPLETE)
-	{		
+	{
 		std::map<std::string, std::string>::iterator it = ctx.request.headers.find("connection");
 		if (it != ctx.request.headers.end())
 		{
@@ -110,9 +120,8 @@ ParseStatus HttpParser::initParser(Client &client)
 		}
 		else
 			client._alive = false;
-			
-		// client._buf.clear();
-		client._buf = ctx.buffer; // Preserves any pipelined leftover.
+
+		client._buf = ctx.buffer;
 	}
 	else if (status == ParseStatus::ERROR)
 	{
@@ -120,7 +129,7 @@ ParseStatus HttpParser::initParser(Client &client)
 		client._buf.clear();
 	}
 
-	client._request = ctx.request; // Adding this line, because don't we need to store it in the Client object?
+	client._request = ctx.request;
 
 	return (status);
 }

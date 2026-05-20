@@ -1,21 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   utils.cpp                                          :+:    :+:            */
+/*   HttpException.cpp                                  :+:    :+:            */
 /*                                                     +:+                    */
-/*   By: vknape <vknape@student.codam.nl>             +#+                     */
+/*   By: rkaras <rkaras@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
-/*   Created: 2025/09/15 13:53:26 by vknape        #+#    #+#                 */
-/*   Updated: 2026/05/20 10:47:08 by rkaras        ########   odam.nl         */
+/*   Created: 2026/02/17 15:59:44 by rkaras        #+#    #+#                 */
+/*   Updated: 2026/02/17 16:01:38 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "utils.hpp"
+#include "HttpException.hpp"
 
-void	setNonBlocking(int fd)
+HttpException::HttpException(int status, const std::string &message) : _status(status), _message(message) {}
+
+int HttpException::getStatus() const
 {
-	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
-	{
-		throw std::runtime_error("fcntl error. Failure to set socket to non-blocking.");
-	}
+	return _status;
 }
+
