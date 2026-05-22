@@ -181,30 +181,27 @@ void Webserv::connectIn(int clientFd)
 
 void Webserv::connectOut(int clientFd)
 {
+	Client&	client = _clients.at(clientFd);
+	Server*	server = _clientFdToServer.at(clientFd);
+
+	server->handleRequest(client);
+
+	std::string	response = client.serializeResponse();
+	write(clientFd, response.c_str(), response.length());
+
+	if (client._alive == false)
+	{
+		closeAndRemoveFdFromClientList(clientFd);
+		return ;
+	}
+
 	struct epoll_event	event;
-
-	// Client&	client = _clients.at(clientFd);
-	// Server* server = _clientFdToServer.at(clientFd);
-
-	// server->handleRequest(client);
-
-	// std::string	response = client.serializeResponse();
-
-	// client._buf.clear();
-	// write(clientFd, response.c_str(), response.length());
-	// if (client._alive == false)
-	// {
-	// 	closeAndRemoveFdFromClientList(clientFd);
-	// 	return ;
-	// }
-
-	std::cout << "------------ RESPONSE END -----------------" << std::endl;
 	event.events = EPOLLIN;
 	event.data.fd = clientFd;
 	if (epoll_ctl(_epfd, EPOLL_CTL_MOD, clientFd, &event) == -1)
 	{
 		perror("Epoll_ctl: switch to EPOLLIN failed");
-		close(clientFd);
+		closeAndRemoveFdFromClientList(clientFd);
 	}
 }
 

@@ -23,9 +23,32 @@ Client::~Client()
 	close(_clientFd);
 }
 
+// Maps a status code to its reason phrase.
+static std::string	reasonPhrase(int status)
+{
+	switch (status)
+	{
+		case 200: return ("OK");
+		case 404: return ("Not Found");
+		case 405: return ("Method Not Allowed");
+		default:  return ("OK");
+	}
+}
+
+// Builds the complete HTTP response text: status line, headers,
+// a blank line, then the body.
 std::string	Client::serializeResponse()
 {
-	return (_response.headers.at("header") + _response.body);
+	std::string	response;
+
+	response  = "HTTP/1.1 " + std::to_string(_response.status)
+		+ " " + reasonPhrase(_response.status) + "\r\n";
+	response += "Content-Type: text/html\r\n";
+	response += "Content-Length: " + std::to_string(_response.body.size()) + "\r\n";
+	response += "Connection: " + std::string(_alive ? "keep-alive" : "close") + "\r\n";
+	response += "\r\n";
+	response += _response.body;
+	return (response);
 }
 
 void Client::setListenFd(int listenFd)
