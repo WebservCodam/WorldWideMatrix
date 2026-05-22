@@ -9,7 +9,10 @@ ConfigError::ConfigError(ErrorType type, const std::string& message, size_t line
 	std::runtime_error(buildMessage(type, message, line, column, context)), _type(type), _line(line), _column(column), _context(context) {}
 
 ConfigError::ConfigError(ErrorType type, const std::string& message, const Directive* directive)
-	: ConfigError(type, message, directive->getLine(), directive->getColumn(), directive->getName()) {}
+	: ConfigError(type, message,
+		directive ? directive->getLine() : 0,
+		directive ? directive->getColumn() : 0,
+		directive ? directive->getName() : "") {}
 
 std::string	ConfigError::buildMessage(ErrorType type, const std::string& message)
 {
