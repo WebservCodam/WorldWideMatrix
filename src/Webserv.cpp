@@ -221,7 +221,7 @@ void Webserv::checkHealth()
 		}
 		it++;
 	}
-	std::cout << "Went out of the loop" << std::endl;
+	// std::cout << "Went out of the loop" << std::endl;
 }
 
 ParseStatus	Webserv::parse(int clientFd)
