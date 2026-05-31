@@ -35,6 +35,14 @@ static bool	loadFile(const std::string& path, std::string& out)
 	return (true);
 }
 
+// Returns true if `path` exists and is a directory.
+static bool	isDirectory(const std::string& path)
+{
+	struct stat	st;
+
+	return (stat(path.c_str(), &st) == 0 && S_ISDIR(st.st_mode));
+}
+
 // Fills `res` with an error page for `code`: tries the error page file
 // configured for that code, and falls back to a built-in HTML string.
 void	Server::serveErrorPage(HttpResponse& res, int code)
@@ -65,12 +73,30 @@ void	Server::handleRequest(Client& client)
 			return ;
 		}
 
-		const Location&	location = _serverConfig.getLocation(client._request.uri);
+		const std::string&	uri = client._request.uri;
+		const Location&		location = _serverConfig.getLocation(uri);
 
-		if (loadFile(location.indexPath, res.body))
+		// Strip the matched location prefix off the URI, then join the rest
+		// onto the location's directory to get the real filesystem path.
+		std::string	prefixLocation = (location.name == "/") ? "/" : "/" + location.name;
+		std::string	remainder = uri.substr(prefixLocation.size());
+		std::string	fsPath = joinPath(location.dirPath, remainder);
+
+		// A directory request serves the location's index; otherwise serve the file itself.
+		if (isDirectory(fsPath))
+		{
+			if (loadFile(location.indexPath, res.body))
+				res.status = 200;
+			else
+				// TODO: if the index is missing and location.autoindex is on,
+				// list the directory contents instead of returning 404.
+				serveErrorPage(res, 404);
+		}
+		else if (loadFile(fsPath, res.body))
 			res.status = 200;
 		else
 			serveErrorPage(res, 404);
+		std::cout << "DEBUG: fsPath is: " + fsPath << std::endl;
 	}
 	catch (const std::exception&)
 	{
