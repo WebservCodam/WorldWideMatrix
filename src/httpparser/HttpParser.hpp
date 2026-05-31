@@ -42,7 +42,6 @@ struct ConnectionContext
 {
 	std::string buffer;
 	size_t headerEnd = std::string::npos;
-	unsigned long long maxBodySize;
 	HttpRequest request;
 };
 
@@ -58,7 +57,7 @@ class HttpParser
 	private:
 		void								parseRequestLine(const std::string &line, HttpRequest &req);
 		void								parseHeaderLine(const std::string &line, HttpRequest &req);
-		size_t								bodyLength(const HttpRequest &req, const unsigned long long maxBodySize);
+		size_t								bodyLength(const HttpRequest &req);
 		bool								readLine(const char *buf, size_t length, size_t &pos, std::string &out);
 		bool								isChunked(const HttpRequest &req);
 		ParseStatus							parseChunkedBody(ConnectionContext &ctx, size_t bodyStart);

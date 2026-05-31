@@ -65,16 +65,26 @@ void	Server::handleRequest(Client& client)
 {
 	HttpResponse&	res = client._response;
 
+	std::cout << "DEBUG - in handleRequest" << std::endl;
 	try
 	{
-		if (client._request.method != "GET")
-		{
-			serveErrorPage(res, 405);
-			return ;
-		}
+		// if (client._request.method != "GET")
+		// {
+		// 	serveErrorPage(res, 405);
+		// 	return ;
+		// }
 
 		const std::string&	uri = client._request.uri;
 		const Location&		location = _serverConfig.getLocation(uri);
+
+		std::cout << "DEBUG - maxBodySize: " << location.maxBodySize << std::endl;
+		// Reject bodies larger than the location's limit (0 == no limit).
+		if (location.maxBodySize != 0 && client._request.body.size() > location.maxBodySize)
+		{
+			std::cout << "DEBUG2 - maxBodySize: " << location.maxBodySize << std::endl;
+			serveErrorPage(res, 413);
+			return ;
+		}
 
 		// Strip the matched location prefix off the URI, then join the rest
 		// onto the location's directory to get the real filesystem path.

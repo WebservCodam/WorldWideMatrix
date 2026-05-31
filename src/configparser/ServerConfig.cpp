@@ -20,7 +20,8 @@ ErrorPage	ServerConfig::getErrorPage(int code) const
 	try
 	{
 		errorPage = this->_errorPages.at(code);
-	} catch (const std::out_of_range&)
+	}
+	catch (const std::out_of_range&)
 	{
 		errorPage = this->_errorPages.at(code / 100);
 	}

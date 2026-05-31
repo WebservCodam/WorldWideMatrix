@@ -2,6 +2,15 @@
 
 #include <string>
 
+# define DEFAULT_KEEP_ALIVE_TIMEOUT 30
+# define DEFAULT_MAX_BODY_SIZE 2000000
+# define DEFAULT_ROOT_PATH "/www/"
+# define DEFAULT_ERROR_PAGES_PATH "/error_pages/"
+# define DEFAULT_40x_ERROR_CODE 400 / 100
+# define DEFAULT_40x_ERROR_PAGE "40x.html"
+# define DEFAULT_50x_ERROR_CODE 500 / 100
+# define DEFAULT_50x_ERROR_PAGE "50x.html"
+
 // Plain config value types shared between Configuration.hpp and ServerConfig.hpp.
 // Kept in their own header so neither of those two has to include the other,
 // which breaks the circular include between them.
@@ -34,14 +43,15 @@ struct	ReturnPage
 
 struct	Location
 {
-	std::string		name = "";			// This represents the location we're trying to access.
-	std::string		dirPath = "";		// This is the name with root prepended.
-	std::string		indexPath = "";		// This is the full path that goes to the index. root + location + (index?).
-	std::string		cgiParam = "";
-	bool			isCGI = false;
-	ReturnPage		returnPage = ReturnPage();
-	bool			autoindex = false;
-	bool			getMethod = false;
-	bool			postMethod = false;
-	bool			deleteMethod = false;
+	std::string			name = "";			// This represents the location we're trying to access.
+	std::string			dirPath = "";		// This is the name with root prepended.
+	std::string			indexPath = "";		// This is the full path that goes to the index. root + location + (index?).
+	unsigned long long	maxBodySize = DEFAULT_MAX_BODY_SIZE;
+	std::string			cgiParam = "";
+	bool				isCGI = false;
+	ReturnPage			returnPage = ReturnPage();
+	bool				autoindex = false;
+	bool				getMethod = false;
+	bool				postMethod = false;
+	bool				deleteMethod = false;
 };

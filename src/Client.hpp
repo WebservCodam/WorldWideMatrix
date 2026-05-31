@@ -40,7 +40,6 @@ class Client
 	private:
 	
 	public:
-		// const ServerConfig&	_serverConfig;
 		const int 			_clientFd;
 		int					_listenFd;
 		int 				_time;
@@ -50,7 +49,6 @@ class Client
 		int 				_content_length = 0;
 		std::string			_buf;
 		HttpResponse		_response;
-		unsigned long long	_maxBodySize;
 		HttpRequest			_request;
 
 		Client(int fd);
