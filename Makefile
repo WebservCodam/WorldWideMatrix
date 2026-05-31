@@ -1,4 +1,4 @@
-NAME		=			webserver
+NAME		=			webserv
 SRC_DIR 	=			src
 CONFIG_SRC_DIR = 		$(SRC_DIR)/configparser
 DIRECTIVES_SRC_DIR =	$(CONFIG_SRC_DIR)/directives_functions
