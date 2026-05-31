@@ -96,15 +96,18 @@ ParseStatus HttpParser::initParser(Client &client)
 
 	ctx.buffer = client._buf;
 	ctx.maxBodySize = client._maxBodySize;
+	std::cout << "DEBUG - client._maxBodySize: " << client._maxBodySize << std::endl;
 	try
 	{
 		status = parseRequest(ctx);
 	}
-	catch(const std::exception& e)
+	catch(const HttpException& e)
 	{
 		std::cerr << "Parse exception: " << e.what() << std::endl;
 		client._alive = false;
 		client._buf.clear();
+		client._response.status = e.getStatus();
+		std::cout << "DEBUG in initParser - response status: " + std::to_string(e.getStatus()) << std::endl;
 		return (ParseStatus::ERROR);
 	}
 
