@@ -48,9 +48,12 @@ std::string	Client::serializeResponse()
 
 	response  = "HTTP/1.1 " + std::to_string(_response.status)
 		+ " " + reasonPhrase(_response.status) + "\r\n";
-	response += "Content-Type: text/html\r\n";
+	response += "Content-Type: text/html\r\n"; // Mime?
 	response += "Content-Length: " + std::to_string(_response.body.size()) + "\r\n";
 	response += "Connection: " + std::string(_alive ? "keep-alive" : "close") + "\r\n";
+	// Add any extra headers set by the handler (e.g. Allow, Location).
+	for (const std::pair<const std::string, std::string>& header : _response.headers)
+		response += header.first + ": " + header.second + "\r\n";
 	response += "\r\n";
 	response += _response.body;
 	return (response);

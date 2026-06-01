@@ -61,6 +61,29 @@ void	Server::serveErrorPage(HttpResponse& res, int code)
 		+ " Error</h1></body></html>";
 }
 
+// Appends `method` to a comma-separated list, inserting ", " when needed.
+static void	appendMethod(std::string& list, const std::string& method)
+{
+	if (!list.empty())
+		list += ", ";
+	list += method;
+}
+
+// Builds the "Allow" header value from the methods the location permits,
+// e.g. "GET, POST".
+static std::string	allowedMethods(const Location& location)
+{
+	std::string	list;
+
+	if (location.getMethod)
+		appendMethod(list, "GET");
+	if (location.postMethod)
+		appendMethod(list, "POST");
+	if (location.deleteMethod)
+		appendMethod(list, "DELETE");
+	return (list);
+}
+
 void	Server::handleRequest(Client& client)
 {
 	HttpResponse&	res = client._response;
@@ -68,16 +91,23 @@ void	Server::handleRequest(Client& client)
 	std::cout << "DEBUG - in handleRequest" << std::endl;
 	try
 	{
-		// if (client._request.method != "GET")
-		// {
-		// 	serveErrorPage(res, 405);
-		// 	return ;
-		// }
-
 		const std::string&	uri = client._request.uri;
 		const Location&		location = _serverConfig.getLocation(uri);
 
-		std::cout << "DEBUG - maxBodySize: " << location.maxBodySize << std::endl;
+		// Is the request method allowed for this location? If not, 405 with
+		// an Allow header listing the methods that are permitted.
+		const std::string&	method = client._request.method;
+		bool				allowed = (method == "GET" && location.getMethod)
+			|| (method == "POST" && location.postMethod)
+			|| (method == "DELETE" && location.deleteMethod);
+		if (!allowed)
+		{
+			res.headers["Allow"] = allowedMethods(location);
+			serveErrorPage(res, 405);
+			return ;
+		}
+
+
 		// Reject bodies larger than the location's limit (0 == no limit).
 		if (location.maxBodySize != 0 && client._request.body.size() > location.maxBodySize)
 		{

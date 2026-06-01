@@ -30,7 +30,6 @@ class	Server;
 struct HttpResponse
 {
 	int									status;
-	std::string							header;
 	std::map<std::string, std::string>	headers;
 	std::string							body;
 };
