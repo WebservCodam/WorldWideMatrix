@@ -37,8 +37,7 @@ struct	ErrorPage
 struct	ReturnPage
 {
 	int			code = -1;
-	bool		isURI = false;
-	std::string	page = "";	// Which can store a path to a page if it is URI or it can simply store the whole page here.
+	std::string	uri = "";	// For a 3xx code: the redirect target (Location). Empty for other codes.
 };
 
 struct	Location

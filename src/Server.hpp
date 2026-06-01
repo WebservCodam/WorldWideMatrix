@@ -40,4 +40,5 @@ class Server
 
 		void	handleRequest(Client& client);
 		void	serveErrorPage(HttpResponse& res, int code);
+		void	serveReturn(HttpResponse& res, const ReturnPage& ret);
 };

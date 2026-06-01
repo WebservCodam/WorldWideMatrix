@@ -84,6 +84,20 @@ static std::string	allowedMethods(const Location& location)
 	return (list);
 }
 
+// Applies a `return` directive: a 3xx code redirects (page -> Location
+// header); any other code serves the error page for that status.
+void	Server::serveReturn(HttpResponse& res, const ReturnPage& ret)
+{
+	res.status = ret.code;
+	if (ret.code >= 300 && ret.code < 400)
+	{
+		if (!ret.uri.empty())
+			res.headers["Location"] = ret.uri;
+	}
+	else
+		serveErrorPage(res, ret.code);
+}
+
 void	Server::handleRequest(Client& client)
 {
 	HttpResponse&	res = client._response;
@@ -93,6 +107,13 @@ void	Server::handleRequest(Client& client)
 	{
 		const std::string&	uri = client._request.uri;
 		const Location&		location = _serverConfig.getLocation(uri);
+
+		// A `return` directive short-circuits everything else.
+		if (location.returnPage.code != -1)
+		{
+			serveReturn(res, location.returnPage);
+			return ;
+		}
 
 		// Is the request method allowed for this location? If not, 405 with
 		// an Allow header listing the methods that are permitted.
