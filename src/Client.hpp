@@ -12,16 +12,6 @@
 
 #pragma once
 
-// Pragma once should be at the top to avoid circular dependencies
-
-// #include <string>
-// #include <vector>
-// #include <map>
-// #include <iostream>
-// #include <sys/socket.h>
-// #include <netinet/in.h>
-// #include <sys/epoll.h>
-// #include <unistd.h>
 #include "utils.hpp"
 #include "httpparser/HttpParser.hpp"
 
@@ -32,6 +22,7 @@ struct HttpResponse
 	int									status;
 	std::map<std::string, std::string>	headers;
 	std::string							body;
+	std::string							contentType = "text/html";	// Overridden per file by its MIME type.
 };
 
 class Client
@@ -49,7 +40,7 @@ class Client
 		std::string			_buf;
 		HttpResponse		_response;
 		HttpRequest			_request;
-		bool				_parseFailed = false;	// Parser already set _response.status; serve it, don't route.
+		bool				_parseFailed = false;
 
 		Client(int fd);
 		~Client();

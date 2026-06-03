@@ -30,6 +30,7 @@ static std::string	reasonPhrase(int status)
 	{
 		case 200: return ("OK");
 		case 201: return ("Created");
+		case 204: return ("No Content");
 		case 301: return ("Moved Permanently");
 		case 302: return ("Found");
 		case 303: return ("See Other");
@@ -45,15 +46,14 @@ static std::string	reasonPhrase(int status)
 	}
 }
 
-// Builds the complete HTTP response text: status line, headers,
-// a blank line, then the body.
+// Builds the complete HTTP response text: status line, headers, a blank line, then the body.
 std::string	Client::serializeResponse()
 {
 	std::string	response;
 
 	response  = "HTTP/1.1 " + std::to_string(_response.status)
 		+ " " + reasonPhrase(_response.status) + "\r\n";
-	response += "Content-Type: text/html\r\n"; // Mime?
+	response += "Content-Type: " + _response.contentType + "\r\n";
 	response += "Content-Length: " + std::to_string(_response.body.size()) + "\r\n";
 	response += "Connection: " + std::string(_alive ? "keep-alive" : "close") + "\r\n";
 	// Add any extra headers set by the handler (e.g. Allow, Location).
