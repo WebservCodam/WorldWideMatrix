@@ -150,7 +150,6 @@ class	Parser
 		std::unique_ptr<Directive>			parseDirective();
 		std::vector<std::string>			parseParameters();
 
-		void	checkDefaultErrorPages(std::vector<std::unique_ptr<Directive>>& directives);
 		void	validateSemantics();
 
 	public:
