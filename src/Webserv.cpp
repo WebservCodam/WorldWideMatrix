@@ -159,7 +159,10 @@ void Webserv::connectIn(int clientFd)
 	else if (status == ERROR)
 	{
 		std::cerr << "DEBUG: ERROR thrown while parsing HTTP request." << std::endl;
-		// And we want the event to be switched to EPOLLOUT?
+		// The parser set the error status; build its body and serve it as-is
+		// instead of routing the request (which would clobber the status).
+		_clientFdToServer.at(clientFd)->serveErrorPage(client._response, client._response.status);
+		client._parseFailed = true;
 	}
 
 	//else -> status == COMPLETE and we can switch the epoll event to EPOLLOUT
@@ -184,7 +187,8 @@ void Webserv::connectOut(int clientFd)
 	Client&	client = _clients.at(clientFd);
 	Server*	server = _clientFdToServer.at(clientFd);
 
-	server->handleRequest(client);
+	if (!client._parseFailed)
+		server->handleRequest(client);
 
 	std::string	response = client.serializeResponse();
 	write(clientFd, response.c_str(), response.length());

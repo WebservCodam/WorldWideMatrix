@@ -49,6 +49,7 @@ class Client
 		std::string			_buf;
 		HttpResponse		_response;
 		HttpRequest			_request;
+		bool				_parseFailed = false;	// Parser already set _response.status; serve it, don't route.
 
 		Client(int fd);
 		~Client();

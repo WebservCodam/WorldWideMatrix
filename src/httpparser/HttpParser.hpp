@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/25 15:36:03 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/27 15:20:07 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/06/03 16:04:03 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,10 @@
 #include <string>
 #include <fstream>
 #include <algorithm>
+
+// Hard cap on a request body, enforced by the parser before buffering it.
+
+# define MAX_REQUEST_BODY_SIZE 10485760 // 10 MB
 
 class Client;
 

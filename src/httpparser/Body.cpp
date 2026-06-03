@@ -152,6 +152,11 @@ ParseStatus	HttpParser::parseChunkedBody(ConnectionContext &ctx, size_t bodyStar
 			return (ParseStatus::COMPLETE);
 		}
 
+		// Chunked has no Content-Length, so cap the decoded body as it grows.
+		// Checked against the announced chunk size, before buffering it.
+		if (decoded.size() + chunkSize > MAX_REQUEST_BODY_SIZE)
+			throw HttpException(413, "Payload too large");
+
 		if (pos + chunkSize + 2 > length)
 			return (ParseStatus::INCOMPLETE);
 

@@ -71,6 +71,12 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 	if (hasContentLength)
 	{
 		size_t expectedBody = bodyLength(ctx.request);
+
+		// Reject oversized bodies from the Content-Length header alone, before
+		// buffering a single byte of the body.
+		if (expectedBody > MAX_REQUEST_BODY_SIZE)
+			throw HttpException(413, "Payload too large");
+
 		if (availableBody < expectedBody)
 			return ParseStatus::INCOMPLETE;
 
