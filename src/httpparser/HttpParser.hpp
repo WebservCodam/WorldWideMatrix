@@ -25,8 +25,6 @@
 #include <fstream>
 #include <algorithm>
 
-// Hard cap on a request body, enforced by the parser before buffering it.
-
 # define MAX_REQUEST_BODY_SIZE 10485760 // 10 MB
 
 class Client;
