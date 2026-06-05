@@ -24,7 +24,7 @@ Client::~Client()
 }
 
 // Maps a status code to its reason phrase.
-static std::string	reasonPhrase(int status)
+std::string	reasonPhrase(int status)
 {
 	switch (status)
 	{
@@ -37,13 +37,54 @@ static std::string	reasonPhrase(int status)
 		case 307: return ("Temporary Redirect");
 		case 308: return ("Permanent Redirect");
 		case 400: return ("Bad Request");
+		case 401: return ("Unauthorized");
 		case 403: return ("Forbidden");
 		case 404: return ("Not Found");
 		case 405: return ("Method Not Allowed");
 		case 413: return ("Payload Too Large");
+		case 414: return ("URI Too Long");
+		case 431: return ("Request Header Fields Too Large");
 		case 500: return ("Internal Server Error");
+		case 501: return ("Not Implemented");
+		case 502: return ("Bad Gateway");
+		case 503: return ("Service Unavailable");
+		case 505: return ("HTTP Version Not Supported");
 		default:  return ("Unknown");
 	}
+}
+
+// Builds a self-contained, styled HTML error page for `status`. The status
+// code maps to a reason phrase, and both are dropped into a fixed template,
+// so we can serve any error without shipping a file per code.
+std::string	defaultErrorPage(int status)
+{
+	std::string	code = std::to_string(status);
+	std::string	reason = reasonPhrase(status);
+
+	return (
+		"<!DOCTYPE html>\n"
+		"<html lang=\"en\">\n"
+		"<head>\n"
+		"<meta charset=\"UTF-8\">\n"
+		"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+		"<title>" + code + " — " + reason + "</title>\n"
+		"<style>\n"
+		"  body { margin: 0; min-height: 100vh; display: flex; align-items: center;\n"
+		"    justify-content: center; font-family: Georgia, serif; background: #fafafa; color: #222; }\n"
+		"  .page { text-align: center; }\n"
+		"  h1 { font-size: 5rem; margin: 0; font-weight: normal; }\n"
+		"  p { margin: 0.5rem 0 1.5rem; color: #888; }\n"
+		"  a { color: #222; font-size: 0.9rem; }\n"
+		"</style>\n"
+		"</head>\n"
+		"<body>\n"
+		"  <div class=\"page\">\n"
+		"    <h1>" + code + "</h1>\n"
+		"    <p>" + reason + "</p>\n"
+		"    <a href=\"/\">Go home</a>\n"
+		"  </div>\n"
+		"</body>\n"
+		"</html>\n");
 }
 
 // Builds the complete HTTP response text: status line, headers, a blank line, then the body.

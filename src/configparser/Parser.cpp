@@ -130,34 +130,6 @@ std::vector<std::string>	Parser::parseParameters()
 	return (parameters);
 }
 
-void	Parser::checkDefaultErrorPages(std::vector<std::unique_ptr<Directive>>& directives)
-{
-	Directive*	root = nullptr;
-	std::string	errorPagesRoot;
-	std::string	uri40x;
-	std::string uri50x;
-	struct stat	st;
-
-	for (auto it = directives.begin(); it != directives.end(); ++it)
-	{
-		if ((*it)->getName() == "root")
-		{
-			root = it->get();
-			break;
-		}
-	}
-	if (!root)
-		errorPagesRoot = "./www/error_pages/";
-	else
-		errorPagesRoot = joinPath(root->getParameter(0), "error_pages");
-
-	uri40x = joinPath(errorPagesRoot, "40x.html");
-	uri50x = joinPath(errorPagesRoot, "50x.html");
-
-	checkPath(uri40x, ErrorType::VALIDATOR, "40x error page: " + uri40x, false);
-	checkPath(uri50x, ErrorType::VALIDATOR, "50x error page: " + uri50x, false);
-}
-
 void	Parser::validateSemantics()
 {
 	std::vector<std::unique_ptr<Directive>>&	directives = _configFile->getDirectives();
@@ -170,6 +142,5 @@ void	Parser::validateSemantics()
 		validateDirective(directive.get());
 		// std::cout << "DEBUG: directive name: " << directive.get()->getName() << std::endl;
 	}
-	checkDefaultErrorPages(directives);
 	return ;
 }

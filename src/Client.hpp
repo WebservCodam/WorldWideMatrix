@@ -25,6 +25,12 @@ struct HttpResponse
 	std::string							contentType = "text/html";	// Overridden per file by its MIME type.
 };
 
+// Maps an HTTP status code to its reason phrase (e.g. 404 -> "Not Found").
+std::string	reasonPhrase(int status);
+// Builds a self-contained HTML error page for `status`, using its reason
+// phrase. Served when no error_page file is configured or it can't be read.
+std::string	defaultErrorPage(int status);
+
 class Client
 {
 	private:

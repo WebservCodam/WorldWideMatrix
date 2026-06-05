@@ -78,10 +78,11 @@ static std::string	mimeType(const std::string& path)
 }
 
 // Fills `res` with an error page for `code`: tries the error page file
-// configured for that code, and falls back to a built-in HTML string.
+// configured for that code, and falls back to a generated default page.
 void	Server::serveErrorPage(HttpResponse& res, int code)
 {
 	res.status = code;
+	res.contentType = "text/html";
 	try
 	{
 		ErrorPage	errorPage = _serverConfig.getErrorPage(code);
@@ -91,8 +92,7 @@ void	Server::serveErrorPage(HttpResponse& res, int code)
 	catch (const std::exception&)
 	{
 	}
-	res.body = "<html><body><h1>" + std::to_string(code)
-		+ " Error</h1></body></html>";
+	res.body = defaultErrorPage(code);
 }
 
 // Appends `method` to a comma-separated list, inserting ", " when needed.

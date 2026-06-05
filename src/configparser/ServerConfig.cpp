@@ -13,19 +13,11 @@ ServerConfig::ServerConfig(const std::string& serverName,
 {
 }
 
+// Returns the error page configured for `code`, or throws std::out_of_range
+// if none was set (the caller then serves a generated default page).
 ErrorPage	ServerConfig::getErrorPage(int code) const
 {
-	ErrorPage	errorPage;
-
-	try
-	{
-		errorPage = this->_errorPages.at(code);
-	}
-	catch (const std::out_of_range&)
-	{
-		errorPage = this->_errorPages.at(code / 100);
-	}
-	return (errorPage);
+	return (this->_errorPages.at(code));
 }
 
 const Location&	ServerConfig::getLocation(const std::string& uri) const

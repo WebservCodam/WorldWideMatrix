@@ -52,19 +52,13 @@ void	validateErrorPageDirective(Directive* node)
  */
 void	ConfigFile::processErrorPages(Directive* directive, std::unordered_map<int, ErrorPage>& errorPages)
 {
-	Directive*	serverDirective = directive->getParent();
 	std::string	URI;
 	bool		isRedirect = false;
 	int			redirectCode = -1;
 	int			numErrorCodes;
-	std::string	root;
 
-	// Include default error pages with codes 4 & 5.
-	root = getRoot(serverDirective);
-	root = joinPath(root, DEFAULT_ERROR_PAGES_PATH);
-	errorPages.emplace(DEFAULT_40x_ERROR_CODE, ErrorPage(DEFAULT_40x_ERROR_CODE, joinPath(root, DEFAULT_40x_ERROR_PAGE)));
-	errorPages.emplace(DEFAULT_50x_ERROR_CODE, ErrorPage(DEFAULT_50x_ERROR_CODE, joinPath(root, DEFAULT_50x_ERROR_PAGE)));
-
+	// Codes without a configured error_page fall back to a generated default
+	// page at serve time, so nothing is seeded here.
 	numErrorCodes = directive->getParameters().size() - 1;
 	URI = directive->getParameter(numErrorCodes);
 
