@@ -13,7 +13,7 @@
 #include "HttpParser.hpp"
 #include <vector>
 
-size_t	HttpParser::bodyLength(const HttpRequest &req, const unsigned long long maxBodySize)
+size_t	HttpParser::bodyLength(const HttpRequest &req)
 {
 	std::map<std::string, std::string>::const_iterator it = req.headers.find("content-length");
 	if (it == req.headers.end())
@@ -38,9 +38,6 @@ size_t	HttpParser::bodyLength(const HttpRequest &req, const unsigned long long m
 	} catch (...) {
 		throw HttpException(400, "Invalid Content-Length");
 	}
-
-	if (len > maxBodySize)
-		throw HttpException(413, "Payload too large");
 
 	return static_cast<size_t>(len);
 }
@@ -154,6 +151,11 @@ ParseStatus	HttpParser::parseChunkedBody(ConnectionContext &ctx, size_t bodyStar
 			ctx.headerEnd = std::string::npos;
 			return (ParseStatus::COMPLETE);
 		}
+
+		// Chunked has no Content-Length, so cap the decoded body as it grows.
+		// Checked against the announced chunk size, before buffering it.
+		if (decoded.size() + chunkSize > MAX_REQUEST_BODY_SIZE)
+			throw HttpException(413, "Payload too large");
 
 		if (pos + chunkSize + 2 > length)
 			return (ParseStatus::INCOMPLETE);

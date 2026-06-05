@@ -20,21 +20,46 @@ ErrorPage	ServerConfig::getErrorPage(int code) const
 	try
 	{
 		errorPage = this->_errorPages.at(code);
-	} catch (const std::out_of_range&)
+	}
+	catch (const std::out_of_range&)
 	{
 		errorPage = this->_errorPages.at(code / 100);
 	}
 	return (errorPage);
 }
 
-const Location&	ServerConfig::getLocation(const std::string& name) const
+const Location&	ServerConfig::getLocation(const std::string& uri) const
 {
-	std::string	trimmedName = trimPathName(name);
+	const Location*	best = nullptr;
+	std::size_t		bestLen = 0;
+	
+	std::cout << "DEBUG getLocation" << std::endl;
+	std::cout << "DEBUG - uri is: " + uri << std::endl;
 
 	for (const Location& location : _locations)
 	{
-		if (trimmedName == location.name)
-			return (location);
+		// Rebuild the location path with a leading slash: "images" -> "/images",
+		// root stays "/". This is what we test the request URI against.
+		std::string	prefixLocation = (location.name == "/") ? "/" : "/" + location.name;
+		
+		std::cout << "DEBUG - prefixLocation is: " + prefixLocation << std::endl;
+
+		// The URI must start with the location path...
+		if (uri.compare(0, prefixLocation.size(), prefixLocation) != 0)
+			continue;
+		// ...and line up on a whole path segment, so "/images" does not match "/imagesXYZ".
+		bool	matchesWholeSegment = (prefixLocation == "/")
+			|| uri.size() == prefixLocation.size()
+			|| uri[prefixLocation.size()] == '/';
+		// Keep the longest match ('>' so root, length 1, is only a fallback).
+		if (matchesWholeSegment && prefixLocation.size() > bestLen)
+		{
+			best = &location;
+			bestLen = prefixLocation.size();
+		}
 	}
-	throw ConfigError::semantics("Couldn't find a location with the given name: " + name, nullptr);
+	if (best == nullptr)
+		throw ConfigError::semantics("Couldn't find a location matching the URI: " + uri, nullptr);
+	std::cout << "DEBUG - best location is: " + best->name << std::endl;
+	return (*best);
 }

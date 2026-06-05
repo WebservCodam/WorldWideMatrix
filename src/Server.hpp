@@ -18,6 +18,7 @@
 #include "configparser/ServerConfig.hpp"
 
 class Client;
+struct HttpResponse;
 
 class Server
 {
@@ -38,4 +39,6 @@ class Server
 		const std::vector<int>&	getListenFds() const { return _listenFds; };
 
 		void	handleRequest(Client& client);
+		void	serveErrorPage(HttpResponse& res, int code);
+		void	serveReturn(HttpResponse& res, const ReturnPage& ret);
 };

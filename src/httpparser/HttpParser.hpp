@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/25 15:36:03 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/02/27 15:20:07 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/06/03 16:04:03 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,8 @@
 #include <fstream>
 #include <algorithm>
 
+# define MAX_REQUEST_BODY_SIZE 10485760 // 10 MB
+
 class Client;
 
 struct HttpRequest
@@ -42,7 +44,6 @@ struct ConnectionContext
 {
 	std::string buffer;
 	size_t headerEnd = std::string::npos;
-	unsigned long long maxBodySize;
 	HttpRequest request;
 };
 
@@ -58,7 +59,7 @@ class HttpParser
 	private:
 		void								parseRequestLine(const std::string &line, HttpRequest &req);
 		void								parseHeaderLine(const std::string &line, HttpRequest &req);
-		size_t								bodyLength(const HttpRequest &req, const unsigned long long maxBodySize);
+		size_t								bodyLength(const HttpRequest &req);
 		bool								readLine(const char *buf, size_t length, size_t &pos, std::string &out);
 		bool								isChunked(const HttpRequest &req);
 		ParseStatus							parseChunkedBody(ConnectionContext &ctx, size_t bodyStart);

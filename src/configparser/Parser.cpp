@@ -1,7 +1,5 @@
 #include "Configuration.hpp"
 
-
-
 const	Token&	Parser::currentToken() const
 {
 	if (_currentIndex >= _tokens.size())

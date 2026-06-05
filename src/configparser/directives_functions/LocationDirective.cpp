@@ -27,6 +27,7 @@ Location	ConfigFile::processLocation(Directive* directive)
 		throw ConfigError::semantics("Location directive is not in any server.", directive);
 	root = getRoot(server);
 	location.autoindex = getAutoindex(server);
+	location.maxBodySize = processClientMaxBodySize(server->getChild("client_max_body_size"));
 
 	indexDirective = server->getChild("index");
 	if (indexDirective)
@@ -52,6 +53,8 @@ Location	ConfigFile::processLocation(Directive* directive)
 
 		if (name == "root")
 			root = child->getParameter(0);
+		else if (name == "client_max_body_size")
+			location.maxBodySize = processClientMaxBodySize(child);
 		else if (name == "index")
 			index = child->getParameter(0);
 		else if (name == "autoindex")

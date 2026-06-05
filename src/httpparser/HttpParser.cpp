@@ -70,12 +70,18 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 	
 	if (hasContentLength)
 	{
-		size_t expectedBody = bodyLength(ctx.request, ctx.maxBodySize);
+		size_t expectedBody = bodyLength(ctx.request);
+
+		// Reject oversized bodies from the Content-Length header alone, before
+		// buffering a single byte of the body.
+		if (expectedBody > MAX_REQUEST_BODY_SIZE)
+			throw HttpException(413, "Payload too large");
+
 		if (availableBody < expectedBody)
 			return ParseStatus::INCOMPLETE;
 
-		// if (availableBody > expectedBody)
-		// 	throw HttpException(400, "Body larger than Content-Length");
+		if (availableBody > expectedBody)
+			throw HttpException(400, "Body larger than Content-Length");
 			
 		ctx.request.body = ctx.buffer.substr(bodyStart, expectedBody);
 		ctx.buffer.erase(0, bodyStart + expectedBody);
@@ -95,16 +101,17 @@ ParseStatus HttpParser::initParser(Client &client)
 	ConnectionContext	ctx;
 
 	ctx.buffer = client._buf;
-	ctx.maxBodySize = client._maxBodySize;
 	try
 	{
 		status = parseRequest(ctx);
 	}
-	catch(const std::exception& e)
+	catch(const HttpException& e)
 	{
 		std::cerr << "Parse exception: " << e.what() << std::endl;
 		client._alive = false;
 		client._buf.clear();
+		client._response.status = e.getStatus();
+		std::cout << "DEBUG in initParser - response status: " + std::to_string(e.getStatus()) << std::endl;
 		return (ParseStatus::ERROR);
 	}
 

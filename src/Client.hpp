@@ -30,7 +30,6 @@ class	Server;
 struct HttpResponse
 {
 	int									status;
-	std::string							header;
 	std::map<std::string, std::string>	headers;
 	std::string							body;
 };
@@ -40,7 +39,6 @@ class Client
 	private:
 	
 	public:
-		// const ServerConfig&	_serverConfig;
 		const int 			_clientFd;
 		int					_listenFd;
 		int 				_time;
@@ -50,8 +48,8 @@ class Client
 		int 				_content_length = 0;
 		std::string			_buf;
 		HttpResponse		_response;
-		unsigned long long	_maxBodySize;
 		HttpRequest			_request;
+		bool				_parseFailed = false;	// Parser already set _response.status; serve it, don't route.
 
 		Client(int fd);
 		~Client();

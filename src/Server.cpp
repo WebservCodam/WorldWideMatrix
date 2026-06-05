@@ -20,46 +20,147 @@ void	Server::addListenFd(int listenFd)
 	_listenFds.push_back(listenFd);
 }
 
-void	Server::handleRequest(Client& client)
+// Reads the entire file at `path` into `out`.
+// Returns false if the file can't be opened, true on success.
+static bool	loadFile(const std::string& path, std::string& out)
 {
-	std::cout << "DEBUG - handleRequest" << std::endl;
+	std::ifstream	file(path);
 
-	try
-	{
-		if (client._request.method == "GET")
-		{
-			std::cout << "DEBUG: URI: " << client._request.uri << std::endl;
-			// std::vector<Location>	locations = ;
+	if (!file.is_open())
+		return (false);
 
-			// client._response.headers = "HTTP/1.1 200 OK\nContent-Type: text/html\n";
-			client._response.body = "hello world\n";
-
-			const Location& location = _serverConfig.getLocation(client._request.uri);
-
-			std::ifstream		file_stream(location.indexPath);
-			std::stringstream	buffer;
-		
-		// if (!file_stream.is_open()) {
-		//     return ""; // Return empty string if the file can't be opened
-		// }
-		
-			client._response.body = buffer.str();
-			file_stream.close();
-			client._response.headers.insert(std::make_pair("header", "HTTP/1.1 200 OK\nContent-Type: text/html\n Content-Length: " + std::to_string(client._request.body.length()) + "\n\n"));
-		}
-	}
-	catch (std::runtime_error& e)
-	{
-		std::cout << "Caught exception: " << e.what() << std::endl;
-	}
- 
-	// std::cout << "Version: " << client._request.version << std::endl;
-	// std::cout << "Method: " << client._request.method << std::endl;
-	// std::cout << "URI: " << client._request.uri << std::endl;
-	// for (const auto& header : client._request.headers)
-	// {
-	// 	std::cout << "Header: " << header.first << "=>" << header.second << std::endl;
-	// }
-	// std::cout << "Body: " << client._request.body << std::endl;
+	std::stringstream	buffer;
+	buffer << file.rdbuf();
+	out = buffer.str();
+	return (true);
 }
 
+// Returns true if `path` exists and is a directory.
+static bool	isDirectory(const std::string& path)
+{
+	struct stat	st;
+
+	return (stat(path.c_str(), &st) == 0 && S_ISDIR(st.st_mode));
+}
+
+// Fills `res` with an error page for `code`: tries the error page file
+// configured for that code, and falls back to a built-in HTML string.
+void	Server::serveErrorPage(HttpResponse& res, int code)
+{
+	res.status = code;
+	try
+	{
+		ErrorPage	errorPage = _serverConfig.getErrorPage(code);
+		if (loadFile(errorPage.URI, res.body))
+			return ;
+	}
+	catch (const std::exception&)
+	{
+	}
+	res.body = "<html><body><h1>" + std::to_string(code)
+		+ " Error</h1></body></html>";
+}
+
+// Appends `method` to a comma-separated list, inserting ", " when needed.
+static void	appendMethod(std::string& list, const std::string& method)
+{
+	if (!list.empty())
+		list += ", ";
+	list += method;
+}
+
+// Builds the "Allow" header value from the methods the location permits,
+// e.g. "GET, POST".
+static std::string	allowedMethods(const Location& location)
+{
+	std::string	list;
+
+	if (location.getMethod)
+		appendMethod(list, "GET");
+	if (location.postMethod)
+		appendMethod(list, "POST");
+	if (location.deleteMethod)
+		appendMethod(list, "DELETE");
+	return (list);
+}
+
+// Applies a `return` directive: a 3xx code redirects (page -> Location
+// header); any other code serves the error page for that status.
+void	Server::serveReturn(HttpResponse& res, const ReturnPage& ret)
+{
+	res.status = ret.code;
+	if (ret.code >= 300 && ret.code < 400)
+	{
+		if (!ret.uri.empty())
+			res.headers["Location"] = ret.uri;
+	}
+	else
+		serveErrorPage(res, ret.code);
+}
+
+void	Server::handleRequest(Client& client)
+{
+	HttpResponse&	res = client._response;
+
+	std::cout << "DEBUG - in handleRequest" << std::endl;
+	try
+	{
+		const std::string&	uri = client._request.uri;
+		const Location&		location = _serverConfig.getLocation(uri);
+
+		// A `return` directive short-circuits everything else.
+		if (location.returnPage.code != -1)
+		{
+			serveReturn(res, location.returnPage);
+			return ;
+		}
+
+		// Is the request method allowed for this location? If not, 405 with
+		// an Allow header listing the methods that are permitted.
+		const std::string&	method = client._request.method;
+		bool				allowed = (method == "GET" && location.getMethod)
+			|| (method == "POST" && location.postMethod)
+			|| (method == "DELETE" && location.deleteMethod);
+		if (!allowed)
+		{
+			res.headers["Allow"] = allowedMethods(location);
+			serveErrorPage(res, 405);
+			return ;
+		}
+
+
+		// Reject bodies larger than the location's limit (0 == no limit).
+		if (location.maxBodySize != 0 && client._request.body.size() > location.maxBodySize)
+		{
+			std::cout << "DEBUG2 - maxBodySize: " << location.maxBodySize << std::endl;
+			serveErrorPage(res, 413);
+			return ;
+		}
+
+		// Strip the matched location prefix off the URI, then join the rest
+		// onto the location's directory to get the real filesystem path.
+		std::string	prefixLocation = (location.name == "/") ? "/" : "/" + location.name;
+		std::string	remainder = uri.substr(prefixLocation.size());
+		std::string	fsPath = joinPath(location.dirPath, remainder);
+
+		// A directory request serves the location's index; otherwise serve the file itself.
+		if (isDirectory(fsPath))
+		{
+			if (loadFile(location.indexPath, res.body))
+				res.status = 200;
+			else
+				// TODO: if the index is missing and location.autoindex is on,
+				// list the directory contents instead of returning 404.
+				serveErrorPage(res, 404);
+		}
+		else if (loadFile(fsPath, res.body))
+			res.status = 200;
+		else
+			serveErrorPage(res, 404);
+		std::cout << "DEBUG: fsPath is: " + fsPath << std::endl;
+	}
+	catch (const std::exception&)
+	{
+		serveErrorPage(res, 404);
+	}
+}

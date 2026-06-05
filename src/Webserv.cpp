@@ -159,7 +159,10 @@ void Webserv::connectIn(int clientFd)
 	else if (status == ERROR)
 	{
 		std::cerr << "DEBUG: ERROR thrown while parsing HTTP request." << std::endl;
-		// And we want the event to be switched to EPOLLOUT?
+		// The parser set the error status; build its body and serve it as-is
+		// instead of routing the request (which would clobber the status).
+		_clientFdToServer.at(clientFd)->serveErrorPage(client._response, client._response.status);
+		client._parseFailed = true;
 	}
 
 	//else -> status == COMPLETE and we can switch the epoll event to EPOLLOUT
@@ -181,30 +184,28 @@ void Webserv::connectIn(int clientFd)
 
 void Webserv::connectOut(int clientFd)
 {
+	Client&	client = _clients.at(clientFd);
+	Server*	server = _clientFdToServer.at(clientFd);
+
+	if (!client._parseFailed)
+		server->handleRequest(client);
+
+	std::string	response = client.serializeResponse();
+	write(clientFd, response.c_str(), response.length());
+
+	if (client._alive == false)
+	{
+		closeAndRemoveFdFromClientList(clientFd);
+		return ;
+	}
+
 	struct epoll_event	event;
-
-	// Client&	client = _clients.at(clientFd);
-	// Server* server = _clientFdToServer.at(clientFd);
-
-	// server->handleRequest(client);
-
-	// std::string	response = client.serializeResponse();
-
-	// client._buf.clear();
-	// write(clientFd, response.c_str(), response.length());
-	// if (client._alive == false)
-	// {
-	// 	closeAndRemoveFdFromClientList(clientFd);
-	// 	return ;
-	// }
-
-	std::cout << "------------ RESPONSE END -----------------" << std::endl;
 	event.events = EPOLLIN;
 	event.data.fd = clientFd;
 	if (epoll_ctl(_epfd, EPOLL_CTL_MOD, clientFd, &event) == -1)
 	{
 		perror("Epoll_ctl: switch to EPOLLIN failed");
-		close(clientFd);
+		closeAndRemoveFdFromClientList(clientFd);
 	}
 }
 
@@ -224,7 +225,7 @@ void Webserv::checkHealth()
 		}
 		it++;
 	}
-	std::cout << "Went out of the loop" << std::endl;
+	// std::cout << "Went out of the loop" << std::endl;
 }
 
 ParseStatus	Webserv::parse(int clientFd)
