@@ -13,6 +13,8 @@
 #include "Server.hpp"
 #include "Client.hpp"
 
+#include <cctype>	// std::tolower in mimeType()
+
 Server::Server(const ServerConfig& serverConfig): _serverConfig(serverConfig) {}
 
 void	Server::addListenFd(int listenFd)
@@ -41,6 +43,38 @@ static bool	isDirectory(const std::string& path)
 	struct stat	st;
 
 	return (stat(path.c_str(), &st) == 0 && S_ISDIR(st.st_mode));
+}
+
+// Maps a file's extension to its MIME type for the Content-Type header.
+// Matching is case-insensitive.
+// Unknown extensions fall back to a generic content-type.
+static std::string	mimeType(const std::string& path)
+{
+	static const std::map<std::string, std::string>	types = {
+		{".html", "text/html"}, {".htm", "text/html"},
+		{".css", "text/css"}, {".js", "text/javascript"},
+		{".json", "application/json"}, {".txt", "text/plain"},
+		{".png", "image/png"}, {".gif", "image/gif"},
+		{".jpg", "image/jpeg"}, {".jpeg", "image/jpeg"},
+		{".svg", "image/svg+xml"}, {".ico", "image/x-icon"},
+		{".pdf", "application/pdf"},
+	};
+
+	// Only look at the last path component so dots in directory names
+	// (e.g. "/a.b/index") aren't mistaken for an extension.
+	std::string::size_type	slash = path.find_last_of('/');
+	std::string::size_type	dot = path.find_last_of('.');
+	if (dot == std::string::npos || (slash != std::string::npos && dot < slash))
+		return ("application/octet-stream");
+
+	std::string	ext = path.substr(dot);
+	for (char& c : ext)
+		c = std::tolower(static_cast<unsigned char>(c));
+
+	std::map<std::string, std::string>::const_iterator	it = types.find(ext);
+	if (it != types.end())
+		return (it->second);
+	return ("application/octet-stream");
 }
 
 // Fills `res` with an error page for `code`: tries the error page file
@@ -147,14 +181,20 @@ void	Server::handleRequest(Client& client)
 		if (isDirectory(fsPath))
 		{
 			if (loadFile(location.indexPath, res.body))
+			{
 				res.status = 200;
+				res.contentType = mimeType(location.indexPath);
+			}
 			else
 				// TODO: if the index is missing and location.autoindex is on,
 				// list the directory contents instead of returning 404.
 				serveErrorPage(res, 404);
 		}
 		else if (loadFile(fsPath, res.body))
+		{
 			res.status = 200;
+			res.contentType = mimeType(fsPath);
+		}
 		else
 			serveErrorPage(res, 404);
 		std::cout << "DEBUG: fsPath is: " + fsPath << std::endl;
