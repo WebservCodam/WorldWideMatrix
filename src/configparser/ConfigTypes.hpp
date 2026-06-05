@@ -48,4 +48,5 @@ struct	Location
 	bool				getMethod = false;
 	bool				postMethod = false;
 	bool				deleteMethod = false;
+	std::string			uploadPath = "";	// Directory where POST bodies are written.
 };

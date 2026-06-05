@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/05/20 10:46:08 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/06/05 18:47:35 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,6 +132,36 @@ void	Server::serveReturn(HttpResponse& res, const ReturnPage& ret)
 		serveErrorPage(res, ret.code);
 }
 
+void	Server::_servePost(HttpResponse& res, const std::string& body, const Location& location, const std::string& remainder)
+{
+	if (remainder.empty() || remainder == "/")
+	{
+		serveErrorPage(res, 400);
+		return ;
+	}
+
+	if (access(location.uploadPath.c_str(), W_OK) != 0)
+	{
+		serveErrorPage(res, 403);
+		return ;
+	}
+
+	std::string		uploadPath = joinPath(location.uploadPath, remainder);
+	std::ofstream	out(uploadPath, std::ios::binary | std::ios::trunc);
+	if (!out.is_open())
+	{
+		serveErrorPage(res, 500);
+		return ;
+	}
+	out.write(body.data(), static_cast<std::streamsize>(body.size()));
+	if (!out)
+	{
+		serveErrorPage(res, 500);
+		return ;
+	}
+	res.status = 201;
+}
+
 void	Server::handleRequest(Client& client)
 {
 	HttpResponse&	res = client._response;
@@ -176,6 +206,12 @@ void	Server::handleRequest(Client& client)
 		std::string	prefixLocation = (location.name == "/") ? "/" : "/" + location.name;
 		std::string	remainder = uri.substr(prefixLocation.size());
 		std::string	fsPath = joinPath(location.dirPath, remainder);
+
+		if (method == "POST")
+		{
+			_servePost(res, client._request.body, location, remainder);
+			return ;
+		}
 
 		// A directory request serves the location's index; otherwise serve the file itself.
 		if (isDirectory(fsPath))

@@ -62,6 +62,8 @@ Location	ConfigFile::processLocation(Directive* directive)
 			std::string autoindexParam = child->getParameter(0);
 			location.autoindex = (autoindexParam == "on" || autoindexParam == "true");
 		}
+		else if (name == "upload_path")
+			location.uploadPath = joinPath(".", child->getParameter(0));
 		else if (name == "methods")
 		{
 			for (const std::string& method : child->getParameters())
@@ -86,6 +88,9 @@ Location	ConfigFile::processLocation(Directive* directive)
 	location.dirPath = joinPath(root, location.name);
 	if (!index.empty())
 		location.indexPath = joinPath(location.dirPath, index);
+
+	if (location.postMethod && location.uploadPath.empty())
+		throw ConfigError::semantics("Location '" + location.name + "' allows POST but has no upload_path directive.", directive);
 
 	return (location);
 }

@@ -268,7 +268,7 @@ void	validateMethodsDirective(Directive* node);
 void	validateClientMaxBodySizeDirective(Directive* node);
 // void	validateAllowOrDenyDirective(Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
 void	validateKeepaliveTimeoutDirective(Directive* node);
-// void	validateUploadPathDirective(Directive* node);
+void	validateUploadPathDirective(Directive* node);
 void	validateCgiHandlerDirective(Directive* node);
 
 // =============== --- Utilities --- ===============
