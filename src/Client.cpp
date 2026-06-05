@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   Client.cpp                                         :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vknape <vknape@student.codam.nl>             +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/09/12 14:12:28 by vknape        #+#    #+#                 */
-/*   Updated: 2026/05/20 10:41:30 by rkaras        ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Client.hpp"
 #include "Server.hpp"
 
@@ -53,8 +41,8 @@ std::string	reasonPhrase(int status)
 	}
 }
 
-// Builds a self-contained, styled HTML error page for `status`. The status
-// code maps to a reason phrase, and both are dropped into a fixed template,
+// Builds a self-contained, styled HTML error page for `status`.
+// The status code maps to a reason phrase, and both are dropped into a fixed template,
 // so we can serve any error without shipping a file per code.
 std::string	defaultErrorPage(int status)
 {

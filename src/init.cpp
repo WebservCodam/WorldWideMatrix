@@ -6,33 +6,12 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 14:20:54 by vknape        #+#    #+#                 */
-/*   Updated: 2026/04/29 18:58:20 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/06/05 17:57:10 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "utils.hpp"
 #include "Webserv.hpp" // For EPOLL_NBR_EVENTS
-
-// void	initServer(int& listenFd, int& epfd)
-// {
-// 	int epfd;
-
-// 	epfd = epoll_create(1000);
-// 	if (epfd < 0)
-// 		throw std::runtime_error("Failed to create epoll fd");
-
-// 	while (true)
-// 	{
-// 		servecreateSocket(NULL, 8080);
-// 		break ;
-// 	}
-// 	//epoll start
-// 	static struct epoll_event event;
-// 	event.data.fd = listenFd;
-// 	event.events = EPOLLIN | EPOLLET | EPOLLPRI | EPOLLHUP;
-// 	if (epoll_ctl(epfd, EPOLL_CTL_ADD, listenFd, &event) == -1)
-// 		throw std::runtime_error("Server add to epoll failed");
-// }
 
 int createSocket(const char* ip, const char* port)
 {

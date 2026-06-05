@@ -1,19 +1,5 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   Server.cpp                                         :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vknape <vknape@student.codam.nl>             +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/05/20 10:46:08 by rkaras        ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Server.hpp"
 #include "Client.hpp"
-
-#include <cctype>	// std::tolower in mimeType()
 
 Server::Server(const ServerConfig& serverConfig): _serverConfig(serverConfig) {}
 
@@ -57,7 +43,7 @@ static std::string	mimeType(const std::string& path)
 		{".png", "image/png"}, {".gif", "image/gif"},
 		{".jpg", "image/jpeg"}, {".jpeg", "image/jpeg"},
 		{".svg", "image/svg+xml"}, {".ico", "image/x-icon"},
-		{".pdf", "application/pdf"},
+		{".pdf", "application/pdf"}, {".mp3", "audio/mp3"}
 	};
 
 	// Only look at the last path component so dots in directory names
@@ -132,11 +118,50 @@ void	Server::serveReturn(HttpResponse& res, const ReturnPage& ret)
 		serveErrorPage(res, ret.code);
 }
 
+// Builds an HTML page listing the contents of the directory at `fsPath`.
+// Each entry is rendered as a link relative to the request `uri`.
+// Returns false if the directory can't be opened (caller serves the error page), true on success.
+static bool	serveAutoindex(HttpResponse& res, const std::string& fsPath, const std::string& uri)
+{
+	DIR	*dir = opendir(fsPath.c_str());
+
+	if (!dir)
+		return (false);
+
+	// Make sure the base for the links ends with '/', so "uri" + "name" produces a valid path
+	// (e.g. "/files/" + "a.txt" -> "/files/a.txt").
+	std::string	base = uri;
+	if (base.empty() || base.back() != '/')
+		base += '/';
+
+	std::stringstream	page;
+	page << "<!DOCTYPE html>\n<html>\n<head><title>Index of " << uri
+		<< "</title></head>\n<body>\n<h1>Index of " << uri << "</h1>\n<ul>\n";
+
+	// readdir() returns the next entry each call, or NULL when done.
+	struct dirent	*entry;
+	while ((entry = readdir(dir)) != NULL)
+	{
+		std::string	name = entry->d_name;
+
+		if (name == "." || name == "..")
+			continue ;
+		page << "<li><a href=\"" << base << name << "\">" << name << "</a></li>\n";
+	}
+	closedir(dir);
+
+	page << "</ul>\n</body>\n</html>\n";
+	res.status = 200;
+	res.contentType = "text/html";
+	res.body = page.str();
+	return (true);
+}
+
 void	Server::handleRequest(Client& client)
 {
 	HttpResponse&	res = client._response;
 
-	std::cout << "DEBUG - in handleRequest" << std::endl;
+	// std::cout << "DEBUG - in handleRequest" << std::endl;
 	try
 	{
 		const std::string&	uri = client._request.uri;
@@ -162,11 +187,10 @@ void	Server::handleRequest(Client& client)
 			return ;
 		}
 
-
 		// Reject bodies larger than the location's limit (0 == no limit).
 		if (location.maxBodySize != 0 && client._request.body.size() > location.maxBodySize)
 		{
-			std::cout << "DEBUG2 - maxBodySize: " << location.maxBodySize << std::endl;
+			// std::cout << "DEBUG2 - maxBodySize: " << location.maxBodySize << std::endl;
 			serveErrorPage(res, 413);
 			return ;
 		}
@@ -185,9 +209,14 @@ void	Server::handleRequest(Client& client)
 				res.status = 200;
 				res.contentType = mimeType(location.indexPath);
 			}
+			// If no index is present, list the files in the directory.
+			// If the directory can't be opened (e.g. no permission), 403.
+			else if (location.autoindex)
+			{
+				if (!serveAutoindex(res, fsPath, uri))
+					serveErrorPage(res, 403);
+			}
 			else
-				// TODO: if the index is missing and location.autoindex is on,
-				// list the directory contents instead of returning 404.
 				serveErrorPage(res, 404);
 		}
 		else if (loadFile(fsPath, res.body))
@@ -197,7 +226,7 @@ void	Server::handleRequest(Client& client)
 		}
 		else
 			serveErrorPage(res, 404);
-		std::cout << "DEBUG: fsPath is: " + fsPath << std::endl;
+		// std::cout << "DEBUG: fsPath is: " + fsPath << std::endl;
 	}
 	catch (const std::exception&)
 	{
