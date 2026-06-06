@@ -255,6 +255,8 @@ void	validateBlockDirective(Directive* node);
 void	validateContext(Directive* node);
 void	validateRequiredChildren(Directive* node);
 void	checkDuplicateDirectives(Directive* node);
+void	checkDuplicateLocations(Directive* node);
+void	checkDuplicateErrorCodes(Directive* node);
 
 // void	validateHttpDirective(Directive* node);
 void	validateServerDirective(Directive* node);
@@ -267,7 +269,6 @@ void	validateErrorPageDirective(Directive* node);
 void	validateReturnDirective(Directive* node);
 void	validateMethodsDirective(Directive* node);
 void	validateClientMaxBodySizeDirective(Directive* node);
-// void	validateAllowOrDenyDirective(Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
 void	validateKeepaliveTimeoutDirective(Directive* node);
 void	validateUploadPathDirective(Directive* node);
 void	validateCgiHandlerDirective(Directive* node);
