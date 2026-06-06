@@ -92,6 +92,31 @@ void	validateDirective(Directive* node)
 	return ;
 }
 
+// Directives that may legitimately appear more than once in the same block
+// (e.g. several `listen` ports or `error_page` entries). Every other
+// directive must appear at most once per block.
+static const std::set<std::string>	REPEATABLE_DIRECTIVES = {
+	"listen", "error_page", "location", "cgi_handler"
+};
+
+// Rejects a once-only directive that appears more than once in the same block,
+// e.g. two `root` or two `index` in one server/location.
+void	checkDuplicateDirectives(Directive* node)
+{
+	std::set<std::string>	seen;
+
+	for (Directive* child : node->getChildren())
+	{
+		const std::string&	name = child->getName();
+
+		if (REPEATABLE_DIRECTIVES.find(name) != REPEATABLE_DIRECTIVES.end())
+			continue ;
+		if (seen.count(name))	// already seen this directive in this block
+			throw ConfigError::validation("Duplicate directive '" + name + "' in '" + node->getName() + "' block", child);
+		seen.insert(name);		// remember it for the next iterations
+	}
+}
+
 void	validateBlockDirective(Directive* node)
 {
 	// Not needed since validateDirective already checks this?
@@ -100,6 +125,7 @@ void	validateBlockDirective(Directive* node)
 
 	// Validate required children are present
 	validateRequiredChildren(node); // Checks presence
+	checkDuplicateDirectives(node); // Reject once-only directives that repeat
 	for (Directive* child : node->getChildren())
 		validateDirective(child);
 

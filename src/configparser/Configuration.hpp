@@ -254,6 +254,7 @@ void	validateDirective(Directive* node);
 void	validateBlockDirective(Directive* node);
 void	validateContext(Directive* node);
 void	validateRequiredChildren(Directive* node);
+void	checkDuplicateDirectives(Directive* node);
 
 // void	validateHttpDirective(Directive* node);
 void	validateServerDirective(Directive* node);
