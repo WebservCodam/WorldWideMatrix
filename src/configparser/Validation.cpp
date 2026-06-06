@@ -87,7 +87,7 @@ void	validateDirective(Directive* node)
 // (e.g. several `listen` ports or `error_page` entries).
 // Every other directive must appear at most once per block.
 static const std::set<std::string>	REPEATABLE_DIRECTIVES = {
-	"listen", "error_page", "location", "cgi_handler"
+	"listen", "error_page", "location"
 };
 
 // Rejects a once only directive that appears more than once in the same block,
