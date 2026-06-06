@@ -2,7 +2,7 @@
 
 void		Lexer::advancePosition(int len, size_t& pos)
 {
-	this->_col_num += len;
+	this->_colNum += len;
 	pos += len;
 }
 
@@ -50,24 +50,24 @@ std::vector<Token>	Lexer::tokenize()
 
 	while (pos < _input.length())
 	{
-		char	current_char = _input[pos];
+		char	currentChar = _input[pos];
 
 		//	--- Rule 1: Handle Whitespace
-		if (isspace(current_char))
+		if (isspace(currentChar))
 		{
-			if (current_char == '\n')
+			if (currentChar == '\n')
 			{
-				_line_num++;
-				_col_num = 1;
+				_lineNum++;
+				_colNum = 1;
 			}
 			else
-				_col_num++;
+				_colNum++;
 			pos++;	// Consume the whitespace and continue to the next loop iteration.
 			continue;
 		}
 
 		//	--- Rule 2: Handle Comments
-		else if (current_char == '#')
+		else if (currentChar == '#')
 		{
 			while (pos < _input.length() && _input[pos] != '\n')
 				pos++;
@@ -75,58 +75,58 @@ std::vector<Token>	Lexer::tokenize()
 		}
 
 		//	--- Rule 3: Handle Single-Character Tokens
-		else if (current_char == '{')
+		else if (currentChar == '{')
 		{
-			_tokens.push_back({LBRACE, "{", _line_num, _col_num}); // Replace with addToken(LBRACE, "{");
+			_tokens.push_back({LBRACE, "{", _lineNum, _colNum}); // Replace with addToken(LBRACE, "{");
 			advancePosition(1, pos);
 			continue ;
 		}
 
-		else if (current_char == '}')
+		else if (currentChar == '}')
 		{
-			_tokens.push_back({RBRACE, "}", _line_num, _col_num});
+			_tokens.push_back({RBRACE, "}", _lineNum, _colNum});
 			advancePosition(1, pos);
 			continue ;
 		}
 
-		else if (current_char == ';')
+		else if (currentChar == ';')
 		{
-			_tokens.push_back({SEMICOLON, ";", _line_num, _col_num});
+			_tokens.push_back({SEMICOLON, ";", _lineNum, _colNum});
 			advancePosition(1, pos);
 			continue ;
 		}
 
-		else if (current_char == ',')
+		else if (currentChar == ',')
 		{
-			_tokens.push_back({COMMA, ",", _line_num, _col_num});
+			_tokens.push_back({COMMA, ",", _lineNum, _colNum});
 			advancePosition(1, pos);
 			continue ;
 		}
 
 		//	--- Rule 4: Handle Strings
-		else if (current_char == '"' || current_char == '\'')
+		else if (currentChar == '"' || currentChar == '\'')
 		{
-			std::string stringValue = consumeString(_input, pos, _line_num, _col_num);
-			_tokens.push_back({STRING, stringValue, _line_num, _col_num});
+			std::string stringValue = consumeString(_input, pos, _lineNum, _colNum);
+			_tokens.push_back({STRING, stringValue, _lineNum, _colNum});
 			continue ;
 		}
 
 		//	--- Rule 5: Handle Words
-		else if (isValidWordChar(current_char))
+		else if (isValidWordChar(currentChar))
 		{
 			std::string	wordValue = consumeWord(_input, pos);
-			_tokens.push_back({WORD, wordValue, _line_num, _col_num});
+			_tokens.push_back({WORD, wordValue, _lineNum, _colNum});
 		}
 
 		//	--- Rule 6: Handle Errors
 		else
 		{
 			throw ConfigError(ErrorType::LEXER,
-							"Unexpected character '" + std::string(1, current_char) + "'",
-							_line_num, _col_num);
+							"Unexpected character '" + std::string(1, currentChar) + "'",
+							_lineNum, _colNum);
 			pos++;	// Just advance to avoid an infinite loop
 		}
 	}
-	_tokens.push_back({END_OF_FILE, "", _line_num, _col_num});
+	_tokens.push_back({END_OF_FILE, "", _lineNum, _colNum});
 	return (this->_tokens);
 }

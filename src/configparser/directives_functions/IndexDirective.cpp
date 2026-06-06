@@ -12,7 +12,10 @@ void	validateIndexDirective(Directive* node)
 	root = getRoot(node);
 	locationDirective = node->getParent();
 	if (locationDirective->getName() == "location")
-		root = joinPath(root, locationDirective->getParameter(0));
+	{
+		const std::string&	locationPath = locationDirective->getParameter(0);
+		root = joinPath(root, locationPath);
+	}
 
 	index = node->getParameter(0);
 	indexPath = joinPath(root, index);

@@ -5,6 +5,7 @@ void	validateListenDirective(Directive* node)
 
 	// std::cout << "DEBUG: In validateListenDirective" << std::endl;
 
+	const std::string&					hostPort = node->getParameter(0);
 	std::pair<std::string, std::string>	addressAndPort;	//127.0.0.0:8080?
 	bool								isValidAddress;
 	bool								isValidPort;
@@ -12,14 +13,14 @@ void	validateListenDirective(Directive* node)
 	// if (node->getParameters().empty())
 	// 	throw ConfigError::validation("Directive '" + node->getName() + "' requires at least one parameter", node);
 
-	addressAndPort = parseAddressAndPort(node->getParameter(0));
+	addressAndPort = parseAddressAndPort(hostPort);
 	if (addressAndPort.first.empty() && addressAndPort.second.empty())
 	{
-		if (validateAddress(node->getParameter(0)))
+		if (validateAddress(hostPort))
 			return ;
-		if (validatePort(node->getParameter(0)))
+		if (validatePort(hostPort))
 			return ;
-		throw ConfigError::validation("Invalid address or port format in '" + node->getName() + "' directive: '" + node->getParameter(0) + "'", node);
+		throw ConfigError::validation("Invalid address or port format in '" + node->getName() + "' directive: '" + hostPort + "'", node);
 	}
 	isValidAddress = validateAddress(addressAndPort.first);
 	isValidPort = validatePort(addressAndPort.second);
@@ -35,7 +36,7 @@ void	validateListenDirective(Directive* node)
 		node->setParameter(0, addressAndPort.second);
 		return ;
 	}
-	throw ConfigError::validation("Invalid address:port combination in '" + node->getName() + "' directive: '" + node->getParameter(0) + "'", node);
+	throw ConfigError::validation("Invalid address:port combination in '" + node->getName() + "' directive: '" + hostPort + "'", node);
 }
 
 void	ConfigFile::checkUsedPorts(const Directive* directive, const std::string& port)

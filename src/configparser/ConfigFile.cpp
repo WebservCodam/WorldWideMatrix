@@ -60,7 +60,7 @@ std::vector<ServerConfig>	ConfigFile::createServers()
 		unsigned long long					maxBodySize = DEFAULT_MAX_BODY_SIZE;
 		std::unordered_map<int, ErrorPage>	errorPages;
 		std::vector<Location>				locations;
-		int									keepalive_timeout = DEFAULT_KEEP_ALIVE_TIMEOUT;
+		int									keepaliveTimeout = DEFAULT_KEEP_ALIVE_TIMEOUT;
 
 		std::vector<Directive*> serverChildren = serverDirective->getChildren();
 
@@ -80,10 +80,10 @@ std::vector<ServerConfig>	ConfigFile::createServers()
 			else if (directive->getName() == "location")
 				locations.push_back(processLocation(directive));
 			else if (directive->getName() == "keepalive_timeout")
-				keepalive_timeout = processKeepaliveTimeout(directive);
+				keepaliveTimeout = processKeepaliveTimeout(directive);
 		}
 
-		ServerConfig server(serverName, listenDirectives, maxBodySize, errorPages, locations, keepalive_timeout);
+		ServerConfig server(serverName, listenDirectives, maxBodySize, errorPages, locations, keepaliveTimeout);
 		this->_servers.push_back(server);
 	}
 

@@ -27,18 +27,18 @@ void	validateErrorPageDirective(Directive* node)
 			if (param.length() < 2)
 				throw ConfigError::validation("Invalid response code change in " + node->getName() + " directive: '" + param + "'", node);
 			
-			int new_code = std::stoi(param.substr(1)); // In try-catch block to throw a different error than the one from stoi.
-			// std::cout << "DEBUG: New code is: " << new_code << std::endl;
+			int newCode = std::stoi(param.substr(1)); // In try-catch block to throw a different error than the one from stoi.
+			// std::cout << "DEBUG: New code is: " << newCode << std::endl;
 			// Check it's a valid HTTP status code
-			if (new_code < 100 || new_code > 599)
+			if (newCode < 100 || newCode > 599)
 				throw ConfigError::validation("Invalid HTTP status code in " + node->getName() + " directive: '" + param + "' must be between 100-599", node);
 		}
 		else
 		{
 			// Regular error code
-			int error_code = std::stoi(param);
+			int errorCode = std::stoi(param);
 			// Must be a 4xx or 5xx error code
-			if (error_code < 400 || error_code > 599)
+			if (errorCode < 400 || errorCode > 599)
 				throw ConfigError::validation("Invalid error code in " + node->getName() + " directive: '" + param + "' must be between 400-599", node);
 		}
 	}
