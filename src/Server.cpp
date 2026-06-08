@@ -197,6 +197,7 @@ void	Server::servePost(HttpResponse& res, const std::string& body, const Locatio
 		return ;
 	}
 	res.status = 201;
+	res.contentType = mimeType(uploadPath);
 }
 
 void	Server::handleRequest(Client& client)
