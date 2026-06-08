@@ -2,7 +2,9 @@
 
 void	validateAutoIndexDirective(Directive* node)
 {
-	if (node->getParameter(0) == "on" || node->getParameter(0) == "off")
+	const std::string&	toggle = node->getParameter(0);
+
+	if (toggle == "on" || toggle == "off")
 		return ;
-	throw ConfigError::validation("Invalid value in " + node->getName() + " directive: '" + node->getParameter(0) + "' (must be 'on' or 'off')", node);
+	throw ConfigError::validation("Invalid value in " + node->getName() + " directive: '" + toggle + "' (must be 'on' or 'off')", node);
 }

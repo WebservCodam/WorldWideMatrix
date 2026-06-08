@@ -23,7 +23,7 @@ class	ServerConfig
 		unsigned long long					_maxBodySize;
 		std::unordered_map<int, ErrorPage>	_errorPages;
 		std::vector<Location>				_locations;
-		int									_keepalive_timeout;
+		int									_keepaliveTimeout;
 
 	public:
 		ServerConfig() = delete;
@@ -32,7 +32,7 @@ class	ServerConfig
 					size_t maxBodySize,
 					const std::unordered_map<int, ErrorPage>& errorPages,
 					const std::vector<Location>& locations,
-					int keepalive_timeout);
+					int keepaliveTimeout);
 		~ServerConfig() = default;
 
 		// For the return directive -> if the page string is empty, and the code is an error page, then serve the error page for that code.
@@ -47,5 +47,5 @@ class	ServerConfig
 		const std::unordered_map<int, ErrorPage>&	getErrorPages() const { return this->_errorPages; }
 		const std::vector<Location>&				getLocations() const { return this->_locations; }
 		const Location&								getLocation(const std::string& name) const;
-		int 										getKeepaliveTimeout() const { return this->_keepalive_timeout; }
+		int 										getKeepaliveTimeout() const { return this->_keepaliveTimeout; }
 };

@@ -112,8 +112,8 @@ class	Lexer
 	private:
 		std::string			_input;
 		std::vector<Token>	_tokens;
-		size_t				_line_num = 1;
-		size_t				_col_num = 1;
+		size_t				_lineNum = 1;
+		size_t				_colNum = 1;
 
 		void		advancePosition(int len, size_t& pos);
 		bool		isValidWordChar(char c);
@@ -202,7 +202,7 @@ class	Directive
 		void	setColumn(size_t column) { this->_column = column; }
 		void	setName(const std::string& name) { this->_name = name; }
 		void	setContext(const std::string& context) { this->_context = context; }
-		void	setParameter(int index, const std::string& new_parameter);
+		void	setParameter(int index, const std::string& newParameter);
 		void	setParameters(const std::vector<std::string>& parameters) { this->_parameters = parameters; }
 		void	addChild(std::unique_ptr<Directive> child) { this->_children.push_back(std::move(child)); }
 		void	setParent(Directive* parent) { this->_parent = parent; }
@@ -254,6 +254,9 @@ void	validateDirective(Directive* node);
 void	validateBlockDirective(Directive* node);
 void	validateContext(Directive* node);
 void	validateRequiredChildren(Directive* node);
+void	checkDuplicateDirectives(Directive* node);
+void	checkDuplicateLocations(Directive* node);
+void	checkDuplicateErrorCodes(Directive* node);
 
 // void	validateHttpDirective(Directive* node);
 void	validateServerDirective(Directive* node);
@@ -266,7 +269,6 @@ void	validateErrorPageDirective(Directive* node);
 void	validateReturnDirective(Directive* node);
 void	validateMethodsDirective(Directive* node);
 void	validateClientMaxBodySizeDirective(Directive* node);
-// void	validateAllowOrDenyDirective(Directive* node);	// Can be used to block certain IP Addresses from accessing a page.
 void	validateKeepaliveTimeoutDirective(Directive* node);
 void	validateUploadPathDirective(Directive* node);
 void	validateCgiHandlerDirective(Directive* node);

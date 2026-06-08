@@ -69,14 +69,6 @@ void	validateDirective(Directive* node)
 		|| node->getParameters().size() < spec.minArgs
 		|| node->getParameters().size() > spec.maxArgs)
 	{
-
-		// std::cout << "DEBUG in validateDirective - The parameters are: " << std::endl;
-
-		// for (int i = 0; i < node->getParameters().size(); i++)
-		// {
-		// 	std::cout << "DEBUG: " << node->getParameter(i) << std::endl;
-		// }
-		// std::cerr << "DEBUG in validateDirective 3" << std::endl; //Provisional.
 		throw ConfigError::validation("Invalid parameter count for '" + node->getName() + "': expected min:"
 									+ std::to_string(spec.minArgs) + " & max: " + std::to_string(spec.maxArgs)
 									+ ", got " + std::to_string(node->getParameters().size()), node);
@@ -85,11 +77,80 @@ void	validateDirective(Directive* node)
 	// Call specific validation function if it exists
 	if (spec.validateArgs)
 	{
-		// std::cout << "DEBUG in validateDirective: Calling validateArgs" << std::endl;
 		spec.validateArgs(node);
 	}
 
 	return ;
+}
+
+// Directives that may legitimately appear more than once in the same block
+// (e.g. several `listen` ports or `error_page` entries).
+// Every other directive must appear at most once per block.
+static const std::set<std::string>	REPEATABLE_DIRECTIVES = {
+	"listen", "error_page", "location"
+};
+
+// Rejects a once only directive that appears more than once in the same block,
+// e.g. two `root` or two `index` in one server/location.
+void	checkDuplicateDirectives(Directive* node)
+{
+	std::set<std::string>	seen;
+
+	for (Directive* child : node->getChildren())
+	{
+		const std::string&	name = child->getName();
+
+		if (REPEATABLE_DIRECTIVES.find(name) != REPEATABLE_DIRECTIVES.end())
+			continue ;
+		if (seen.count(name))
+			throw ConfigError::validation("Duplicate directive '" + name + "' in '" + node->getName() + "' block", child);
+		seen.insert(name);
+	}
+}
+
+// Rejects two location blocks in the same server that target the same path.
+void	checkDuplicateLocations(Directive* node)
+{
+	std::set<std::string>	seen;
+
+	for (Directive* child : node->getChildren())
+	{
+		if (child->getName() != "location")
+			continue ;
+
+		// A location's identity is its path (the first parameter) — the same
+		// value processLocation() keys on.
+		const std::string&	path = child->getParameter(0);
+		if (seen.count(path))
+			throw ConfigError::validation("Duplicate location '" + path + "' in '" + node->getName() + "' block", child);
+		seen.insert(path);
+	}
+}
+
+// Rejects the same HTTP status code mapped by more than one error_page entry,
+// e.g. `error_page 404 a.html;` and `error_page 404 b.html;` in one block.
+void	checkDuplicateErrorCodes(Directive* node)
+{
+	std::set<std::string>	seen;
+
+	for (Directive* child : node->getChildren())
+	{
+		if (child->getName() != "error_page")
+			continue ;
+
+		// The last parameter is the target URI; every parameter before it is a
+		// status code, except an optional `=code` response-override token.
+		const std::vector<std::string>&	params = child->getParameters();
+		for (size_t i = 0; i + 1 < params.size(); i++)
+		{
+			const std::string&	code = params[i];
+			if (!code.empty() && code[0] == '=')
+				continue ;
+			if (seen.count(code))
+				throw ConfigError::validation("Duplicate error_page code '" + code + "' in '" + node->getName() + "' block", child);
+			seen.insert(code);
+		}
+	}
 }
 
 void	validateBlockDirective(Directive* node)
@@ -100,6 +161,9 @@ void	validateBlockDirective(Directive* node)
 
 	// Validate required children are present
 	validateRequiredChildren(node); // Checks presence
+	checkDuplicateDirectives(node); // Reject once-only directives that repeat
+	checkDuplicateLocations(node);  // Reject two locations with the same path
+	checkDuplicateErrorCodes(node); // Reject the same error code mapped twice
 	for (Directive* child : node->getChildren())
 		validateDirective(child);
 

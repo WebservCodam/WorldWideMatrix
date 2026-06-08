@@ -12,8 +12,8 @@ void	validateKeepaliveTimeoutDirective(Directive* node)
 	timeout = std::stoi(param);
 
 	// Check if the string is purely a number.
-	int	num_len = std::to_string(timeout).length();
-	if (num_len != param.length())
+	int	numLen = std::to_string(timeout).length();
+	if (numLen != param.length())
 		throw ConfigError::validation("Directive '" + node->getName() + "' is not a number.", node);
 	
 	if (timeout > 0)
@@ -21,7 +21,7 @@ void	validateKeepaliveTimeoutDirective(Directive* node)
 	else
 		throw ConfigError::validation("Directive '" + node->getName() + "' has an invalid keep-alive timer.\n"
 									+ "The timeout should be greater than 0. The parameter value is: "
-									+ node->getParameter(0), node);
+									+ param, node);
 	return ;
 }
 

@@ -2,8 +2,9 @@
 
 void	validateLocationDirective(Directive* node)
 {
-	std::string	root = getRoot(node);
-	std::string	location = joinPath(root, node->getParameter(0));
+	std::string			root = getRoot(node);
+	const std::string&	locationPath = node->getParameter(0);
+	std::string			location = joinPath(root, locationPath);
 	checkPath(location, ErrorType::VALIDATOR, "Location: " + location, true);
 
 	return (validateBlockDirective(node));
