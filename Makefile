@@ -39,7 +39,7 @@ SRC			=		$(SRC_DIR)/Client.cpp \
 					$(DIRECTIVES_SRC_DIR)/UploadPathDirective.cpp
 OBJ			=		$(SRC:.cpp=.o)
 CC			=		c++
-FLAGS		=		-g
+FLAGS		=		-g -std=c++17
 # FLAGS		=		-Wall -Wextra -Werror -g
 # FLAGS		+=		-fsanitize=thread
 # FLAGS		+=		-fsanitize=address
