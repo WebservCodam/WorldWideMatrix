@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   main.cpp                                           :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vknape <vknape@student.codam.nl>             +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/09/15 14:47:31 by vknape        #+#    #+#                 */
-/*   Updated: 2026/05/19 15:55:19 by lprieri       ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Client.hpp"
 #include "utils.hpp"
 #include "Server.hpp"
@@ -17,8 +5,6 @@
 
 #include "configparser/Configuration.hpp"
 #include "configparser/ServerConfig.hpp"
-
-// void	startServer(int listenFd, int epfd);
 
 void	printErrorAndExit(const std::string& msg, int errorCode)
 {
@@ -86,40 +72,3 @@ int main(int argc, char** argv)
 		exit(0);
 	}
 }
-
-// void	startServer(int listenFd, int epfd)
-// {
-// 	Server server(listenFd, epfd);
-// 	epoll_event events[1000];
-// 	int num_events = 0;
-// 	int connections = 0;
-// 	while (true)
-// 	{
-// 		printf("Connections made = %d\n", connections);
-// 		server.printBuffers();
-// 		num_events = epoll_wait(epfd, events, 1000, 5000);
-// 		printf("Number of events waiting: %d\n", num_events);
-// 		if (num_events == -1)
-// 			throw std::runtime_error("Epoll_wait failed");
-		
-// 		for (int i = 0; i < num_events; i++)
-// 		{
-// 			if (events[i].data.fd == listenFd)
-// 			{
-// 				server.connectNew();
-// 				connections++;
-// 			}
-
-// 			else if (events[i].events & EPOLLIN)
-// 			{
-// 				server.connectIn(events[i].data.fd);
-// 			}
-			
-// 			else if (events[i].events & EPOLLOUT)
-// 			{
-// 				server.connectOut(events[i].data.fd);
-// 			}
-// 		}
-// 		server.checkHealth();
-// 	}
-// }

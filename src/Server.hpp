@@ -12,6 +12,9 @@
 
 #pragma once
 
+#include <cctype>
+#include <sys/types.h>
+#include <dirent.h>
 #include "utils.hpp"
 #include "httpparser/HttpParser.hpp"
 #include "configparser/Configuration.hpp"

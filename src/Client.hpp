@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   Client.hpp                                         :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vknape <vknape@student.codam.nl>             +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/09/12 14:00:27 by vknape        #+#    #+#                 */
-/*   Updated: 2026/05/20 10:45:13 by rkaras        ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 #pragma once
 
 #include "utils.hpp"
@@ -27,8 +15,8 @@ struct HttpResponse
 
 // Maps an HTTP status code to its reason phrase (e.g. 404 -> "Not Found").
 std::string	reasonPhrase(int status);
-// Builds a self-contained HTML error page for `status`, using its reason
-// phrase. Served when no error_page file is configured or it can't be read.
+// Builds a self-contained HTML error page for `status`, using its reason phrase.
+// Served when no error_page file is configured or it can't be read.
 std::string	defaultErrorPage(int status);
 
 class Client
