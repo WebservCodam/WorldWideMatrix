@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   Server.hpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: vknape <vknape@student.codam.nl>             +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2025/09/15 15:04:10 by vknape        #+#    #+#                 */
+/*   Updated: 2026/06/05 19:48:54 by lprieri       ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #pragma once
 
 #include <cctype>
@@ -16,6 +28,9 @@ class Server
 	private:
 		std::vector<int>		_listenFds;
 		const ServerConfig&		_serverConfig;
+		
+		void	servePost(HttpResponse& res, const std::string& body, const Location& location, const std::string& remainder);
+
 
 	public:
 		// Orthodox Canonical Form (missing copy constructor, copy assignment operator, and move...)

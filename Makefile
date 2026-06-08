@@ -35,7 +35,8 @@ SRC			=		$(SRC_DIR)/Client.cpp \
 					$(DIRECTIVES_SRC_DIR)/MethodsDirective.cpp \
 					$(DIRECTIVES_SRC_DIR)/ReturnDirective.cpp \
 					$(DIRECTIVES_SRC_DIR)/RootDirective.cpp \
-					$(DIRECTIVES_SRC_DIR)/ServerDirective.cpp 
+					$(DIRECTIVES_SRC_DIR)/ServerDirective.cpp \
+					$(DIRECTIVES_SRC_DIR)/UploadPathDirective.cpp
 OBJ			=		$(SRC:.cpp=.o)
 CC			=		c++
 FLAGS		=		-g
