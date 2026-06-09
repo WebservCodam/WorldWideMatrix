@@ -30,14 +30,16 @@ class Webserv
 		void	addFdToClientList(int clientFd, int listenFd);
 		void	closeAndRemoveFdFromClientList(int clientFd);
 
-		void	initWebserv();
-		int		getOrCreateListenSocket(const ListenDirective& listenDir, std::map<std::string, int>& hostPortToFd);
-		void	addListeningSocketToEpoll(int listenFd);
-		void	startServers();
-		void	connectNew(int listenFd);
-		void	connectIn(int clientFd);
-		void	connectOut(int clientFd);
-		void	checkHealth();
+		void		initWebserv();
+		int			getOrCreateListenSocket(const ListenDirective& listenDir, std::map<std::string, int>& hostPortToFd);
+		void		addListeningSocketToEpoll(int listenFd);
+		void		startServers();
+		void		connectNew(int listenFd);
+		void		connectIn(int clientFd);
+		void		connectOut(int clientFd);
+		Server*		selectServer(int listenFd, const std::string& host);
+		std::string	getRequestHost(const Client& client);
+		void		checkHealth();
 
 		ParseStatus	parse(int clientFd);
 };

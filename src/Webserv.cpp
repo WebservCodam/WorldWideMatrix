@@ -173,7 +173,7 @@ void Webserv::connectIn(int clientFd)
 		std::cerr << "DEBUG: ERROR thrown while parsing HTTP request." << std::endl;
 		// The parser set the error status; build its body and serve it as-is
 		// instead of routing the request (which would clobber the status).
-		_listenFdToServers.at(client.getListenFd()).front()->serveErrorPage(client._response, client._response.status);
+		selectServer(client.getListenFd(), getRequestHost(client))->serveErrorPage(client._response, client._response.status);
 		client._parseFailed = true;
 	}
 
@@ -197,7 +197,7 @@ void Webserv::connectIn(int clientFd)
 void Webserv::connectOut(int clientFd)
 {
 	Client&	client = _clients.at(clientFd);
-	Server*	server = _listenFdToServers.at(client.getListenFd()).front();
+	Server*	server = selectServer(client.getListenFd(), getRequestHost(client));
 
 	if (!client._parseFailed)
 		server->handleRequest(client);
@@ -219,6 +219,40 @@ void Webserv::connectOut(int clientFd)
 		perror("Epoll_ctl: switch to EPOLLIN failed");
 		closeAndRemoveFdFromClientList(clientFd);
 	}
+}
+
+// Extracts the request's Host, lowercased and stripped of any :port suffix, for
+// matching against server_name. Returns "" when no Host is present (e.g. a request
+// that failed to parse), which makes selectServer fall back to the default server.
+std::string	Webserv::getRequestHost(const Client& client)
+{
+	std::map<std::string, std::string>::const_iterator	it = client._request.headers.find("host");
+	if (it == client._request.headers.end())
+		return ("");
+
+	std::string	host = it->second;
+	size_t		colon = host.find(':');
+	if (colon != std::string::npos)
+		host = host.substr(0, colon);
+	std::transform(host.begin(), host.end(), host.begin(), ::tolower);
+	return (host);
+}
+
+// Among the servers behind listenFd, returns the one whose server_name matches host
+// (case-insensitive). Falls back to the first server on that socket, which is the
+// default server nginx would use when no server_name matches.
+Server*	Webserv::selectServer(int listenFd, const std::string& host)
+{
+	const std::vector<Server*>&	candidates = _listenFdToServers.at(listenFd);
+
+	for (Server* candidate : candidates)
+	{
+		std::string	name = candidate->getServerConfig().getServerName();
+		std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+		if (name == host)
+			return (candidate);
+	}
+	return (candidates.front());
 }
 
 void Webserv::checkHealth()
