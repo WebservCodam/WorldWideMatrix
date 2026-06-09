@@ -209,7 +209,9 @@ void	Server::serveDelete(HttpResponse& res, const std::string& fsPath)
 
 	if (ec)
 	{
-		if (ec == std::errc::permission_denied)
+		if (ec == std::errc::permission_denied
+			|| ec == std::errc::is_a_directory
+			|| ec == std::errc::directory_not_empty)
 			serveErrorPage(res, 403);
 		else
 			serveErrorPage(res, 500);

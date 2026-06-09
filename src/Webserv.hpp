@@ -17,7 +17,7 @@ class Webserv
 		std::vector<ServerConfig>	_serverConfigs;
 		std::vector<Server>			_servers;
 		std::map<int, Client>		_clients;
-		std::map<int, Server*>		_listenFdToServer;
+		std::map<int, std::vector<Server*>>	_listenFdToServers;	// One listening socket can front several servers (virtual hosts).
 		std::map<int, Server*>		_clientFdToServer; // Webserv owns the clients map, to avoid cross-class fd ownership puzzles.
 
 	public:
@@ -32,6 +32,7 @@ class Webserv
 		void	closeAndRemoveFdFromClientList(int clientFd);
 
 		void	initWebserv();
+		int		getOrCreateListenSocket(const ListenDirective& listenDir, std::map<std::string, int>& hostPortToFd);
 		void	addListeningSocketToEpoll(int listenFd);
 		void	startServers();
 		void	connectNew(int listenFd);

@@ -3,20 +3,38 @@
 
 void	Webserv::initWebserv()
 {
+	std::map<std::string, int>	hostPortToFd;	// Collapses duplicate host:port across servers onto a single socket.
+
 	_servers.reserve(_serverConfigs.size());
 	for (const ServerConfig& serverConfig : _serverConfigs)
 	{
 		_servers.push_back(Server(serverConfig));
 		Server&	server = _servers.back();
-		const std::vector<ListenDirective>&	addresses = serverConfig.getListenDirectives();
+		const std::vector<ListenDirective>&	listenDirs = serverConfig.getListenDirectives();
 
-		for (const ListenDirective& addr : addresses)
+		for (const ListenDirective& listenDir : listenDirs)
 		{
-			int	listenFd = createSocket(addr.address.c_str(), addr.port.c_str());
-			_listenFdToServer.insert(std::make_pair(listenFd, &server));
-			addListeningSocketToEpoll(listenFd);
+			int	listenFd = getOrCreateListenSocket(listenDir, hostPortToFd);
+			_listenFdToServers[listenFd].push_back(&server);
 		}
 	}
+}
+
+// Returns the listening socket for listenDir's host:port, creating and registering
+// it the first time that address is seen and reusing it for every later server that
+// shares it (so virtual hosts on the same host:port share one socket).
+int	Webserv::getOrCreateListenSocket(const ListenDirective& listenDir, std::map<std::string, int>& hostPortToFd)
+{
+	std::string								key = listenDir.address + ":" + listenDir.port;
+	std::map<std::string, int>::iterator	it = hostPortToFd.find(key);
+
+	if (it != hostPortToFd.end())
+		return (it->second);
+
+	int	listenFd = createSocket(listenDir.address.c_str(), listenDir.port.c_str());
+	hostPortToFd.insert(std::make_pair(key, listenFd));
+	addListeningSocketToEpoll(listenFd);
+	return (listenFd);
 }
 
 void	Webserv::addListeningSocketToEpoll(int listenFd)
@@ -46,7 +64,7 @@ void	Webserv::startServers()
 			int	eventFd = events[i].data.fd;
 
 			std::cout << "DEBUG: We're in the startServers for loop." << std::endl;
-			if (_listenFdToServer.find(eventFd) != _listenFdToServer.end())
+			if (_listenFdToServers.find(eventFd) != _listenFdToServers.end())
 			{
 				connectNew(eventFd);
 				connections++;
@@ -112,7 +130,7 @@ void	Webserv::addFdToClientList(int clientFd, int listenFd)
 	std::pair<std::map<int, Client>::iterator, bool>	result;
 	Server*												server;
 
-	server = _listenFdToServer.at(listenFd);
+	server = _listenFdToServers.at(listenFd).front();
 	_clientFdToServer.insert(std::make_pair(clientFd, server));
 	result = _clients.emplace(clientFd, clientFd);
 	result.first->second.setListenFd(listenFd);
