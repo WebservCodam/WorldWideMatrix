@@ -215,8 +215,7 @@ class	ConfigFile
 	private:
 		std::vector<std::unique_ptr<Directive>>	_directives;
 		std::vector<ServerConfig>				_servers;
-		std::vector<std::string>				_usedPorts;
-		
+
 	public:
 		ConfigFile() = delete;
 		ConfigFile(std::vector<std::unique_ptr<Directive>> directives);
@@ -237,8 +236,6 @@ class	ConfigFile
 		int									processKeepaliveTimeout(Directive* directive);
 		void								processErrorPages(Directive* directive, std::unordered_map<int, ErrorPage>&);
 		ReturnPage							processReturnPage(const Directive* directive);
-
-		void								checkUsedPorts(const Directive* directive, const std::string& port);
 
 	public:
 		// Query methods
