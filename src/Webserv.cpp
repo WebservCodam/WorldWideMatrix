@@ -69,7 +69,7 @@ void	Webserv::startServers()
 				connectNew(eventFd);
 				connections++;
 			}
-			else if (_clientFdToServer.find(eventFd) != _clientFdToServer.end())
+			else if (_clients.find(eventFd) != _clients.end())
 			{
 				if (events[i].events & EPOLLIN)
 					connectIn(eventFd);
@@ -128,20 +128,14 @@ void Webserv::connectNew(int listenFd)
 void	Webserv::addFdToClientList(int clientFd, int listenFd)
 {
 	std::pair<std::map<int, Client>::iterator, bool>	result;
-	Server*												server;
 
-	server = _listenFdToServers.at(listenFd).front();
-	_clientFdToServer.insert(std::make_pair(clientFd, server));
 	result = _clients.emplace(clientFd, clientFd);
-	result.first->second.setListenFd(listenFd);
+	result.first->second.setListenFd(listenFd);	// The client's server is chosen per-request from _listenFdToServers once its Host header is parsed.
 }
 
 void	Webserv::closeAndRemoveFdFromClientList(int clientFd)
 {
-	// Server*	server = _clientFdToServer.at(clientFd);
-	// close(clientFd); // Closing removes from epoll, so no epoll_ctl is needed to remove it.
-	_clientFdToServer.erase(clientFd); // The deconstructor closes the client.
-	_clients.erase(clientFd);
+	_clients.erase(clientFd); // The Client destructor closes the fd, which also removes it from epoll.
 }
 
 void Webserv::connectIn(int clientFd)
@@ -179,7 +173,7 @@ void Webserv::connectIn(int clientFd)
 		std::cerr << "DEBUG: ERROR thrown while parsing HTTP request." << std::endl;
 		// The parser set the error status; build its body and serve it as-is
 		// instead of routing the request (which would clobber the status).
-		_clientFdToServer.at(clientFd)->serveErrorPage(client._response, client._response.status);
+		_listenFdToServers.at(client.getListenFd()).front()->serveErrorPage(client._response, client._response.status);
 		client._parseFailed = true;
 	}
 
@@ -203,7 +197,7 @@ void Webserv::connectIn(int clientFd)
 void Webserv::connectOut(int clientFd)
 {
 	Client&	client = _clients.at(clientFd);
-	Server*	server = _clientFdToServer.at(clientFd);
+	Server*	server = _listenFdToServers.at(client.getListenFd()).front();
 
 	if (!client._parseFailed)
 		server->handleRequest(client);

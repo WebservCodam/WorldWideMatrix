@@ -18,7 +18,6 @@ class Webserv
 		std::vector<Server>			_servers;
 		std::map<int, Client>		_clients;
 		std::map<int, std::vector<Server*>>	_listenFdToServers;	// One listening socket can front several servers (virtual hosts).
-		std::map<int, Server*>		_clientFdToServer; // Webserv owns the clients map, to avoid cross-class fd ownership puzzles.
 
 	public:
 		Webserv() = delete;
