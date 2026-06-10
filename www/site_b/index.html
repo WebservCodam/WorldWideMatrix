@@ -1,1 +1,35 @@
-<h1>SITE B</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Site B</title>
+<style>
+  body { font-family: Georgia, "Times New Roman", serif;
+         max-width: 680px; margin: 0 auto; padding: 3rem 1.2rem;
+         color: #2d1b3d; background: #f3e8ff; line-height: 1.6; text-align: center; }
+  .banner { background: #7048e8; color: #fff; padding: 2rem 1.5rem; border-radius: 14px; }
+  .banner h1 { margin: 0; font-size: 2.6rem; letter-spacing: 0.02em; }
+  .banner p { margin: 0.5rem 0 0; opacity: 0.92; font-style: italic; }
+  .explain { background: #fff; border-radius: 14px; padding: 1.3rem 1.5rem;
+             margin-top: 1.2rem; box-shadow: 0 1px 3px rgba(40, 0, 60, 0.12); }
+  code { background: #ede0ff; padding: 0.1rem 0.4rem; border-radius: 4px;
+         font-family: ui-monospace, Menlo, monospace; }
+</style>
+</head>
+<body>
+  <div class="banner">
+    <h1>Site B</h1>
+    <p>A different website, same address.</p>
+  </div>
+
+  <div class="explain">
+    <p>You are seeing Site B because the request <code>Host</code> header is
+    <strong>site_b</strong>.</p>
+    <p>Site A and Site B are two separate server blocks sharing
+    <code>127.0.0.1:8085</code>. The server picks which one answers by matching
+    the <code>Host</code> header against each block's <code>server_name</code>.
+    Send <code>Host: site_a</code> to see the other site.</p>
+  </div>
+</body>
+</html>
