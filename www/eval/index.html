@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>webserv eval website</title>
+<style>
+  :root {
+    --bg: #eef1f6;
+    --card: #ffffff;
+    --ink: #20242c;
+    --muted: #6b7280;
+    --accent: #3b5bdb;
+    --code-bg: #1f2430;
+    --code-ink: #e8eaed;
+    --ok: #2f9e44;
+    --redirect: #1c7ed6;
+    --err: #e03131;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 2.5rem 1.2rem 4rem;
+  }
+  header h1 { margin: 0; font-size: 1.9rem; letter-spacing: -0.01em; }
+  header p { color: var(--muted); margin: 0.3rem 0 1.4rem; }
+  .run {
+    background: var(--code-bg); color: var(--code-ink);
+    padding: 0.7rem 1rem; border-radius: 8px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    overflow-x: auto; margin-bottom: 2rem;
+  }
+  .card {
+    background: var(--card); border-radius: 10px;
+    padding: 1.1rem 1.3rem; margin: 0.9rem 0;
+    box-shadow: 0 1px 3px rgba(20, 30, 60, 0.08);
+    border-left: 4px solid var(--accent);
+  }
+  .card.s2 { border-left-color: var(--ok); }
+  .card.s3 { border-left-color: var(--redirect); }
+  .card.s4 { border-left-color: var(--err); }
+  .card h2 {
+    display: flex; align-items: center; gap: 0.6rem;
+    font-size: 1.05rem; margin: 0 0 0.4rem;
+  }
+  .badge {
+    margin-left: auto; font-size: 0.78rem; font-weight: 700;
+    padding: 0.12rem 0.6rem; border-radius: 999px; color: #fff; white-space: nowrap;
+  }
+  .b2 { background: var(--ok); }
+  .b3 { background: var(--redirect); }
+  .b4 { background: var(--err); }
+  .what { color: var(--muted); margin: 0 0 0.6rem; font-size: 0.95rem; }
+  .card pre {
+    background: var(--code-bg); color: var(--code-ink); margin: 0;
+    padding: 0.7rem 0.9rem; border-radius: 8px; overflow-x: auto;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.9rem;
+  }
+  .expect { margin: 0.55rem 0 0; font-size: 0.9rem; color: var(--ink); }
+  code {
+    background: #e9edf5; padding: 0.08rem 0.35rem; border-radius: 4px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.88em;
+  }
+  .note {
+    background: #fff4e6; border: 1px solid #ffd8a8; border-radius: 10px;
+    padding: 0.9rem 1.2rem; margin-top: 1.8rem; color: #7a4f01;
+  }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1>webserv eval website</h1>
+  <p>Start the server, then run each command. Every command targets <code>127.0.0.1:8085</code>.</p>
+</header>
+<div class="run">./webserv config_files/valid/eval.conf</div>
+
+<section class="card s2">
+  <h2>1. GET a static file and its MIME type <span class="badge b2">200</span></h2>
+  <p class="what">Serves a file with the correct Content-Type based on its extension.</p>
+  <pre>curl -i http://127.0.0.1:8085/images/cat.png</pre>
+  <p class="expect">Returns the image with header <code>Content-Type: image/png</code>.</p>
+</section>
+
+<section class="card s2">
+  <h2>2. Autoindex (directory listing) <span class="badge b2">200</span></h2>
+  <p class="what">A directory with no index file and autoindex on returns an HTML listing.</p>
+  <pre>curl http://127.0.0.1:8085/images/</pre>
+  <p class="expect">Returns an HTML list of the files in /images.</p>
+</section>
+
+<section class="card s3">
+  <h2>3. Redirect <span class="badge b3">301</span></h2>
+  <p class="what">The /old location returns a redirect to /new.</p>
+  <pre>curl -i http://127.0.0.1:8085/old</pre>
+  <p class="expect">Returns 301 Moved Permanently with header <code>Location: /new</code>.</p>
+</section>
+
+<section class="card s2">
+  <h2>4. POST (upload a file) <span class="badge b2">201</span></h2>
+  <p class="what">The request body is written to a new file under /uploads.</p>
+  <pre>curl -i -X POST --data "hello from curl" http://127.0.0.1:8085/uploads/hello.txt</pre>
+  <p class="expect">Returns 201 Created. The file www/uploads/hello.txt now exists.</p>
+</section>
+
+<section class="card s2">
+  <h2>5. GET the uploaded file back <span class="badge b2">200</span></h2>
+  <p class="what">Confirms the upload landed and is served back.</p>
+  <pre>curl http://127.0.0.1:8085/uploads/hello.txt</pre>
+  <p class="expect">Returns 200 OK with body "hello from curl".</p>
+</section>
+
+<section class="card s2">
+  <h2>6. DELETE the uploaded file <span class="badge b2">204</span></h2>
+  <p class="what">Removes the file created by the POST above.</p>
+  <pre>curl -i -X DELETE http://127.0.0.1:8085/uploads/hello.txt</pre>
+  <p class="expect">Returns 204 No Content. A second DELETE returns 404.</p>
+</section>
+
+<section class="card s4">
+  <h2>7. Not Found (custom error page) <span class="badge b4">404</span></h2>
+  <p class="what">A request for a file that does not exist serves the configured error page.</p>
+  <pre>curl -i http://127.0.0.1:8085/does-not-exist</pre>
+  <p class="expect">Returns 404 Not Found with the custom 404 page as the body.</p>
+</section>
+
+<section class="card s4">
+  <h2>8. Method Not Allowed <span class="badge b4">405</span></h2>
+  <p class="what">/images allows only GET, so a POST is rejected and the allowed methods are listed.</p>
+  <pre>curl -i -X POST --data "x" http://127.0.0.1:8085/images/cat.png</pre>
+  <p class="expect">Returns 405 Method Not Allowed with header <code>Allow: GET</code>.</p>
+</section>
+
+<section class="card s4">
+  <h2>9. Payload Too Large <span class="badge b4">413</span></h2>
+  <p class="what">/tiny caps the body at 10 bytes, so a larger body is rejected.</p>
+  <pre>curl -i -X POST --data "this body is longer than ten bytes" http://127.0.0.1:8085/tiny/x</pre>
+  <p class="expect">Returns 413 Payload Too Large.</p>
+</section>
+
+<section class="card">
+  <h2>10. Virtual hosts (Host header)</h2>
+  <p class="what">Two servers share one port; the Host header decides which one answers. Run the vhosts config for this test:</p>
+  <pre>./webserv config_files/valid/vhosts.conf</pre>
+  <pre>curl -H "Host: site_a" http://127.0.0.1:8085/
+curl -H "Host: site_b" http://127.0.0.1:8085/</pre>
+  <p class="expect">Returns "SITE A" for the first and "SITE B" for the second. An unknown Host falls back to the first server.</p>
+</section>
+
+<div class="note"><strong>CGI:</strong> not yet implemented. Once it lands, a request to a <code>.py</code> script under /cgi-bin will run the script and return its output.</div>
+
+</body>
+</html>
