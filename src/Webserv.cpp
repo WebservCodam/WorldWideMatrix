@@ -197,13 +197,38 @@ void Webserv::connectIn(int clientFd)
 void Webserv::connectOut(int clientFd)
 {
 	Client&	client = _clients.at(clientFd);
-	Server*	server = selectServer(client.getListenFd(), getRequestHost(client));
 
-	if (!client._parseFailed)
-		server->handleRequest(client);
+	// First EPOLLOUT for this request: route it and build the response once.
+	// (Once only: handleRequest has side effects, e.g. POST creates a file.)
+	if (client._writeBuf.empty())
+	{
+		if (!client._parseFailed)
+			selectServer(client.getListenFd(), getRequestHost(client))->handleRequest(client);
+		client._writeBuf = client.serializeResponse();
+		client._bytesSent = 0;
+	}
 
-	std::string	response = client.serializeResponse();
-	write(clientFd, response.c_str(), response.length());
+	// One write per epoll event. write() may take only part of the buffer;
+	// we resume from _bytesSent when EPOLLOUT fires again.
+	ssize_t	written = write(clientFd,
+			client._writeBuf.data() + client._bytesSent,
+			client._writeBuf.size() - client._bytesSent);
+	if (written == -1)
+	{
+		// errno can't be checked after a write. epoll just reported the socket
+		// as writable, so -1 is a real error, not a full buffer: drop the client.
+		closeAndRemoveFdFromClientList(clientFd);
+		return ;
+	}
+	client._bytesSent += written;
+	client.setTime(); // Progress counts as activity: don't time out a slow download.
+
+	if (client._bytesSent < client._writeBuf.size())
+		return ; // Still subscribed to EPOLLOUT; we resume when the socket drains.
+
+	// Response fully sent: re-arm for the next request on this connection.
+	client._writeBuf.clear();
+	client._bytesSent = 0;
 
 	if (client._alive == false)
 	{
