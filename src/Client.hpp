@@ -34,7 +34,6 @@ class Client
 		std::string			_buf;
 		HttpResponse		_response;
 		HttpRequest			_request;
-		bool				_parseFailed = false;
 		std::string			_writeBuf;		// Serialized response; empty until built.
 		size_t				_bytesSent = 0;	// Progress into _writeBuf across writes.
 
