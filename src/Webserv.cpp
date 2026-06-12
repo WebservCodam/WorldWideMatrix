@@ -215,6 +215,7 @@ void Webserv::connectOut(int clientFd)
 	// Response fully sent: re-arm for the next request on this connection.
 	client._writeBuf.clear();
 	client._bytesSent = 0;
+	client._response = HttpResponse(); // Headers like Allow or Location must not leak into the next response.
 
 	if (client._alive == false)
 	{
