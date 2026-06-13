@@ -170,21 +170,17 @@ void Webserv::connectIn(int clientFd)
 	}
 	else if (status == ERROR)
 	{
-		std::cerr << "DEBUG: ERROR thrown while parsing HTTP request." << std::endl;
-		// The parser set the error status; build its body and serve it as-is
-		// instead of routing the request (which would clobber the status).
+		// The parser set the error status; build its body and serve it as is instead of routing the request (which would overwrite the status).
 		selectServer(client.getListenFd(), getRequestHost(client))->serveErrorPage(client._response, client._response.status);
-		client._parseFailed = true;
 	}
+	else // COMPLETE: route the request and build the response now, while we wait for EPOLLOUT. connectOut only pushes bytes.
+		selectServer(client.getListenFd(), getRequestHost(client))->handleRequest(client);
 
-	//else -> status == COMPLETE and we can switch the epoll event to EPOLLOUT
-
-	std::cout << "DEBUG in connectIn" << std::endl;
-	std::cout << "\n ---------- PARSE END ----------\n" << std::endl;
+	client._writeBuf = client.serializeResponse();
+	client._bytesSent = 0;
 
 	struct epoll_event	event;
 
-	//Before flipping to EPOLLOUT, is the parsing complete and without errors?
 	event.events = EPOLLOUT;
 	event.data.fd = clientFd;
 	if (epoll_ctl(_epfd, EPOLL_CTL_MOD, clientFd, &event) == -1) // When this function goes out of scope, what happens to event? It gets transfered? Does epoll_ctl copy it?
@@ -197,13 +193,29 @@ void Webserv::connectIn(int clientFd)
 void Webserv::connectOut(int clientFd)
 {
 	Client&	client = _clients.at(clientFd);
-	Server*	server = selectServer(client.getListenFd(), getRequestHost(client));
 
-	if (!client._parseFailed)
-		server->handleRequest(client);
+	// The response was built in connectIn; this function only sends it.
+	// One write per epoll event. write() may take only part of the buffer;
+	// we resume from _bytesSent when EPOLLOUT fires again.
+	ssize_t	written = write(clientFd,
+			client._writeBuf.data() + client._bytesSent,
+			client._writeBuf.size() - client._bytesSent);
+	if (written == -1)
+	{
+		// errno can't be checked after a write. epoll just reported the socket as writable, so -1 is a real error, not a full buffer. So we close the client.
+		closeAndRemoveFdFromClientList(clientFd);
+		return ;
+	}
+	client._bytesSent += written;
+	client.setTime(); // Progress counts as activity: don't time out a slow download.
 
-	std::string	response = client.serializeResponse();
-	write(clientFd, response.c_str(), response.length());
+	if (client._bytesSent < client._writeBuf.size())
+		return ; // Still subscribed to EPOLLOUT; we resume when the socket drains.
+
+	// Response fully sent: re-arm for the next request on this connection.
+	client._writeBuf.clear();
+	client._bytesSent = 0;
+	client._response = HttpResponse(); // Headers like Allow or Location must not leak into the next response.
 
 	if (client._alive == false)
 	{
@@ -221,9 +233,9 @@ void Webserv::connectOut(int clientFd)
 	}
 }
 
-// Extracts the request's Host, lowercased and stripped of any :port suffix, for
-// matching against server_name. Returns "" when no Host is present (e.g. a request
-// that failed to parse), which makes selectServer fall back to the default server.
+// Extracts the request's Host, lowercased and stripped of any :port suffix,
+// for matching against server_name. Returns "" when no Host is present
+// (e.g. a request that failed to parse), which makes selectServer fall back to the default server.
 std::string	Webserv::getRequestHost(const Client& client)
 {
 	std::map<std::string, std::string>::const_iterator	it = client._request.headers.find("host");
@@ -239,8 +251,8 @@ std::string	Webserv::getRequestHost(const Client& client)
 }
 
 // Among the servers behind listenFd, returns the one whose server_name matches host
-// (case-insensitive). Falls back to the first server on that socket, which is the
-// default server nginx would use when no server_name matches.
+// (case-insensitive). Falls back to the first server on that socket,
+// which is the default server nginx would use when no server_name matches.
 Server*	Webserv::selectServer(int listenFd, const std::string& host)
 {
 	const std::vector<Server*>&	candidates = _listenFdToServers.at(listenFd);
@@ -271,7 +283,6 @@ void Webserv::checkHealth()
 		}
 		it++;
 	}
-	// std::cout << "Went out of the loop" << std::endl;
 }
 
 ParseStatus	Webserv::parse(int clientFd)
