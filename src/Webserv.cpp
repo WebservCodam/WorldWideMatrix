@@ -3,20 +3,38 @@
 
 void	Webserv::initWebserv()
 {
+	std::map<std::string, int>	hostPortToFd;	// Collapses duplicate host:port across servers onto a single socket.
+
 	_servers.reserve(_serverConfigs.size());
 	for (const ServerConfig& serverConfig : _serverConfigs)
 	{
 		_servers.push_back(Server(serverConfig));
 		Server&	server = _servers.back();
-		const std::vector<ListenDirective>&	addresses = serverConfig.getListenDirectives();
+		const std::vector<ListenDirective>&	listenDirs = serverConfig.getListenDirectives();
 
-		for (const ListenDirective& addr : addresses)
+		for (const ListenDirective& listenDir : listenDirs)
 		{
-			int	listenFd = createSocket(addr.address.c_str(), addr.port.c_str());
-			_listenFdToServer.insert(std::make_pair(listenFd, &server));
-			addListeningSocketToEpoll(listenFd);
+			int	listenFd = getOrCreateListenSocket(listenDir, hostPortToFd);
+			_listenFdToServers[listenFd].push_back(&server);
 		}
 	}
+}
+
+// Returns the listening socket for listenDir's host:port, creating and registering
+// it the first time that address is seen and reusing it for every later server that
+// shares it (so virtual hosts on the same host:port share one socket).
+int	Webserv::getOrCreateListenSocket(const ListenDirective& listenDir, std::map<std::string, int>& hostPortToFd)
+{
+	std::string								key = listenDir.address + ":" + listenDir.port;
+	std::map<std::string, int>::iterator	it = hostPortToFd.find(key);
+
+	if (it != hostPortToFd.end())
+		return (it->second);
+
+	int	listenFd = createSocket(listenDir.address.c_str(), listenDir.port.c_str());
+	hostPortToFd.insert(std::make_pair(key, listenFd));
+	addListeningSocketToEpoll(listenFd);
+	return (listenFd);
 }
 
 void	Webserv::addListeningSocketToEpoll(int listenFd)
@@ -46,12 +64,12 @@ void	Webserv::startServers()
 			int	eventFd = events[i].data.fd;
 
 			std::cout << "DEBUG: We're in the startServers for loop." << std::endl;
-			if (_listenFdToServer.find(eventFd) != _listenFdToServer.end())
+			if (_listenFdToServers.find(eventFd) != _listenFdToServers.end())
 			{
 				connectNew(eventFd);
 				connections++;
 			}
-			else if (_clientFdToServer.find(eventFd) != _clientFdToServer.end())
+			else if (_clients.find(eventFd) != _clients.end())
 			{
 				if (events[i].events & EPOLLIN)
 					connectIn(eventFd);
@@ -110,20 +128,14 @@ void Webserv::connectNew(int listenFd)
 void	Webserv::addFdToClientList(int clientFd, int listenFd)
 {
 	std::pair<std::map<int, Client>::iterator, bool>	result;
-	Server*												server;
 
-	server = _listenFdToServer.at(listenFd);
-	_clientFdToServer.insert(std::make_pair(clientFd, server));
 	result = _clients.emplace(clientFd, clientFd);
-	result.first->second.setListenFd(listenFd);
+	result.first->second.setListenFd(listenFd);	// The client's server is chosen per-request from _listenFdToServers once its Host header is parsed.
 }
 
 void	Webserv::closeAndRemoveFdFromClientList(int clientFd)
 {
-	// Server*	server = _clientFdToServer.at(clientFd);
-	// close(clientFd); // Closing removes from epoll, so no epoll_ctl is needed to remove it.
-	_clientFdToServer.erase(clientFd); // The deconstructor closes the client.
-	_clients.erase(clientFd);
+	_clients.erase(clientFd); // The Client destructor closes the fd, which also removes it from epoll.
 }
 
 void Webserv::connectIn(int clientFd)
@@ -161,7 +173,7 @@ void Webserv::connectIn(int clientFd)
 		std::cerr << "DEBUG: ERROR thrown while parsing HTTP request." << std::endl;
 		// The parser set the error status; build its body and serve it as-is
 		// instead of routing the request (which would clobber the status).
-		_clientFdToServer.at(clientFd)->serveErrorPage(client._response, client._response.status);
+		selectServer(client.getListenFd(), getRequestHost(client))->serveErrorPage(client._response, client._response.status);
 		client._parseFailed = true;
 	}
 
@@ -185,7 +197,7 @@ void Webserv::connectIn(int clientFd)
 void Webserv::connectOut(int clientFd)
 {
 	Client&	client = _clients.at(clientFd);
-	Server*	server = _clientFdToServer.at(clientFd);
+	Server*	server = selectServer(client.getListenFd(), getRequestHost(client));
 
 	if (!client._parseFailed)
 		server->handleRequest(client);
@@ -207,6 +219,40 @@ void Webserv::connectOut(int clientFd)
 		perror("Epoll_ctl: switch to EPOLLIN failed");
 		closeAndRemoveFdFromClientList(clientFd);
 	}
+}
+
+// Extracts the request's Host, lowercased and stripped of any :port suffix, for
+// matching against server_name. Returns "" when no Host is present (e.g. a request
+// that failed to parse), which makes selectServer fall back to the default server.
+std::string	Webserv::getRequestHost(const Client& client)
+{
+	std::map<std::string, std::string>::const_iterator	it = client._request.headers.find("host");
+	if (it == client._request.headers.end())
+		return ("");
+
+	std::string	host = it->second;
+	size_t		colon = host.find(':');
+	if (colon != std::string::npos)
+		host = host.substr(0, colon);
+	std::transform(host.begin(), host.end(), host.begin(), ::tolower);
+	return (host);
+}
+
+// Among the servers behind listenFd, returns the one whose server_name matches host
+// (case-insensitive). Falls back to the first server on that socket, which is the
+// default server nginx would use when no server_name matches.
+Server*	Webserv::selectServer(int listenFd, const std::string& host)
+{
+	const std::vector<Server*>&	candidates = _listenFdToServers.at(listenFd);
+
+	for (Server* candidate : candidates)
+	{
+		std::string	name = candidate->getServerConfig().getServerName();
+		std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+		if (name == host)
+			return (candidate);
+	}
+	return (candidates.front());
 }
 
 void Webserv::checkHealth()

@@ -6,12 +6,15 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/06/05 19:59:51 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/06/08 17:27:31 by rkaras        ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 #include "Client.hpp"
+
+#include <cctype>		// std::tolower in mimeType()
+#include <filesystem>	// std::filesystem::remove in serveDelete()
 
 Server::Server(const ServerConfig& serverConfig): _serverConfig(serverConfig) {}
 
@@ -200,6 +203,29 @@ void	Server::servePost(HttpResponse& res, const std::string& body, const Locatio
 	res.contentType = mimeType(uploadPath);
 }
 
+void	Server::serveDelete(HttpResponse& res, const std::string& fsPath)
+{
+	std::error_code	ec;
+	bool			removed = std::filesystem::remove(fsPath, ec);
+
+	if (ec)
+	{
+		if (ec == std::errc::permission_denied
+			|| ec == std::errc::is_a_directory
+			|| ec == std::errc::directory_not_empty)
+			serveErrorPage(res, 403);
+		else
+			serveErrorPage(res, 500);
+		return ;
+	}
+	if (!removed)
+	{
+		serveErrorPage(res, 404);
+		return ;
+	}
+	res.status = 204;
+}
+
 void	Server::handleRequest(Client& client)
 {
 	HttpResponse&	res = client._response;
@@ -247,6 +273,11 @@ void	Server::handleRequest(Client& client)
 		if (method == "POST")
 		{
 			servePost(res, client._request.body, location, remainder);
+			return ;
+		}
+		if (method == "DELETE")
+		{
+			serveDelete(res, fsPath);
 			return ;
 		}
 

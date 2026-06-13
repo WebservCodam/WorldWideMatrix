@@ -6,39 +6,8 @@
 #include "configparser/Configuration.hpp"
 #include "configparser/ServerConfig.hpp"
 
-void	printErrorAndExit(const std::string& msg, int errorCode)
-{
-	std::cerr << msg << std::endl;
-	exit(errorCode);
-}
-
-void	initialize(int argc, char **argv, std::vector<ServerConfig>& configurations)
-{
-	if (argc != 2)
-		printErrorAndExit("Error: Expecting an input file.", EXIT_FAILURE);
-
-	std::ifstream	file(argv[1]);
-	if (!file)
-		printErrorAndExit("Error: Could not open file.", EXIT_FAILURE);
-
-	std::stringstream	buffer;
-	buffer << file.rdbuf();
-	std::string input = buffer.str();
-	
-	try
-	{
-		std::unique_ptr<ConfigFile> ast = Parser(input).parse();
-		configurations = ast->createServers();
-	}
-	catch (const ConfigError& e)
-	{
-		printErrorAndExit(e.what(), EXIT_FAILURE);
-	}
-	catch (const std::exception& e)
-	{
-		printErrorAndExit(std::string("Unexpected error\n") + e.what(), EXIT_FAILURE);
-	}
-}
+void	initialize(int argc, char **argv, std::vector<ServerConfig>& configurations);
+void	printErrorAndExit(const std::string& msg, int errorCode);
 
 int main(int argc, char** argv)
 {
@@ -71,4 +40,38 @@ int main(int argc, char** argv)
 		}
 		exit(0);
 	}
+}
+
+void	initialize(int argc, char **argv, std::vector<ServerConfig>& configurations)
+{
+	if (argc != 2)
+		printErrorAndExit("Error: Expecting an input file.", EXIT_FAILURE);
+
+	std::ifstream	file(argv[1]);
+	if (!file)
+		printErrorAndExit("Error: Could not open file.", EXIT_FAILURE);
+
+	std::stringstream	buffer;
+	buffer << file.rdbuf();
+	std::string input = buffer.str();
+	
+	try
+	{
+		std::unique_ptr<ConfigFile> ast = Parser(input).parse();
+		configurations = ast->createServers();
+	}
+	catch (const ConfigError& e)
+	{
+		printErrorAndExit(e.what(), EXIT_FAILURE);
+	}
+	catch (const std::exception& e)
+	{
+		printErrorAndExit(std::string("Unexpected error\n") + e.what(), EXIT_FAILURE);
+	}
+}
+
+void	printErrorAndExit(const std::string& msg, int errorCode)
+{
+	std::cerr << msg << std::endl;
+	exit(errorCode);
 }

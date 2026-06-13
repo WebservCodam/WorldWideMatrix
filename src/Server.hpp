@@ -30,6 +30,7 @@ class Server
 		const ServerConfig&		_serverConfig;
 		
 		void	servePost(HttpResponse& res, const std::string& body, const Location& location, const std::string& remainder);
+		void	serveDelete(HttpResponse& res, const std::string& fsPath);
 
 
 	public:

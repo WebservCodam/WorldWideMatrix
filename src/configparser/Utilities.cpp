@@ -67,7 +67,7 @@ bool	getAutoindex(Directive *node)
 
 std::string	getRoot(Directive *node)
 {
-	Directive*	rootDirective;
+	Directive*	rootDirective = nullptr;
 	std::string	root = joinPath(".", DEFAULT_ROOT_PATH);
 
 	if (!node)
@@ -78,9 +78,11 @@ std::string	getRoot(Directive *node)
 		rootDirective = node->getChild("root");
 	else
 	{
-		for (Directive* iterator = node; iterator != nullptr ; iterator = iterator->getParent())
+		// Walk up and use the nearest enclosing root: a location's own root
+		// takes precedence over the server's.
+		for (Directive* iterator = node->getParent(); iterator != nullptr ; iterator = iterator->getParent())
 		{
-			if (iterator->getName() == "server")
+			if (iterator->getChild("root"))
 			{
 				rootDirective = iterator->getChild("root");
 				break ;
