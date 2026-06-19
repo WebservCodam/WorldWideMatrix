@@ -4,7 +4,8 @@ CONFIG_SRC_DIR = 		$(SRC_DIR)/configparser
 DIRECTIVES_SRC_DIR =	$(CONFIG_SRC_DIR)/directives_functions
 HTTP_SRC_DIR =			$(SRC_DIR)/httpparser
 
-SRC			=		$(SRC_DIR)/Client.cpp \
+SRC			=		$(SRC_DIR)/Cgi.cpp \
+					$(SRC_DIR)/Client.cpp \
 					$(SRC_DIR)/init.cpp \
 					$(SRC_DIR)/main.cpp \
 					$(SRC_DIR)/Webserv.cpp \

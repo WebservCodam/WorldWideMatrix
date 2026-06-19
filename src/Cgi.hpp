@@ -2,29 +2,28 @@
 
 #include <string>
 #include <vector>
-#include "configparser/Configuration.hpp"
+#include "configparser/ConfigTypes.hpp"
+#include "httpparser/HttpParser.hpp"
 
-#define WRITE_END 1
-#define READ_END 0
-
+// Turns a request + location into the argv and envp arrays execve needs.
 class	Cgi
 {
 	private:
-		std::vector<std::string>	_env;
+		std::vector<std::string>	_argvStrings;	// owns the argv text
+		std::vector<std::string>	_envStrings;	// owns the env text
+		std::vector<char*>			_argv;			// points into _argvStrings, NULL-terminated
+		std::vector<char*>			_envp;			// points into _envStrings, NULL-terminated
 
+		void	buildArgv(const Location& location, const std::string& scriptPath);
+		void	buildEnv(const HttpRequest& request, const std::string& scriptPath,	const std::string& serverName, const std::string& serverPort);
 
 	public:
-		Cgi(
-			ServerConfig serverConfig,
-			std::string method,
-			std::string queryString,
-			std::string contentType,
-			std::string contentLength,
-			std::string scriptName,
-			std::string pathInfo,
-			std::string serverName,
-			std::string serverPort
-			);
+		Cgi(const Location& location,
+			const HttpRequest& request,
+			const std::string& scriptPath,
+			const std::string& serverName,
+			const std::string& serverPort);
 
-
+		char**	getArgv();
+		char**	getEnvp();
 };
