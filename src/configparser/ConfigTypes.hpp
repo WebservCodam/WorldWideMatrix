@@ -41,8 +41,8 @@ struct	Location
 	std::string			dirPath = "";		// This is the name with root prepended.
 	std::string			indexPath = "";		// This is the full path that goes to the index. root + location + (index?).
 	unsigned long long	maxBodySize = DEFAULT_MAX_BODY_SIZE;
-	std::string			cgiParam = "";
-	bool				isCGI = false;
+	std::string			cgiExtension = "";		// e.g. ".py"; empty means this location runs no CGI.
+	std::string			cgiInterpreter = "";	// e.g. "/usr/bin/python3"; argv[0] for execve.
 	ReturnPage			returnPage = ReturnPage();
 	bool				autoindex = false;
 	bool				getMethod = false;

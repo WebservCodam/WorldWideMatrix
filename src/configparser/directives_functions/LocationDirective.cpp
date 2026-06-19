@@ -22,13 +22,19 @@ Location	ConfigFile::processLocation(Directive* directive)
 	std::string		root = "";
 	std::string		index = "";
 
-	//	Inherit from server (THESE COULD BE OPTIMIZED BY HAVING THE MAIN FUNCTION DO THIS AND PASSING THE PRE-WORKED LOCATION WITH THESE VALUES, for every location)
 	server = getServerDirective(directive);
 	if (server == nullptr)
 		throw ConfigError::semantics("Location directive is not in any server.", directive);
 	root = getRoot(server);
 	location.autoindex = getAutoindex(server);
 	location.maxBodySize = processClientMaxBodySize(server->getChild("client_max_body_size"));
+
+	Directive*	serverCgi = server->getChild("cgi_handler");
+	if (serverCgi)
+	{
+		location.cgiExtension = serverCgi->getParameter(0);
+		location.cgiInterpreter = serverCgi->getParameter(1);
+	}
 
 	indexDirective = server->getChild("index");
 	if (indexDirective)
@@ -49,7 +55,7 @@ Location	ConfigFile::processLocation(Directive* directive)
 			continue ;
 		}
 
-		if (child->getParameters().empty()) // Would this ever be the case (in our server)?
+		if (child->getParameters().empty())
 			continue ;
 
 		if (name == "root")
@@ -65,6 +71,11 @@ Location	ConfigFile::processLocation(Directive* directive)
 		}
 		else if (name == "upload_path")
 			location.uploadPath = joinPath(".", child->getParameter(0));
+		else if (name == "cgi_handler")
+		{
+			location.cgiExtension = child->getParameter(0);
+			location.cgiInterpreter = child->getParameter(1);
+		}
 		else if (name == "methods")
 		{
 			for (const std::string& method : child->getParameters())
