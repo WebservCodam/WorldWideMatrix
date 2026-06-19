@@ -25,6 +25,9 @@ void	validateCgiHandlerDirective(Directive* node)
 	// }
 	if (!isValidExtension)
 		throw ConfigError::validation("The CGI handler was given an invalid extension.", node);
+
+	if (access(path.c_str(), X_OK) != 0)
+		throw ConfigError::validation("The CGI interpreter '" + path + "' is not an executable file.", node);
 }
 
 // void	validateCgiIndexDirective(Directive* node)
