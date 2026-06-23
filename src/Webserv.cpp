@@ -90,6 +90,14 @@ void	Webserv::startServers()
 				else if (events[i].events & EPOLLOUT)
 					connectOut(eventFd);
 			}
+			else if (_cgiFdToClientIn.find(eventFd) != _cgiFdToClientIn.end())
+			{
+				//cgi in
+			}
+			else if (_cgiFdToClientIn.find(eventFd) != _cgiFdToClientIn.end())
+			{
+				//cgi out
+			}
 			else
 				throw std::runtime_error("This FD doesn't belong to a server nor a client.");
 		}
@@ -291,6 +299,64 @@ std::string	Webserv::getRequestHost(const Client& client)
 	return (host);
 }
 
+void	Webserv::handleCGI(Client& client)
+{
+	int pipe_in[2];
+	int pipe_out[2];
+	if (client._request.method == "POST")
+		pipe(pipe_in); //check for failure
+	pipe(pipe_out); //check for failure
+	
+	pid_t pid = fork();
+	
+	//child
+	if (pid == 0)
+	{
+		//check all for failure
+		dup2(pipe_in[0], STDIN_FILENO);
+		dup2(pipe_out[1], STDOUT_FILENO);
+
+		close(pipe_in[1]);
+		close(pipe_out[0]);
+
+		close(pipe_in[1]);
+		close(pipe_out[1]);
+
+		// const Location &l = selectServer(client._listenFd, getRequestHost(client))->getServerConfig().getLocation(client._request.uri);
+		// std::string scriptpath = l.indexPath;
+		// std::string scriptpath = {};
+		// std::string scriptpath = {};
+		// Cgi Cgi(l, client._request, );
+		
+	}
+
+	//fork failure
+	else if (pid == -1)
+	{
+		//call server failure function to send response to client, maybe throw
+	}
+
+	//parent
+	else
+	{
+		//check for failure
+		close(pipe_in[0]);
+		close(pipe_out[1]);
+		setNonBlocking(pipe_in[1]);
+		setNonBlocking(pipe_out[0]);
+		_cgiFdToClientOut[pipe_out[0]] = client._clientFd;
+		if (client._request.method == "POST")
+		{
+			_cgiFdToClientIn[pipe_in[1]] = client._clientFd;
+			//add out to epoll
+		}
+		else
+			//add in to epoll
+		
+		_cgiPid[pid] = client._clientFd;
+	}
+}
+
 // Among the servers behind listenFd, returns the one whose server_name matches host
 // (case-insensitive). Falls back to the first server on that socket,
 // which is the default server nginx would use when no server_name matches.
@@ -324,6 +390,10 @@ void Webserv::checkHealth()
 		}
 		it++;
 	}
+
+	auto	it = _cgiFdToClientIn.begin();
+
+	// while (it != _cgiFdToClientIn.end())
 }
 
 ParseStatus	Webserv::parse(int clientFd)
