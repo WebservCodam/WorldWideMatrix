@@ -33,18 +33,21 @@ int	Webserv::getOrCreateListenSocket(const ListenDirective& listenDir, std::map<
 
 	int	listenFd = createSocket(listenDir.address.c_str(), listenDir.port.c_str());
 	hostPortToFd.insert(std::make_pair(key, listenFd));
-	addListeningSocketToEpoll(listenFd);
+	if (!epollCtl(EPOLL_CTL_ADD, listenFd, EPOLLIN | EPOLLPRI | EPOLLHUP))
+		throw std::runtime_error("Server add to epoll failed");
 	return (listenFd);
 }
 
-void	Webserv::addListeningSocketToEpoll(int listenFd)
+// Registers (op == EPOLL_CTL_ADD) or updates (op == EPOLL_CTL_MOD) fd in epoll
+// with the given event flags. Returns true on success, false on failure; the
+// caller decides how to handle a failure (throw for listen fds, close the client otherwise).
+bool	Webserv::epollCtl(int op, int fd, uint32_t events)
 {
-	static struct epoll_event	event;
+	struct epoll_event	event;
 
-	event.data.fd = listenFd;
-	event.events = EPOLLIN | EPOLLPRI | EPOLLHUP;
-	if (epoll_ctl(_epfd, EPOLL_CTL_ADD, listenFd, &event) == -1)
-		throw std::runtime_error("Server add to epoll failed");
+	event.events = events;
+	event.data.fd = fd;
+	return (epoll_ctl(_epfd, op, fd, &event) != -1);
 }
 
 void	Webserv::startServers()
@@ -113,11 +116,9 @@ void Webserv::connectNew(int listenFd)
 			throw ;
 		}
 
-		struct epoll_event	event;
-
-		event.events = EPOLLIN; // We want to be notified when the fd is ready for reading. Removed the edge-triggered event, because it might be impossible to implement with the errno constraint.
-		event.data.fd = clientFd;
-		if (epoll_ctl(_epfd, EPOLL_CTL_ADD, clientFd, &event) == -1)
+		// EPOLLIN: notified when the fd is ready for reading. No edge-triggered flag,
+		// because it might be impossible to implement with the errno constraint.
+		if (!epollCtl(EPOLL_CTL_ADD, clientFd, EPOLLIN))
 		{
 			closeAndRemoveFdFromClientList(clientFd);
 			throw std::runtime_error("Failed to add client to epoll");
@@ -157,9 +158,6 @@ void Webserv::connectIn(int clientFd)
 
 	client.setTime(); // Reset time after a succesful read.
 	client._buf.append(buffer, count); // Changed this line to the CPP version.
-	
-	// std::cout << "DEBUG in connectIn: PRINTING BUFFER" << std::endl;
-	// std::cout << buffer << std::endl;
 
 	status = parse(clientFd); // Branch the status received into conditionals.
 
@@ -179,11 +177,7 @@ void Webserv::connectIn(int clientFd)
 	client._writeBuf = client.serializeResponse();
 	client._bytesSent = 0;
 
-	struct epoll_event	event;
-
-	event.events = EPOLLOUT;
-	event.data.fd = clientFd;
-	if (epoll_ctl(_epfd, EPOLL_CTL_MOD, clientFd, &event) == -1) // When this function goes out of scope, what happens to event? It gets transfered? Does epoll_ctl copy it?
+	if (!epollCtl(EPOLL_CTL_MOD, clientFd, EPOLLOUT))
 	{
 		perror("Epoll_ctl: switch to EPOLLOUT failed");
 		closeAndRemoveFdFromClientList(clientFd);
@@ -223,10 +217,7 @@ void Webserv::connectOut(int clientFd)
 		return ;
 	}
 
-	struct epoll_event	event;
-	event.events = EPOLLIN;
-	event.data.fd = clientFd;
-	if (epoll_ctl(_epfd, EPOLL_CTL_MOD, clientFd, &event) == -1)
+	if (!epollCtl(EPOLL_CTL_MOD, clientFd, EPOLLIN))
 	{
 		perror("Epoll_ctl: switch to EPOLLIN failed");
 		closeAndRemoveFdFromClientList(clientFd);

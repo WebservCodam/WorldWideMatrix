@@ -32,7 +32,7 @@ class Webserv
 
 		void		initWebserv();
 		int			getOrCreateListenSocket(const ListenDirective& listenDir, std::map<std::string, int>& hostPortToFd);
-		void		addListeningSocketToEpoll(int listenFd);
+		bool		epollCtl(int op, int fd, uint32_t events);
 		void		startServers();
 		void		connectNew(int listenFd);
 		void		connectIn(int clientFd);

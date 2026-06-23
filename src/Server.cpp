@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/06/08 17:27:31 by rkaras        ########   odam.nl         */
+/*   Updated: 2026/06/23 13:37:10 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -310,6 +310,6 @@ void	Server::handleRequest(Client& client)
 	}
 	catch (const std::exception&)
 	{
-		serveErrorPage(res, 404);
+		serveErrorPage(res, 400); // or 404
 	}
 }
