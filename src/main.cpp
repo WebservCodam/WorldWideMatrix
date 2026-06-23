@@ -16,6 +16,7 @@ int main(int argc, char** argv)
 	initialize(argc, argv, configurations);
 	while (true)
 	{
+		std::cout << "Starting webserv" << std::endl;
 		try
 		{
 			int	epfd;
@@ -26,7 +27,7 @@ int main(int argc, char** argv)
 				throw std::runtime_error("Failed to create epoll fd");
 
 			Webserv	webserver(epfd);
-			
+
 			webserver.setServerConfigs(configurations);
 
 			webserver.initWebserv();
@@ -34,11 +35,10 @@ int main(int argc, char** argv)
 
 		}	catch (const std::runtime_error& e) {
 				std::cout << "Runtime error: " << e.what() << std::endl;
-				exit(EXIT_FAILURE);
+				// Replace exit with closing listenfds (include in destructor)
 		}	catch (const std::exception& e) {
 				std::cout << "Exception: " << e.what() << std::endl;
 		}
-		exit(0);
 	}
 }
 

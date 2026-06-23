@@ -13,12 +13,12 @@
 class Webserv
 {
 	private:
-		const int					_epfd;
-		std::vector<ServerConfig>	_serverConfigs;
-		std::vector<Server>			_servers;
-		std::map<int, Client>		_clients;
+		const int							_epfd;
+		std::vector<ServerConfig>			_serverConfigs;
+		std::vector<Server>					_servers;
+		std::map<int, Client>				_clients;
 		std::map<int, std::vector<Server*>>	_listenFdToServers;	// One listening socket can front several servers (virtual hosts).
-
+		
 	public:
 		Webserv() = delete;
 		Webserv(int epfd): _epfd(epfd) {};
