@@ -27,7 +27,8 @@ class Client
 		const int 			_clientFd;
 		int					_listenFd;
 		int 				_time;
-		bool 				_alive = false;
+		bool 				_alive = false;		// Keep-alive requested by the client (set by the parser).
+		bool 				_mustClose = false;	// Server-side override: close this connection once the current response is flushed.
 		int					_readstate = 0;
 		int					_parseready = 0;
 		int 				_content_length = 0;
