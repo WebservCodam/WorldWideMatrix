@@ -84,7 +84,7 @@ std::string	Client::serializeResponse()
 		+ " " + reasonPhrase(_response.status) + "\r\n";
 	response += "Content-Type: " + _response.contentType + "\r\n";
 	response += "Content-Length: " + std::to_string(_response.body.size()) + "\r\n";
-	response += "Connection: " + std::string(_alive ? "keep-alive" : "close") + "\r\n";
+	response += "Connection: " + std::string((_alive && !_mustClose) ? "keep-alive" : "close") + "\r\n";
 	// Add any extra headers set by the handler (e.g. Allow, Location).
 	for (const std::pair<const std::string, std::string>& header : _response.headers)
 		response += header.first + ": " + header.second + "\r\n";

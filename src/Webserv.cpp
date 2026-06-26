@@ -1,6 +1,16 @@
 #include "Webserv.hpp"
 #include "Client.hpp"
 
+Webserv::~Webserv()
+{
+	// Close every listening socket we opened. They're deduplicated in
+	// _listenFdToServers (one key per host:port), so each fd is closed exactly once.
+	for (std::map<int, std::vector<Server*>>::iterator it = _listenFdToServers.begin(); it != _listenFdToServers.end(); ++it)
+		close(it->first);
+	// Client fds are closed by ~Client when _clients is destroyed.
+	close(_epfd);
+}
+
 void	Webserv::initWebserv()
 {
 	std::map<std::string, int>	hostPortToFd;	// Collapses duplicate host:port across servers onto a single socket.
@@ -33,18 +43,22 @@ int	Webserv::getOrCreateListenSocket(const ListenDirective& listenDir, std::map<
 
 	int	listenFd = createSocket(listenDir.address.c_str(), listenDir.port.c_str());
 	hostPortToFd.insert(std::make_pair(key, listenFd));
-	addListeningSocketToEpoll(listenFd);
+	_listenFdToPort[listenFd] = listenDir.port;
+	if (!epollCtl(EPOLL_CTL_ADD, listenFd, EPOLLIN | EPOLLPRI | EPOLLHUP))
+		throw std::runtime_error("Server add to epoll failed");
 	return (listenFd);
 }
 
-void	Webserv::addListeningSocketToEpoll(int listenFd)
+// Registers (op == EPOLL_CTL_ADD) or updates (op == EPOLL_CTL_MOD) fd in epoll
+// with the given event flags. Returns true on success, false on failure; the
+// caller decides how to handle a failure (throw for listen fds, close the client otherwise).
+bool	Webserv::epollCtl(int op, int fd, uint32_t events)
 {
-	static struct epoll_event	event;
+	struct epoll_event	event;
 
-	event.data.fd = listenFd;
-	event.events = EPOLLIN | EPOLLPRI | EPOLLHUP;
-	if (epoll_ctl(_epfd, EPOLL_CTL_ADD, listenFd, &event) == -1)
-		throw std::runtime_error("Server add to epoll failed");
+	event.events = events;
+	event.data.fd = fd;
+	return (epoll_ctl(_epfd, op, fd, &event) != -1);
 }
 
 void	Webserv::startServers()
@@ -113,11 +127,9 @@ void Webserv::connectNew(int listenFd)
 			throw ;
 		}
 
-		struct epoll_event	event;
-
-		event.events = EPOLLIN; // We want to be notified when the fd is ready for reading. Removed the edge-triggered event, because it might be impossible to implement with the errno constraint.
-		event.data.fd = clientFd;
-		if (epoll_ctl(_epfd, EPOLL_CTL_ADD, clientFd, &event) == -1)
+		// EPOLLIN: notified when the fd is ready for reading. No edge-triggered flag,
+		// because it might be impossible to implement with the errno constraint.
+		if (!epollCtl(EPOLL_CTL_ADD, clientFd, EPOLLIN))
 		{
 			closeAndRemoveFdFromClientList(clientFd);
 			throw std::runtime_error("Failed to add client to epoll");
@@ -157,37 +169,69 @@ void Webserv::connectIn(int clientFd)
 
 	client.setTime(); // Reset time after a succesful read.
 	client._buf.append(buffer, count); // Changed this line to the CPP version.
-	
-	// std::cout << "DEBUG in connectIn: PRINTING BUFFER" << std::endl;
-	// std::cout << buffer << std::endl;
 
-	status = parse(clientFd); // Branch the status received into conditionals.
+	try
+	{
+		status = parse(clientFd); // Branch the status received into conditionals.
 
-	if (status == INCOMPLETE)
-	{
-		std::cout << "Parsing incomplete; returning so we connectIn again." << std::endl;
-		return ; // So it goes back to connectIn on next loop. And since it's level-triggered, the event will still be there.
+		if (status == INCOMPLETE)
+		{
+			std::cout << "Parsing incomplete; returning so we connectIn again." << std::endl;
+			return ; // So it goes back to connectIn on next loop. And since it's level-triggered, the event will still be there.
+		}
+		else if (status == ERROR)
+		{
+			// The parser set the error status; build its body and serve it as is instead of routing the request (which would overwrite the status).
+			selectServer(client.getListenFd(), getRequestHost(client))->serveErrorPage(client._response, client._response.status);
+		}
+		else // COMPLETE: route the request and build the response now, while we wait for EPOLLOUT. connectOut only pushes bytes.
+			selectServer(client.getListenFd(), getRequestHost(client))->handleRequest(client);
+
+		client._writeBuf = client.serializeResponse();
+		client._bytesSent = 0;
+
+		if (!epollCtl(EPOLL_CTL_MOD, clientFd, EPOLLOUT))
+		{
+			perror("Epoll_ctl: switch to EPOLLOUT failed");
+			closeAndRemoveFdFromClientList(clientFd);
+		}
 	}
-	else if (status == ERROR)
+	catch (const std::exception& e)
 	{
-		// The parser set the error status; build its body and serve it as is instead of routing the request (which would overwrite the status).
-		selectServer(client.getListenFd(), getRequestHost(client))->serveErrorPage(client._response, client._response.status);
+		// An unexpected failure while building the response: notify the client with a
+		// 500 page instead of crashing the server, then close once it's flushed.
+		std::cerr << "Server error while handling request: " << e.what() << std::endl;
+		serveError(client, 500, true);
 	}
-	else // COMPLETE: route the request and build the response now, while we wait for EPOLLOUT. connectOut only pushes bytes.
-		selectServer(client.getListenFd(), getRequestHost(client))->handleRequest(client);
+}
+
+// Serves `code` as an error page on the client and arms EPOLLOUT so connectOut
+// flushes it. When closeConnection is true the connection is dropped after the
+// page is sent (Connection: close); otherwise the client's keep-alive choice stands,
+// so the connection can serve another request. Kept exception-safe: it falls back to
+// a built-in page if the per-server lookup itself fails, since it runs on error paths.
+void	Webserv::serveError(Client& client, int code, bool closeConnection)
+{
+	client._response = HttpResponse(); // Drop any half-built response so its headers don't leak.
+	try
+	{
+		selectServer(client.getListenFd(), getRequestHost(client))->serveErrorPage(client._response, code);
+	}
+	catch (const std::exception&)
+	{
+		client._response.status = code;
+		client._response.contentType = "text/html";
+		client._response.body = defaultErrorPage(code);
+	}
+
+	if (closeConnection)
+		client._mustClose = true;
 
 	client._writeBuf = client.serializeResponse();
 	client._bytesSent = 0;
 
-	struct epoll_event	event;
-
-	event.events = EPOLLOUT;
-	event.data.fd = clientFd;
-	if (epoll_ctl(_epfd, EPOLL_CTL_MOD, clientFd, &event) == -1) // When this function goes out of scope, what happens to event? It gets transfered? Does epoll_ctl copy it?
-	{
-		perror("Epoll_ctl: switch to EPOLLOUT failed");
-		closeAndRemoveFdFromClientList(clientFd);
-	}
+	if (!epollCtl(EPOLL_CTL_MOD, client.getFd(), EPOLLOUT))
+		closeAndRemoveFdFromClientList(client.getFd()); // Can't even notify the client; drop it.
 }
 
 void Webserv::connectOut(int clientFd)
@@ -217,16 +261,13 @@ void Webserv::connectOut(int clientFd)
 	client._bytesSent = 0;
 	client._response = HttpResponse(); // Headers like Allow or Location must not leak into the next response.
 
-	if (client._alive == false)
+	if (client._alive == false || client._mustClose)
 	{
 		closeAndRemoveFdFromClientList(clientFd);
 		return ;
 	}
 
-	struct epoll_event	event;
-	event.events = EPOLLIN;
-	event.data.fd = clientFd;
-	if (epoll_ctl(_epfd, EPOLL_CTL_MOD, clientFd, &event) == -1)
+	if (!epollCtl(EPOLL_CTL_MOD, clientFd, EPOLLIN))
 	{
 		perror("Epoll_ctl: switch to EPOLLIN failed");
 		closeAndRemoveFdFromClientList(clientFd);

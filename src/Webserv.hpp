@@ -18,11 +18,12 @@ class Webserv
 		std::vector<Server>					_servers;
 		std::map<int, Client>				_clients;
 		std::map<int, std::vector<Server*>>	_listenFdToServers;	// One listening socket can front several servers (virtual hosts).
-		
+		std::map<int, std::string>			_listenFdToPort;
+
 	public:
 		Webserv() = delete;
 		Webserv(int epfd): _epfd(epfd) {};
-		~Webserv() { close(_epfd); };
+		~Webserv();
 
 		const std::vector<ServerConfig>&	getServerConfigs() const { return _serverConfigs; };
 		void								setServerConfigs(std::vector<ServerConfig> serverConfigs) { this->_serverConfigs = serverConfigs; };
@@ -32,11 +33,12 @@ class Webserv
 
 		void		initWebserv();
 		int			getOrCreateListenSocket(const ListenDirective& listenDir, std::map<std::string, int>& hostPortToFd);
-		void		addListeningSocketToEpoll(int listenFd);
+		bool		epollCtl(int op, int fd, uint32_t events);
 		void		startServers();
 		void		connectNew(int listenFd);
 		void		connectIn(int clientFd);
 		void		connectOut(int clientFd);
+		void		serveError(Client& client, int code, bool closeConnection);
 		Server*		selectServer(int listenFd, const std::string& host);
 		std::string	getRequestHost(const Client& client);
 		void		checkHealth();
