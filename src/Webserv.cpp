@@ -91,17 +91,17 @@ void	Webserv::startServers()
 				closeAndRemoveFdFromClientList(eventFd);
 			else if (_cgiFdToClientIn.find(eventFd) != _cgiFdToClientIn.end() && events[i].events & EPOLLOUT)
 			{
-				cgiIn(eventFd);
+				writeToCgi(eventFd);
 			}
 			else if (_cgiFdToClientOut.find(eventFd) != _cgiFdToClientOut.end() && events[i].events & EPOLLIN)
 			{
-				cgiOut(eventFd);
+				readFromCgi(eventFd);
 			}
-			else if (_cgiFdToClientOut.find(eventFd) != _cgiFdToClientOut.end() && events[i].events & EPOLLHUP)
-			{
-				//cgi out done
-				cgiDone(eventFd);
-			}
+			// else if (_cgiFdToClientOut.find(eventFd) != _cgiFdToClientOut.end() && events[i].events & EPOLLHUP)
+			// {
+			// 	//cgi out done
+			// 	finishCgi(eventFd, client, errorCode);
+			// }
 			else
 				throw std::runtime_error("This FD doesn't belong to a server nor a client.");
 		}
@@ -182,18 +182,18 @@ void	Webserv::closeAndCleanCgi()
 }
 void	Webserv::closeCgiPipes(int clientFd)
 {
-	if (_clients[clientFd]._cgiFdIn != -1)
+	if (_clients.at(clientFd)._cgiFdIn != -1)
 	{
-		close(_clients[clientFd]._cgiFdIn);
-		_cgiFdToClientIn.erase(_clients[clientFd]._cgiFdIn);
-		_clients[clientFd]._cgiFdIn = -1;
+		close(_clients.at(clientFd)._cgiFdIn);
+		_cgiFdToClientIn.erase(_clients.at(clientFd)._cgiFdIn);
+		_clients.at(clientFd)._cgiFdIn = -1;
 	}
 
-	if (_clients[clientFd]._cgiFdOut != -1)
+	if (_clients.at(clientFd)._cgiFdOut != -1)
 	{
-		close(_clients[clientFd]._cgiFdOut);
-		_cgiFdToClientOut.erase(_clients[clientFd]._cgiFdOut);
-		_clients[clientFd]._cgiFdOut = -1;
+		close(_clients.at(clientFd)._cgiFdOut);
+		_cgiFdToClientOut.erase(_clients.at(clientFd)._cgiFdOut);
+		_clients.at(clientFd)._cgiFdOut = -1;
 	}
 
 }

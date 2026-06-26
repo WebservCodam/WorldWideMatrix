@@ -27,7 +27,7 @@ class Webserv
 	public:
 		Webserv() = delete;
 		Webserv(int epfd): _epfd(epfd) {};
-		~Webserv() { close(_epfd); }; //close all pipe fd's and kill all pids on destruct
+		~Webserv();
 
 		const std::vector<ServerConfig>&	getServerConfigs() const { return _serverConfigs; };
 		void								setServerConfigs(std::vector<ServerConfig> serverConfigs) { this->_serverConfigs = serverConfigs; };
@@ -47,7 +47,6 @@ class Webserv
 		void		connectOut(int clientFd);
 		void		writeToCgi(int cgiInFd);
 		void		readFromCgi(int cgiOutFd);
-		void		cgiDone(int cgiOutFd);
 		void		handleCGI(Client& client);
 		void 		buildResponseFromCgi(Client& client);
 		void		serveError(Client& client, int code, bool closeConnection);
