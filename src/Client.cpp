@@ -120,7 +120,33 @@ int Client::getTime()
 
 int Client::checkTime() const
 {
-	if (time(0) - _time > TIMEOUT)
+	if (_alive == true)
+	{
+		if (time(0) - _time > TIMEOUT_KEEP_ALIVE)
+			return (-1);
+	}
+	else
+	{
+		if (time(0) - _time > TIMEOUT)
+			return (-1);
+	}
+	return (0);
+}
+
+void Client::setTimeCgi()
+{
+	_timeCgi = time(0);
+	if (_timeCgi < 0)
+		perror("Time retrieval failed");
+}
+int Client::getTimeCgi()
+{
+	return (_timeCgi);
+}
+
+int Client::checkTimeCgi() const
+{
+	if (time(0) - _timeCgi > TIMEOUT_CGI)
 		return (-1);
 	return (0);
 }

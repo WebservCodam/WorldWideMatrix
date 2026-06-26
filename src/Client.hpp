@@ -26,7 +26,10 @@ class Client
 	public:
 		const int 			_clientFd;
 		int					_listenFd;
+		int					_cgiFdIn = -1;
+		int					_cgiFdOut = -1;
 		int 				_time;
+		int					_timeCgi;
 		bool 				_alive = false;		// Keep-alive requested by the client (set by the parser).
 		bool 				_mustClose = false;	// Server-side override: close this connection once the current response is flushed.
 		int					_readstate = 0;
@@ -37,6 +40,8 @@ class Client
 		HttpRequest			_request;
 		std::string			_writeBuf;		// Serialized response; empty until built.
 		size_t				_bytesSent = 0;	// Progress into _writeBuf across writes.
+		size_t				_cgiBodySent = 0;
+		std::string			_cgiOutput;
 
 		Client(int fd);
 		~Client();
@@ -48,4 +53,7 @@ class Client
 		void		setTime();
 		int			getTime();
 		int			checkTime() const;
+		void		setTimeCgi();
+		int			getTimeCgi();
+		int			checkTimeCgi() const;
 };

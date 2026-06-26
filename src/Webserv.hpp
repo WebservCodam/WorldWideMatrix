@@ -34,6 +34,9 @@ class Webserv
 
 		void	addFdToClientList(int clientFd, int listenFd);
 		void	closeAndRemoveFdFromClientList(int clientFd);
+		void	closeAndCleanCgi();
+		void	closeCgiPipes(int clientFd);
+		void 	finishCgi(int cgiOutFd, Client& client, int errorCode);
 
 		void		initWebserv();
 		int			getOrCreateListenSocket(const ListenDirective& listenDir, std::map<std::string, int>& hostPortToFd);
@@ -42,7 +45,11 @@ class Webserv
 		void		connectNew(int listenFd);
 		void		connectIn(int clientFd);
 		void		connectOut(int clientFd);
+		void		writeToCgi(int cgiInFd);
+		void		readFromCgi(int cgiOutFd);
+		void		cgiDone(int cgiOutFd);
 		void		handleCGI(Client& client);
+		void 		buildResponseFromCgi(Client& client);
 		void		serveError(Client& client, int code, bool closeConnection);
 		Server*		selectServer(int listenFd, const std::string& host);
 		std::string	getRequestHost(const Client& client);
