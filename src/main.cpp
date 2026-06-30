@@ -6,15 +6,23 @@
 #include "configparser/Configuration.hpp"
 #include "configparser/ServerConfig.hpp"
 
+volatile bool g_run_server = true;
+
 void	initialize(int argc, char **argv, std::vector<ServerConfig>& configurations);
 void	printErrorAndExit(const std::string& msg, int errorCode);
+
+void	signalHandler(int sig)
+{
+	(void)sig;
+	g_run_server = false;
+}
 
 int main(int argc, char** argv)
 {
 	std::vector<ServerConfig>	configurations;
 
 	initialize(argc, argv, configurations);
-	while (true)
+	while (g_run_server)
 	{
 		std::cout << "Starting webserv" << std::endl;
 		try
@@ -30,6 +38,7 @@ int main(int argc, char** argv)
 
 			webserver.setServerConfigs(configurations);
 
+			signal(SIGINT, signalHandler);
 			webserver.initWebserv();
 			webserver.startServers();
 
@@ -40,6 +49,7 @@ int main(int argc, char** argv)
 				std::cout << "Exception: " << e.what() << std::endl;
 		}
 	}
+	std::cout << "Sigint received" << std::endl;
 }
 
 void	initialize(int argc, char **argv, std::vector<ServerConfig>& configurations)

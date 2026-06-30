@@ -8,6 +8,10 @@ Client::Client(int fd) : _clientFd(fd), _time(0), _alive(false)
 
 Client::~Client() 
 {
+	if (_cgiFdIn != -1)
+		close(_cgiFdIn);
+	if (_cgiFdOut != -1)
+		close(_cgiFdOut);
 	close(_clientFd);
 }
 

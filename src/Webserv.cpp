@@ -7,6 +7,12 @@ Webserv::~Webserv()
 	// _listenFdToServers (one key per host:port), so each fd is closed exactly once.
 	for (std::map<int, std::vector<Server*>>::iterator it = _listenFdToServers.begin(); it != _listenFdToServers.end(); ++it)
 		close(it->first);
+	for (std::map<pid_t, int>::iterator it = _cgiPid.begin(); it != _cgiPid.end(); it++)
+		kill(it->first, SIGKILL);
+	// for (std::map<int, int>::iterator it = _cgiFdToClientIn.begin(); it != _cgiFdToClientIn.end(); it++)
+	// 	close(it->first);
+	// for (std::map<int, int>::iterator it = _cgiFdToClientOut.begin(); it != _cgiFdToClientOut.end(); it++)
+	// 	close(it->first);
 	// Client fds are closed by ~Client when _clients is destroyed.
 	close(_epfd);
 }
@@ -106,6 +112,8 @@ void	Webserv::startServers()
 				throw std::runtime_error("This FD doesn't belong to a server nor a client.");
 		}
 		checkHealth();
+		if (!g_run_server)
+			return;
 	}
 }
 
@@ -469,6 +477,13 @@ void	Webserv::handleCGI(Client& client)
 	//child
 	if (pid == 0)
 	{
+		Server *s = selectServer(client._listenFd, getRequestHost(client));
+		const Location &l = s->getServerConfig().getLocation(client._request.uri);
+		const std::string &scriptpath = l.indexPath;
+		std::string servername = s->getServerConfig().getServerName();
+		std::string serverport = _listenFdToPort[client._listenFd];
+		Cgi cgi(l, client._request, scriptpath, servername, serverport);
+		
 		//check all for failure
 		if (pipe_in[0] != -1)
 		{
@@ -481,13 +496,6 @@ void	Webserv::handleCGI(Client& client)
 		close(pipe_out[0]);
 		close(pipe_out[1]);
 
-		Server *s = selectServer(client._listenFd, getRequestHost(client));
-		const Location &l = s->getServerConfig().getLocation(client._request.uri);
-		const std::string &scriptpath = l.indexPath;
-		std::string servername = s->getServerConfig().getServerName();
-		std::string serverport = _listenFdToPort[client._listenFd];
-		Cgi cgi(l, client._request, scriptpath, servername, serverport);
-
 		execve(scriptpath.c_str(), cgi.getArgv(), cgi.getEnvp());
 		exit(1);
 		
@@ -497,6 +505,14 @@ void	Webserv::handleCGI(Client& client)
 	else if (pid == -1)
 	{
 		//call server failure function to send response to client, maybe throw
+		if (pipe_in[0] != -1)
+		{
+			close(pipe_in[0]);
+			close(pipe_in[1]);
+		}
+		close(pipe_out[0]);
+		close(pipe_out[1]);
+		serveError(client, 500, false);
 	}
 
 	//parent
@@ -550,6 +566,15 @@ void Webserv::checkHealth()
 		std::cout << "DEBUG in checkHealth: Timecheck\n" << std::endl;
 		if (it->second._cgiFdOut != -1 && it->second.checkTimeCgi() == -1)
 		{
+			auto it2 = _cgiPid.begin();
+			while (it2 != _cgiPid.end())
+			{
+				if (it->first == it2->second)
+				{
+					kill(it2->first, SIGKILL);
+					break;
+				}
+			}
 			closeCgiPipes(it->first);
 			serveError(it->second, 504, false);
 		}
