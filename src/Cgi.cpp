@@ -46,8 +46,13 @@ Cgi::Cgi(const Location& location, const HttpRequest& request, const std::string
 
 void	Cgi::buildArgv(const Location& location, const std::string& scriptPath)
 {
-	_argvStrings.push_back(location.cgiInterpreter);	// e.g. /usr/bin/python3
-	_argvStrings.push_back(scriptPath);					// the .py file to run
+	// With an interpreter configured, run it on the requested file:
+	//   argv = [interpreter, scriptPath]  (e.g. [/usr/bin/python3, foo.py]).
+	// Without one, the requested file is itself the executable and runs on its
+	// own:  argv = [scriptPath]  (e.g. a standalone binary like cgi_tester).
+	if (!location.cgiInterpreter.empty())
+		_argvStrings.push_back(location.cgiInterpreter);
+	_argvStrings.push_back(scriptPath);
 }
 
 void	Cgi::buildEnv(const HttpRequest& request, const std::string& scriptPath, const std::string& serverName, const std::string& serverPort)
