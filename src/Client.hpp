@@ -32,6 +32,7 @@ class Client
 		int					_timeCgi;
 		bool 				_alive = false;		// Keep-alive requested by the client (set by the parser).
 		bool 				_mustClose = false;	// Server-side override: close this connection once the current response is flushed.
+		bool				_busy = false;		// True from the moment a full request is parsed until its response is fully flushed by connectOut; blocks connectIn from processing further buffered bytes in the meantime (it still keeps reading them into _buf).
 		int					_readstate = 0;
 		int					_parseready = 0;
 		int 				_content_length = 0;

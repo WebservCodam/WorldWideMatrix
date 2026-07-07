@@ -44,6 +44,7 @@ class Webserv
 		void		startServers();
 		void		connectNew(int listenFd);
 		void		connectIn(int clientFd);
+		void		processBufferedRequest(int clientFd);
 		void		connectOut(int clientFd);
 		void		writeToCgi(int cgiInFd);
 		void		readFromCgi(int cgiOutFd);
