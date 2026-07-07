@@ -49,6 +49,7 @@ class Webserv
 		void		writeToCgi(int cgiInFd);
 		void		readFromCgi(int cgiOutFd);
 		void		handleCGI(Client& client);
+		bool		isCgiRequest(const Server& server, const std::string& uri);
 		void 		buildResponseFromCgi(Client& client);
 		void		serveError(Client& client, int code, bool closeConnection);
 		Server*		selectServer(int listenFd, const std::string& host);

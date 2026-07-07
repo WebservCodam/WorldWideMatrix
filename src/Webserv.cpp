@@ -98,7 +98,7 @@ void	Webserv::startServers()
 				writeToCgi(eventFd);
 				handled = true;
 			}
-			if (_cgiFdToClientOut.find(eventFd) != _cgiFdToClientOut.end() && (fdEvents & EPOLLIN))
+			if (_cgiFdToClientOut.find(eventFd) != _cgiFdToClientOut.end() && (fdEvents & (EPOLLIN | EPOLLHUP)))
 			{
 				readFromCgi(eventFd);
 				handled = true;
@@ -271,7 +271,19 @@ void	Webserv::processBufferedRequest(int clientFd)
 			selectServer(client.getListenFd(), getRequestHost(client))->serveErrorPage(client._response, client._response.status);
 		}
 		else // COMPLETE: route the request and build the response now, while we wait for EPOLLOUT. connectOut only pushes bytes.
-			selectServer(client.getListenFd(), getRequestHost(client))->handleRequest(client);
+		{
+			Server*	server = selectServer(client.getListenFd(), getRequestHost(client));
+			if (isCgiRequest(*server, client._request.uri))
+			{
+				handleCGI(client);
+				// No serialization and no EPOLLOUT here: the response doesn't
+				// exist yet. finishCgi builds and arms it once the script's
+				// output pipe hits EOF. _busy stays true meanwhile, so
+				// connectIn keeps buffering without re-entering the parser.
+				return ;
+			}
+			server->handleRequest(client);
+		}
 
 		client._writeBuf = client.serializeResponse();
 		client._bytesSent = 0;
@@ -393,8 +405,8 @@ void Webserv::connectOut(int clientFd)
 	{
 		perror("Epoll_ctl: switch to EPOLLIN failed");
 		closeAndRemoveFdFromClientList(clientFd);
+		return ;
 	}
-	return ;
 
 	// A pipelined request may already be fully (or partially) buffered from an
 	// earlier recv(). Parse what's already in memory now instead of waiting for
@@ -566,8 +578,8 @@ void	Webserv::handleCGI(Client& client)
 		}
 		
 		close(pipe_out[0]);
-		close(pipe_out[1]);
 		dup2(pipe_out[1], STDOUT_FILENO);
+		close(pipe_out[1]);
 
 		execve(scriptpath.c_str(), cgi.getArgv(), cgi.getEnvp());
 		exit(1);
@@ -611,6 +623,22 @@ void	Webserv::handleCGI(Client& client)
 	}
 }
 
+// A request is CGI when the location it routes to configures a cgi extension.
+// getLocation throwing (no matching location) just means "not CGI"; the normal
+// handleRequest path will produce the error response for it.
+bool	Webserv::isCgiRequest(const Server& server, const std::string& uri)
+{
+	try
+	{
+		const Location&	location = server.getServerConfig().getLocation(uri);
+		return (!location.cgiExtension.empty());
+	}
+	catch (const std::exception&)
+	{
+		return (false);
+	}
+}
+
 // Among the servers behind listenFd, returns the one whose server_name matches host
 // (case-insensitive). Falls back to the first server on that socket,
 // which is the default server nginx would use when no server_name matches.
@@ -647,6 +675,7 @@ void Webserv::checkHealth()
 					kill(it2->first, SIGKILL);
 					break;
 				}
+				it2++;
 			}
 			closeCgiPipes(it->first);
 			serveError(it->second, 504, false);
