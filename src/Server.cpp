@@ -242,7 +242,6 @@ void	Server::handleRequest(Client& client)
 {
 	HttpResponse&	res = client._response;
 
-	// std::cout << "DEBUG - in handleRequest" << std::endl;
 	try
 	{
 		const std::string&	uri = client._request.uri;
@@ -271,7 +270,6 @@ void	Server::handleRequest(Client& client)
 		// Reject bodies larger than the location's limit (0 == no limit).
 		if (location.maxBodySize != 0 && client._request.body.size() > location.maxBodySize)
 		{
-			// std::cout << "DEBUG2 - maxBodySize: " << location.maxBodySize << std::endl;
 			serveErrorPage(res, 413);
 			return ;
 		}
@@ -322,7 +320,6 @@ void	Server::handleRequest(Client& client)
 		}
 		else
 			serveErrorPage(res, 404);
-		// std::cout << "DEBUG: fsPath is: " + fsPath << std::endl;
 	}
 	catch (const std::exception&)
 	{

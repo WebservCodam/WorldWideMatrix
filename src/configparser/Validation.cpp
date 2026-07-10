@@ -45,13 +45,11 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 
 void	validateDirective(Directive* node)
 {
-	// std::cerr << "DEBUG in validateDirective: " + node->getName() << std::endl; //Provisional.
 
 	// Check that the directive name is valid
 	std::map<std::string, DirectiveDefinition>::const_iterator	it = NGINX_DIRECTIVE_SPECS.find(node->getName());
 	if (it == NGINX_DIRECTIVE_SPECS.end())
 	{
-		// std::cerr << "DEBUG in validateDirective 1" << std::endl; //Provisional.
 		throw ConfigError::validation("Unknown directive '" + node->getName() + "'", node);
 	}
 
@@ -60,7 +58,6 @@ void	validateDirective(Directive* node)
 	// Check if context is valid
 	if (spec.validContexts.find(node->getContext()) == spec.validContexts.end())
 	{
-		// std::cerr << "DEBUG in validateDirective 2" << std::endl; //Provisional.
 		throw ConfigError::validation("Directive '" + node->getName() + "' is not allowed in '" + node->getContext() + "' context", node);
 	}
 

@@ -118,7 +118,6 @@ std::pair<std::string, std::string>	parseAddressAndPort(const std::string& addre
 		addressAndPort = {std::move(addressPart), std::move(portPart)};
 	}
 
-	// std::cout << "DEBUG in parserAddressAndPort - Address: " << addressAndPort.first << " Port: " << addressAndPort.second << std::endl;
 
 	return (addressAndPort);
 }

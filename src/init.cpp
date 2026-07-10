@@ -27,8 +27,6 @@ int createSocket(const char* ip, const char* port)
 	// const char* port_str = portstr.c_str();
 
 	int status = getaddrinfo(ip, port, &hints, &res);
-	// status = -1; // DEBUG
-	// std::cout << "DEBUG: " + std::to_string(status) << std::endl;
 	if (status != 0)
 	{
 		throw std::runtime_error("Server socket addrinfo failed");

@@ -134,13 +134,11 @@ void	Parser::validateSemantics()
 {
 	std::vector<std::unique_ptr<Directive>>&	directives = _configFile->getDirectives();
 	
-	// std::cout << "DEBUG: In validateSemantics" << std::endl;
 	if (!_configFile->findDirective("server"))
 		throw ConfigError::custom(ErrorType::PARSER, std::string("There was no server directive found in the configuration file."));
 	for (std::unique_ptr<Directive>& directive : directives)
 	{
 		validateDirective(directive.get());
-		// std::cout << "DEBUG: directive name: " << directive.get()->getName() << std::endl;
 	}
 	return ;
 }

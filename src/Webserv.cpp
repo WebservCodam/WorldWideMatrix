@@ -85,7 +85,6 @@ void	Webserv::startServers()
 			uint32_t    fdEvents = events[i].events;
 			bool        handled  = false;
 
-			std::cout << "DEBUG: We're in the startServers for loop." << std::endl;
 
 			if (_listenFdToServers.find(eventFd) != _listenFdToServers.end() && (fdEvents & EPOLLIN))
 			{
@@ -266,7 +265,6 @@ void	Webserv::processBufferedRequest(int clientFd)
 
 		if (status == INCOMPLETE)
 		{
-			std::cout << "Parsing incomplete; waiting for more bytes." << std::endl;
 			if (!epollCtl(EPOLL_CTL_MOD, clientFd, EPOLLIN))
 			{
 				perror("Epoll_ctl: switch to EPOLLIN failed");
@@ -690,10 +688,11 @@ void	Webserv::handleCGI(Client& client)
 		close(pipe_out[1]);
 		setNonBlocking(pipe_out[0]);
 		_cgiFdToClientOut[pipe_out[0]] = client._clientFd;
+		client._cgiFdOut = pipe_out[0];
 		if (client._request.method == "POST")
 		{
 			_cgiFdToClientIn[pipe_in[1]] = client._clientFd;
-			//add in to epoll
+			client._cgiFdIn = pipe_in[1];
 			epollCtl(EPOLL_CTL_ADD, pipe_in[1], EPOLLOUT);
 		}
 		epollCtl(EPOLL_CTL_ADD, pipe_out[0], EPOLLIN);
@@ -726,7 +725,6 @@ void Webserv::checkHealth()
 
 	while (it != _clients.end()) // Since the iterator was incremented within the loop, I changed this to a while loop.
 	{
-		std::cout << "DEBUG in checkHealth: Timecheck\n" << std::endl;
 		if (it->second._cgiFdOut != -1 && it->second.checkTimeCgi() == -1)
 		{
 			auto it2 = _cgiPid.begin();
@@ -754,7 +752,6 @@ void Webserv::checkHealth()
 				serveError(c, 408, true);
 			else
 				closeAndRemoveFdFromClientList(fd);
-			std::cout << "Connection timed out after 15 seconds of inactivity" << std::endl;
 			// break ; // The client is closed and the iterator becomes invalid, so we have to break out.
 		}
 		else

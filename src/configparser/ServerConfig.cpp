@@ -25,8 +25,6 @@ const Location&	ServerConfig::getLocation(const std::string& uri) const
 	const Location*	best = nullptr;
 	std::size_t		bestLen = 0;
 	
-	std::cout << "DEBUG getLocation" << std::endl;
-	std::cout << "DEBUG - uri is: " + uri << std::endl;
 
 	for (const Location& location : _locations)
 	{
@@ -34,7 +32,6 @@ const Location&	ServerConfig::getLocation(const std::string& uri) const
 		// root stays "/". This is what we test the request URI against.
 		std::string	prefixLocation = (location.name == "/") ? "/" : "/" + location.name;
 		
-		std::cout << "DEBUG - prefixLocation is: " + prefixLocation << std::endl;
 
 		// The URI must start with the location path...
 		if (uri.compare(0, prefixLocation.size(), prefixLocation) != 0)
@@ -52,6 +49,5 @@ const Location&	ServerConfig::getLocation(const std::string& uri) const
 	}
 	if (best == nullptr)
 		throw ConfigError::semantics("Couldn't find a location matching the URI: " + uri, nullptr);
-	std::cout << "DEBUG - best location is: " + best->name << std::endl;
 	return (*best);
 }

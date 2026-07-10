@@ -2,7 +2,6 @@
 
 void	validateIndexDirective(Directive* node)
 {
-    // std::cout << "DEBUG Index Directive: " << std::endl;
 
 	Directive*		locationDirective;
 	std::string		root;

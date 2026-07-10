@@ -10,7 +10,6 @@ void	validateReturnDirective(Directive* node)
 	// return 301 /uri;   (3xx codes take a redirect target)
 	// return 404;        (other codes take no second parameter)
 
-	// std::cout << "DEBUG: Testing in validateReturn" << std::endl;
 
 	// First parameter must be a valid HTTP status code
 	int					paramsSize = node->getParameters().size();
@@ -21,7 +20,6 @@ void	validateReturnDirective(Directive* node)
 	if (statusCode < 100 || statusCode > 599)
 		throw ConfigError::validation("Invalid HTTP status code in " + node->getName() + " directive: '" + statusStr + "' must be between 100-599", node);
 
-	// std::cout << "DEBUG: Testing throwing error in validateReturn" << std::endl;
 	// throw ConfigError::validation("TEST", node);
 
 	// A second parameter is the redirect target, only valid for 3xx codes.
