@@ -22,8 +22,14 @@ int main(int argc, char** argv)
 	std::vector<ServerConfig>	configurations;
 
 	initialize(argc, argv, configurations);
+	int restart = 0;
 	while (g_run_server)
 	{
+		if (restart > 4)
+		{
+			std::cout << "Internal issue could not be resolved, proper restart needed" << std::endl;
+			exit(1);
+		}
 		std::cout << "Starting webserv" << std::endl;
 		try
 		{
@@ -49,6 +55,7 @@ int main(int argc, char** argv)
 		}	catch (const std::exception& e) {
 				std::cout << "Exception: " << e.what() << std::endl;
 		}
+		restart++;
 	}
 	std::cout << "Sigint received" << std::endl;
 }
