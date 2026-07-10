@@ -572,8 +572,24 @@ void	Webserv::handleCGI(Client& client)
 	int pipe_in[2] {-1,-1};
 	int pipe_out[2];
 	if (client._request.method == "POST")
-		pipe(pipe_in); //check for failure
-	pipe(pipe_out); //check for failure
+	{
+		if (pipe(pipe_in) == -1)
+		{
+			serveError(client, 500, false);
+			return;
+		};
+	}
+
+	if (pipe(pipe_out) == -1)
+	{
+		if (pipe_in[0] != -1)
+		{
+			close(pipe_in[0]);
+			close(pipe_in[1]);
+		}
+		serveError(client, 500, false);
+		return;
+	};
 	
 	pid_t pid = fork();
 	
@@ -598,6 +614,15 @@ void	Webserv::handleCGI(Client& client)
 		close(pipe_out[0]);
 		dup2(pipe_out[1], STDOUT_FILENO);
 		close(pipe_out[1]);
+
+		// Split scriptpath into directory + filename, then run the CGI from
+		// its own directory so relative file access inside the script works.
+		size_t      slash = scriptpath.find_last_of('/');
+		std::string scriptDir  = (slash == std::string::npos) ? "." : scriptpath.substr(0, slash);
+		std::string scriptFile = (slash == std::string::npos) ? scriptpath : scriptpath.substr(slash + 1);
+
+		if (chdir(scriptDir.c_str()) == -1)
+			exit(1); // Can't reach the script's directory; nothing left to do but fail this child.
 
 		execve(scriptpath.c_str(), cgi.getArgv(), cgi.getEnvp());
 		exit(1);
