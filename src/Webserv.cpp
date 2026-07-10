@@ -81,9 +81,9 @@ void	Webserv::startServers()
 		
 		for (int i = 0; i < numEvents; i++)
 		{
-			int			eventFd = events[i].data.fd;
-			uint32_t	fdEvents = events[i].events;
-			bool		handled = false;
+			int         eventFd  = events[i].data.fd;
+			uint32_t    fdEvents = events[i].events;
+			bool        handled  = false;
 
 			std::cout << "DEBUG: We're in the startServers for loop." << std::endl;
 
@@ -93,42 +93,39 @@ void	Webserv::startServers()
 				connections++;
 				handled = true;
 			}
-			if (_cgiFdToClientIn.find(eventFd) != _cgiFdToClientIn.end() && (fdEvents & EPOLLOUT))
+			else if (_cgiFdToClientIn.find(eventFd) != _cgiFdToClientIn.end() && (fdEvents & EPOLLOUT))
 			{
 				writeToCgi(eventFd);
 				handled = true;
 			}
-			if (_cgiFdToClientOut.find(eventFd) != _cgiFdToClientOut.end() && (fdEvents & (EPOLLIN | EPOLLHUP)))
+			else if (_cgiFdToClientOut.find(eventFd) != _cgiFdToClientOut.end() && (fdEvents & (EPOLLIN | EPOLLHUP)))
 			{
 				readFromCgi(eventFd);
 				handled = true;
 			}
-			// else if (_cgiFdToClientOut.find(eventFd) != _cgiFdToClientOut.end() && events[i].events & EPOLLHUP)
-			// {
-			// 	//cgi out done
-			// 	finishCgi(eventFd, client, errorCode);
-			// }
-			if (_clients.find(eventFd) != _clients.end() && (fdEvents & EPOLLERR))
+			else if (_clients.find(eventFd) != _clients.end())
 			{
-				closeAndRemoveFdFromClientList(eventFd);
-				handled = true;
-			}
-			else
-			{
-				// A client fd can now be armed for EPOLLIN and EPOLLOUT at the
-				// same time (reading a pipelined request while still flushing
-				// the current response), so both directions are checked
-				// independently rather than as else-if branches, and each
-				// re-checks _clients so a close from the read side is seen
-				// before we'd otherwise try to write to the same fd.
-				if (_clients.find(eventFd) != _clients.end() && (fdEvents & EPOLLIN))
+				// Exactly one I/O operation on this client per epoll_wait pass.
+				// Priority: a socket error closes the client outright; otherwise
+				// finish flushing a pending response before reading more (this is
+				// what clears _busy and lets buffered/pipelined bytes progress).
+				// epoll is level-triggered and nothing here uses EPOLLET, so if a
+				// client is ready for both directions, whichever we *don't* handle
+				// this pass is reported again on the next epoll_wait — no bytes
+				// are lost by deferring it.
+				if (fdEvents & EPOLLERR)
 				{
-					connectIn(eventFd);
+					closeAndRemoveFdFromClientList(eventFd);
 					handled = true;
 				}
-				if (_clients.find(eventFd) != _clients.end() && (fdEvents & EPOLLOUT))
+				else if (fdEvents & EPOLLOUT)
 				{
 					connectOut(eventFd);
+					handled = true;
+				}
+				else if (fdEvents & EPOLLIN)
+				{
+					connectIn(eventFd);
 					handled = true;
 				}
 			}
