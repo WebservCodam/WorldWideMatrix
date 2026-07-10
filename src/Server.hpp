@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/15 15:04:10 by vknape        #+#    #+#                 */
-/*   Updated: 2026/06/05 19:48:54 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/07/10 12:50:10 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ class Server
 		const ServerConfig&		getServerConfig() const { return _serverConfig; };
 		const std::vector<int>&	getListenFds() const { return _listenFds; };
 
+		bool	isCgiRequest(const std::string& uri);
 		void	handleRequest(Client& client);
 		void	serveErrorPage(HttpResponse& res, int code);
 		void	serveReturn(HttpResponse& res, const ReturnPage& ret);

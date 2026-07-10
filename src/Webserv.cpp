@@ -292,7 +292,7 @@ void	Webserv::processBufferedRequest(int clientFd)
 		else // COMPLETE: route the request and build the response now, while we wait for EPOLLOUT. connectOut only pushes bytes.
 		{
 			Server*	server = selectServer(client.getListenFd(), getRequestHost(client));
-			if (isCgiRequest(*server, client._request.uri))
+			if (server->isCgiRequest(client._request.uri))
 			{
 				handleCGI(client);
 				// No serialization and no EPOLLOUT here: the response doesn't
@@ -641,22 +641,6 @@ void	Webserv::handleCGI(Client& client)
 		}
 		epollCtl(EPOLL_CTL_ADD, pipe_out[0], EPOLLIN);
 		_cgiPid[pid] = client._clientFd;
-	}
-}
-
-// A request is CGI when the location it routes to configures a cgi extension.
-// getLocation throwing (no matching location) just means "not CGI"; the normal
-// handleRequest path will produce the error response for it.
-bool	Webserv::isCgiRequest(const Server& server, const std::string& uri)
-{
-	try
-	{
-		const Location&	location = server.getServerConfig().getLocation(uri);
-		return (!location.cgiExtension.empty());
-	}
-	catch (const std::exception&)
-	{
-		return (false);
 	}
 }
 
