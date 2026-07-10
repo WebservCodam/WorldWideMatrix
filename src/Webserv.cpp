@@ -616,8 +616,17 @@ void	Webserv::handleCGI(Client& client)
 		const std::string &scriptpath = l.indexPath;
 		std::string servername = s->getServerConfig().getServerName();
 		std::string serverport = _listenFdToPort[client._listenFd];
-		Cgi cgi(l, client._request, scriptpath, servername, serverport);
-		
+
+		// Split scriptpath into directory + filename, then run the CGI from
+		// its own directory so relative file access inside the script works.
+		// argv carries the bare filename (not scriptpath) because we chdir into
+		// scriptDir below: a path relative to the old cwd would no longer resolve.
+		size_t      slash = scriptpath.find_last_of('/');
+		std::string scriptDir  = (slash == std::string::npos) ? "." : scriptpath.substr(0, slash);
+		std::string scriptFile = (slash == std::string::npos) ? scriptpath : scriptpath.substr(slash + 1);
+
+		Cgi cgi(l, client._request, scriptFile, servername, serverport);
+
 		//check all for failure
 		if (pipe_in[0] != -1)
 		{
@@ -625,21 +634,15 @@ void	Webserv::handleCGI(Client& client)
 			close(pipe_in[0]);
 			close(pipe_in[1]);
 		}
-		
+
 		close(pipe_out[0]);
 		dup2(pipe_out[1], STDOUT_FILENO);
 		close(pipe_out[1]);
 
-		// Split scriptpath into directory + filename, then run the CGI from
-		// its own directory so relative file access inside the script works.
-		size_t      slash = scriptpath.find_last_of('/');
-		std::string scriptDir  = (slash == std::string::npos) ? "." : scriptpath.substr(0, slash);
-		std::string scriptFile = (slash == std::string::npos) ? scriptpath : scriptpath.substr(slash + 1);
-
 		if (chdir(scriptDir.c_str()) == -1)
 			exit(1); // Can't reach the script's directory; nothing left to do but fail this child.
 
-		execve(scriptpath.c_str(), cgi.getArgv(), cgi.getEnvp());
+		execve(cgi.getArgv()[0], cgi.getArgv(), cgi.getEnvp());
 		exit(1);
 		
 	}
