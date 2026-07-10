@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/07/10 12:50:45 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/07/10 14:34:58 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -283,6 +283,9 @@ void	Server::handleRequest(Client& client)
 		std::string	remainder = uri.substr(prefixLocation.size());
 		std::string	fsPath = resolveFsPath(client._request);
 
+		if (isCgiRequest(client._request.uri))
+			return ;
+
 		if (method == "POST")
 		{
 			servePost(res, client._request.body, location, remainder);
@@ -327,15 +330,40 @@ void	Server::handleRequest(Client& client)
 	}
 }
 
-// A request is CGI when the location it routes to configures a cgi extension.
+// Resolves the request URI to the file a CGI request would actually run: the
+// named file when the URI points at one, or the location's index when it points
+// at a directory. Mirrors the file-vs-index choice handleRequest makes for
+// static content, so isCgiRequest and handleCGI agree on what gets executed.
+std::string	Server::resolveScriptPath(const std::string& uri) const
+{
+	const Location&	location = _serverConfig.getLocation(uri);
+	std::string		prefixLocation = (location.name == "/") ? "/" : "/" + location.name;
+	std::string		remainder = uri.substr(prefixLocation.size());
+	std::string		fsPath = joinPath(location.dirPath, remainder);
+
+	if (isDirectory(fsPath))
+		return (location.indexPath);
+	return (fsPath);
+}
+
+// A request is CGI when the file it resolves to ends with the location's cgi
+// extension. Testing "has an extension configured" is not enough: a server-level
+// cgi_handler is copied into every location, so that check would route every URI
+// (even "/" and redirects) through CGI. We match against the resolved script,
+// which is the exact file handleCGI executes.
 // getLocation throwing (no matching location) just means "not CGI"; the normal
 // handleRequest path will produce the error response for it.
 bool	Server::isCgiRequest(const std::string& uri)
 {
 	try
 	{
-		const Location&	location = this->getServerConfig().getLocation(uri);
-		return (!location.cgiExtension.empty());
+		const std::string&	ext = _serverConfig.getLocation(uri).cgiExtension;
+		if (ext.empty())
+			return (false);
+
+		std::string	script = resolveScriptPath(uri);
+		return (script.size() >= ext.size()
+			&& script.compare(script.size() - ext.size(), ext.size(), ext) == 0);
 	}
 	catch (const std::exception&)
 	{

@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/25 15:36:03 by rkaras        #+#    #+#                 */
-/*   Updated: 2026/06/03 16:04:03 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/07/10 15:06:16 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 #include <fstream>
 #include <algorithm>
 
-# define MAX_REQUEST_BODY_SIZE 10485760 // 10 MB
+# define MAX_REQUEST_BODY_SIZE 104857600 // 100 MB
 
 class Client;
 

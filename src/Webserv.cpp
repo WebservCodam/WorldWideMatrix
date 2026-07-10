@@ -291,6 +291,7 @@ void	Webserv::processBufferedRequest(int clientFd)
 			Server*	server = selectServer(client.getListenFd(), getRequestHost(client));
 			if (server->isCgiRequest(client._request.uri))
 			{
+				server->handleRequest(client);
 				handleCGI(client);
 				// No serialization and no EPOLLOUT here: the response doesn't
 				// exist yet. finishCgi builds and arms it once the script's
@@ -581,8 +582,24 @@ std::string	Webserv::getRequestHost(const Client& client)
 
 void	Webserv::handleCGI(Client& client)
 {
+	if (client._response.status != 0)
+	{
+		client._writeBuf = client.serializeResponse();
+		client._bytesSent = 0;
+
+		// Keep EPOLLIN armed alongside EPOLLOUT: the client may keep sending
+		// pipelined requests while we're still flushing this response; those
+		// bytes get buffered (see connectIn's _busy check) and parsed once
+		// connectOut clears _busy.
+		if (!epollCtl(EPOLL_CTL_MOD, client._clientFd, EPOLLIN | EPOLLOUT))
+		{
+			perror("Epoll_ctl: switch to EPOLLIN|EPOLLOUT failed");
+			closeAndRemoveFdFromClientList(client._clientFd);
+		}
+		return ;
+	}
 	client.setTimeCgi();
-	client._cgiOutput.empty();
+	client._cgiOutput.clear();
 	client._cgiInputFailed = false;
 	int pipe_in[2] {-1,-1};
 	int pipe_out[2];
@@ -613,11 +630,20 @@ void	Webserv::handleCGI(Client& client)
 	{
 		Server *s = selectServer(client._listenFd, getRequestHost(client));
 		const Location &l = s->getServerConfig().getLocation(client._request.uri);
-		const std::string &scriptpath = l.indexPath;
+		std::string scriptpath = s->resolveScriptPath(client._request.uri);
 		std::string servername = s->getServerConfig().getServerName();
 		std::string serverport = _listenFdToPort[client._listenFd];
-		Cgi cgi(l, client._request, scriptpath, servername, serverport);
-		
+
+		// Split scriptpath into directory + filename, then run the CGI from
+		// its own directory so relative file access inside the script works.
+		// argv carries the bare filename (not scriptpath) because we chdir into
+		// scriptDir below: a path relative to the old cwd would no longer resolve.
+		size_t      slash = scriptpath.find_last_of('/');
+		std::string scriptDir  = (slash == std::string::npos) ? "." : scriptpath.substr(0, slash);
+		std::string scriptFile = (slash == std::string::npos) ? scriptpath : scriptpath.substr(slash + 1);
+
+		Cgi cgi(l, client._request, scriptFile, servername, serverport);
+
 		//check all for failure
 		if (pipe_in[0] != -1)
 		{
@@ -625,21 +651,15 @@ void	Webserv::handleCGI(Client& client)
 			close(pipe_in[0]);
 			close(pipe_in[1]);
 		}
-		
+
 		close(pipe_out[0]);
 		dup2(pipe_out[1], STDOUT_FILENO);
 		close(pipe_out[1]);
 
-		// Split scriptpath into directory + filename, then run the CGI from
-		// its own directory so relative file access inside the script works.
-		size_t      slash = scriptpath.find_last_of('/');
-		std::string scriptDir  = (slash == std::string::npos) ? "." : scriptpath.substr(0, slash);
-		std::string scriptFile = (slash == std::string::npos) ? scriptpath : scriptpath.substr(slash + 1);
-
 		if (chdir(scriptDir.c_str()) == -1)
 			exit(1); // Can't reach the script's directory; nothing left to do but fail this child.
 
-		execve(scriptpath.c_str(), cgi.getArgv(), cgi.getEnvp());
+		execve(cgi.getArgv()[0], cgi.getArgv(), cgi.getEnvp());
 		exit(1);
 		
 	}
