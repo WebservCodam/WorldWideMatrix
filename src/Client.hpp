@@ -7,7 +7,7 @@ class	Server;
 
 struct HttpResponse
 {
-	int									status;
+	int									status = 0;
 	std::map<std::string, std::string>	headers;
 	std::string							body;
 	std::string							contentType = "text/html";	// Overridden per file by its MIME type.

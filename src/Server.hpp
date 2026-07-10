@@ -48,6 +48,7 @@ class Server
 		bool  isCgiRequest(const std::string& uri);
 		void  handleRequest(Client& client);
 		std::string	resolveFsPath(const HttpRequest& request) const;
+		std::string	resolveScriptPath(const std::string& uri) const;
 		void	serveErrorPage(HttpResponse& res, int code);
 		void	serveReturn(HttpResponse& res, const ReturnPage& ret);
 };

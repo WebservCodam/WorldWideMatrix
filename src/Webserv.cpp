@@ -291,6 +291,7 @@ void	Webserv::processBufferedRequest(int clientFd)
 			Server*	server = selectServer(client.getListenFd(), getRequestHost(client));
 			if (server->isCgiRequest(client._request.uri))
 			{
+				server->handleRequest(client);
 				handleCGI(client);
 				// No serialization and no EPOLLOUT here: the response doesn't
 				// exist yet. finishCgi builds and arms it once the script's
@@ -581,8 +582,24 @@ std::string	Webserv::getRequestHost(const Client& client)
 
 void	Webserv::handleCGI(Client& client)
 {
+	if (client._response.status != 0)
+	{
+		client._writeBuf = client.serializeResponse();
+		client._bytesSent = 0;
+
+		// Keep EPOLLIN armed alongside EPOLLOUT: the client may keep sending
+		// pipelined requests while we're still flushing this response; those
+		// bytes get buffered (see connectIn's _busy check) and parsed once
+		// connectOut clears _busy.
+		if (!epollCtl(EPOLL_CTL_MOD, client._clientFd, EPOLLIN | EPOLLOUT))
+		{
+			perror("Epoll_ctl: switch to EPOLLIN|EPOLLOUT failed");
+			closeAndRemoveFdFromClientList(client._clientFd);
+		}
+		return ;
+	}
 	client.setTimeCgi();
-	client._cgiOutput.empty();
+	client._cgiOutput.clear();
 	client._cgiInputFailed = false;
 	int pipe_in[2] {-1,-1};
 	int pipe_out[2];
@@ -613,7 +630,7 @@ void	Webserv::handleCGI(Client& client)
 	{
 		Server *s = selectServer(client._listenFd, getRequestHost(client));
 		const Location &l = s->getServerConfig().getLocation(client._request.uri);
-		const std::string &scriptpath = l.indexPath;
+		std::string scriptpath = s->resolveScriptPath(client._request.uri);
 		std::string servername = s->getServerConfig().getServerName();
 		std::string serverport = _listenFdToPort[client._listenFd];
 
