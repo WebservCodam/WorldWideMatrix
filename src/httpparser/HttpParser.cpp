@@ -80,9 +80,9 @@ ParseStatus	HttpParser::parseRequest(ConnectionContext &ctx)
 		if (availableBody < expectedBody)
 			return ParseStatus::INCOMPLETE;
 
-		if (availableBody > expectedBody)
-			throw HttpException(400, "Body larger than Content-Length");
-			
+		// Consume exactly Content-Length bytes as the body. Any bytes past that
+		// belong to the next (pipelined) request, so they're left in the buffer
+		// for the following parse round rather than treated as an oversized body.
 		ctx.request.body = ctx.buffer.substr(bodyStart, expectedBody);
 		ctx.buffer.erase(0, bodyStart + expectedBody);
 		ctx.headerEnd = std::string::npos;
