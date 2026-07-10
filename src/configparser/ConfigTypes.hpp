@@ -6,10 +6,6 @@
 # define DEFAULT_MAX_BODY_SIZE 2000000
 # define DEFAULT_ROOT_PATH "/www/"
 
-// Plain config value types shared between Configuration.hpp and ServerConfig.hpp.
-// Kept in their own header so neither of those two has to include the other,
-// which breaks the circular include between them.
-
 struct ListenDirective
 {
 	std::string	address;

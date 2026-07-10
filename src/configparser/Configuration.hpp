@@ -7,7 +7,7 @@
 #include <vector>
 #include <memory>
 #include <stdexcept>
-#include <functional>
+// #include <functional>
 #include <set>
 #include <map>
 #include <unordered_map>
@@ -121,13 +121,11 @@ class	Lexer
 		std::string	consumeString(const std::string& input, size_t& pos, size_t line, size_t col);
 
 	public:
-		Lexer() = delete; // Could default to a config file.
+		Lexer() = delete;
 		Lexer(const std::string& input) { this->_input = input; };
 		~Lexer() = default;
 
 		std::vector<Token>	tokenize();
-
-		// std::vector<Token>	getTokens();
 };
 
 // ===============  PARSER  ===============
@@ -243,8 +241,6 @@ class	ConfigFile
 		std::vector<Directive*>	findAllDirectives(const std::string& name) const;
 };
 
-
-
 // =============== --- DIRECTIVE SPECS --- ===============
 
 void	validateDirective(Directive* node);
@@ -255,8 +251,6 @@ void	checkDuplicateDirectives(Directive* node);
 void	checkDuplicateLocations(Directive* node);
 void	checkDuplicateErrorCodes(Directive* node);
 
-// void	validateHttpDirective(Directive* node);
-void	validateServerDirective(Directive* node);
 void	validateLocationDirective(Directive* node);
 void	validateListenDirective(Directive* node);
 void	validateRootDirective(Directive* node);

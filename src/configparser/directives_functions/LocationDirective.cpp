@@ -10,10 +10,6 @@ void	validateLocationDirective(Directive* node)
 	return (validateBlockDirective(node));
 }
 
-/**
- * @brief
- * 
- */
 Location	ConfigFile::processLocation(Directive* directive)
 {
 	Directive*		server = nullptr;
@@ -101,9 +97,6 @@ Location	ConfigFile::processLocation(Directive* directive)
 	if (!index.empty())
 		location.indexPath = joinPath(location.dirPath, index);
 
-	// A non-CGI POST writes its body to upload_path, so that directive is
-	// required. A CGI location instead pipes the body to the script's stdin,
-	// so it may allow POST without an upload_path.
 	bool	isCgi = !location.cgiExtension.empty() || !location.cgiInterpreter.empty();
 	if (location.postMethod && location.uploadPath.empty() && !isCgi)
 		throw ConfigError::semantics("Location '" + location.name + "' allows POST but has no upload_path directive.", directive);

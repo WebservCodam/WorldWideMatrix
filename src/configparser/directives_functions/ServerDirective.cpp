@@ -1,11 +1,5 @@
 #include "../Configuration.hpp"
 
-void	validateServerDirective(Directive* node)
-{
-	// std::string	path = getRoot(node);
-	validateBlockDirective(node);
-}
-
 /**
  * @return
  * If there's a server name directive, it returns the given server name.

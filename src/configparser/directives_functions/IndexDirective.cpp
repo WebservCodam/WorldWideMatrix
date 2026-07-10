@@ -2,7 +2,6 @@
 
 void	validateIndexDirective(Directive* node)
 {
-
 	Directive*		locationDirective;
 	std::string		root;
 	std::string		index;
