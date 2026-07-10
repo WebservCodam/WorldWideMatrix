@@ -192,7 +192,21 @@ void	Webserv::addFdToClientList(int clientFd, int listenFd)
 
 void	Webserv::closeAndRemoveFdFromClientList(int clientFd)
 {
-	_clients.erase(clientFd); // The Client destructor closes the fd, which also removes it from epoll.
+	closeCgiPipes(clientFd);
+
+	std::map<pid_t, int>::iterator it = _cgiPid.begin();
+	while (it != _cgiPid.end())
+	{
+		if (it->second == clientFd)
+		{
+			kill(it->first, SIGKILL);
+			_cgiPid.erase(it);
+			break;
+		}
+		it++;
+	}
+
+	_clients.erase(clientFd); // Client destructor closes the fd, which also removes it from epoll.
 }
 
 void	Webserv::closeAndCleanCgi()
