@@ -582,7 +582,7 @@ std::string	Webserv::getRequestHost(const Client& client)
 void	Webserv::handleCGI(Client& client)
 {
 	client.setTimeCgi();
-	client._cgiOutput.empty();
+	client._cgiOutput.clear();
 	client._cgiInputFailed = false;
 	int pipe_in[2] {-1,-1};
 	int pipe_out[2];
