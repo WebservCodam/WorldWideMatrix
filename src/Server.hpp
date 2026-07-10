@@ -45,7 +45,8 @@ class Server
 		const ServerConfig&		getServerConfig() const { return _serverConfig; };
 		const std::vector<int>&	getListenFds() const { return _listenFds; };
 
-		void	handleRequest(Client& client);
-		void	serveErrorPage(HttpResponse& res, int code);
-		void	serveReturn(HttpResponse& res, const ReturnPage& ret);
+		void		handleRequest(Client& client);
+		std::string	resolveFsPath(const HttpRequest& request) const;
+		void		serveErrorPage(HttpResponse& res, int code);
+		void		serveReturn(HttpResponse& res, const ReturnPage& ret);
 };
