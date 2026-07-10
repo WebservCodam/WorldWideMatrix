@@ -39,6 +39,7 @@ int main(int argc, char** argv)
 			webserver.setServerConfigs(configurations);
 
 			signal(SIGINT, signalHandler);
+			signal(SIGPIPE, SIG_IGN);
 			webserver.initWebserv();
 			webserver.startServers();
 
