@@ -43,6 +43,7 @@ class Client
 		size_t				_bytesSent = 0;	// Progress into _writeBuf across writes.
 		size_t				_cgiBodySent = 0;
 		std::string			_cgiOutput;
+		bool				_cgiInputFailed = false;
 
 		Client(int fd);
 		~Client();

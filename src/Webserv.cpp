@@ -439,12 +439,26 @@ void	Webserv::writeToCgi(int cgiInFd)
 	ssize_t	written = write(cgiInFd,
 			body.data() + client._cgiBodySent,
 			body.size() - client._cgiBodySent);
-	if (written != -1)
+
+	if (written == -1)
 	{
-		client._cgiBodySent += written;
-		if (client._cgiBodySent < body.size())
-			return ;	// Partial write: stay armed for EPOLLOUT and resume.
+		// Broken pipe or other write failure: the CGI can't receive the rest
+		// of the body. Tear down the input side and let the output side
+		// (readFromCgi/finishCgi) decide the final status once its pipe
+		// hits EOF, instead of silently pretending the body was sent.
+		epollCtl(EPOLL_CTL_DEL, cgiInFd, 0);
+		close(cgiInFd);
+		_cgiFdToClientIn.erase(cgiInFd);
+		client._cgiFdIn = -1;
+		client._cgiBodySent = 0;
+		client._cgiInputFailed = true; // new flag, see below
+		return ;
 	}
+
+	client._cgiBodySent += written;
+	if (client._cgiBodySent < body.size())
+		return ;	// Partial write: stay armed for EPOLLOUT and resume.
+
 	epollCtl(EPOLL_CTL_DEL, cgiInFd, 0);
 	close(cgiInFd);
 	_cgiFdToClientIn.erase(cgiInFd);
@@ -463,7 +477,7 @@ void	Webserv::readFromCgi(int cgiOutFd)
 		client._cgiOutput.append(buffer, count);
 		return ;	// Keep reading until EOF; output can arrive in pieces.
 	}
-	if (count == -1)
+	if (count == -1 || client._cgiInputFailed)
 	{
 		finishCgi(cgiOutFd, client, 502);
 		return ;
@@ -569,6 +583,7 @@ void	Webserv::handleCGI(Client& client)
 {
 	client.setTimeCgi();
 	client._cgiOutput.empty();
+	client._cgiInputFailed = false;
 	int pipe_in[2] {-1,-1};
 	int pipe_out[2];
 	if (client._request.method == "POST")
