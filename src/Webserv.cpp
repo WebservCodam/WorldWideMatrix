@@ -433,6 +433,7 @@ void	Webserv::writeToCgi(int cgiInFd)
 	close(cgiInFd);
 	_cgiFdToClientIn.erase(cgiInFd);
 	client._cgiFdIn = -1;
+	client._cgiBodySent = 0;
 }
 
 void	Webserv::readFromCgi(int cgiOutFd)
@@ -551,6 +552,7 @@ std::string	Webserv::getRequestHost(const Client& client)
 void	Webserv::handleCGI(Client& client)
 {
 	client.setTimeCgi();
+	client._cgiOutput.empty();
 	int pipe_in[2] {-1,-1};
 	int pipe_out[2];
 	if (client._request.method == "POST")
