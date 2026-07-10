@@ -215,6 +215,11 @@ void	Webserv::closeAndCleanCgi()
 }
 void	Webserv::closeCgiPipes(int clientFd)
 {
+	std::map<int, Client>::iterator it = _clients.find(clientFd);
+    if (it == _clients.end())
+        return;
+    Client& client = it->second;
+
 	if (_clients.at(clientFd)._cgiFdIn != -1)
 	{
 		close(_clients.at(clientFd)._cgiFdIn);
@@ -675,6 +680,7 @@ void Webserv::checkHealth()
 				if (it->first == it2->second)
 				{
 					kill(it2->first, SIGKILL);
+					_cgiPid.erase(it2);
 					break;
 				}
 				it2++;
