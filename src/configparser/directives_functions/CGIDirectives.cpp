@@ -4,28 +4,18 @@ void	validateCgiHandlerDirective(Directive* node)
 {
 	std::string	extension = node->getParameter(0);
 	std::string	path = node->getParameter(1);
-	bool		isValidExtension = false;
 
 	if (extension.empty())
 		throw ConfigError::validation("The CGI handler was given an empty extension.", node);
+	if (extension[0] != '.')
+		throw ConfigError::validation("The CGI handler extension must start with a '.'.", node);
 	if (path.empty())
-		throw ConfigError::validation("The CGI handler was given an empty path.", node);
+		throw ConfigError::validation("The CGI handler was given an empty interpreter path.", node);
 
-	if (extension == CGIExtensions::PYTHON.first)
-	{
-		isValidExtension = true;
-		if (path != CGIExtensions::PYTHON.second)
-			throw ConfigError::validation("The CGI handler's path is invalid.", node);
-	}
-	// else if (extension == CGIExtensions::PHP.first)
-	// {
-	// 	isValidExtension = true;
-	// 	if (path != CGIExtensions::PHP.second)
-	// 		throw ConfigError::validation("The CGI handler's path is invalid.", node);
-	// }
-	if (!isValidExtension)
-		throw ConfigError::validation("The CGI handler was given an invalid extension.", node);
-
+	// Any extension is accepted; the only requirement is that the configured
+	// interpreter exists and is executable. A request whose file matches this
+	// extension runs through this interpreter; an executable file with no
+	// matching handler is run on its own (see Cgi::buildArgv).
 	if (access(path.c_str(), X_OK) != 0)
 		throw ConfigError::validation("The CGI interpreter '" + path + "' is not an executable file.", node);
 }

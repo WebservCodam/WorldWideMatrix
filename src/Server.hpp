@@ -45,8 +45,9 @@ class Server
 		const ServerConfig&		getServerConfig() const { return _serverConfig; };
 		const std::vector<int>&	getListenFds() const { return _listenFds; };
 
-		bool	isCgiRequest(const std::string& uri);
-		void	handleRequest(Client& client);
+		bool  isCgiRequest(const std::string& uri);
+		void  handleRequest(Client& client);
+		std::string	resolveFsPath(const HttpRequest& request) const;
 		void	serveErrorPage(HttpResponse& res, int code);
 		void	serveReturn(HttpResponse& res, const ReturnPage& ret);
 };

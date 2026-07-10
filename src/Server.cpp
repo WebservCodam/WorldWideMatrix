@@ -226,6 +226,18 @@ void	Server::serveDelete(HttpResponse& res, const std::string& fsPath)
 	res.status = 204;
 }
 
+// Resolves the request URI to a filesystem path: looks up the matching
+// location, strips its prefix off the URI and joins the rest onto the
+// location's directory. Same resolution handleRequest uses for static files.
+std::string	Server::resolveFsPath(const HttpRequest& request) const
+{
+	const Location&	location = _serverConfig.getLocation(request.uri);
+	std::string		prefixLocation = (location.name == "/") ? "/" : "/" + location.name;
+	std::string		remainder = request.uri.substr(prefixLocation.size());
+
+	return (joinPath(location.dirPath, remainder));
+}
+
 void	Server::handleRequest(Client& client)
 {
 	HttpResponse&	res = client._response;
@@ -264,11 +276,12 @@ void	Server::handleRequest(Client& client)
 			return ;
 		}
 
-		// Strip the matched location prefix off the URI, then join the rest
-		// onto the location's directory to get the real filesystem path.
+		// Strip the matched location prefix off the URI (servePost joins the
+		// remainder onto uploadPath instead), and resolve the URI to the real
+		// filesystem path for everything else.
 		std::string	prefixLocation = (location.name == "/") ? "/" : "/" + location.name;
 		std::string	remainder = uri.substr(prefixLocation.size());
-		std::string	fsPath = joinPath(location.dirPath, remainder);
+		std::string	fsPath = resolveFsPath(client._request);
 
 		if (method == "POST")
 		{
