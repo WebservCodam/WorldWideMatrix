@@ -6,7 +6,7 @@
 /*   By: vknape <vknape@student.codam.nl>             +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/06/23 13:37:10 by lprieri       ########   odam.nl         */
+/*   Updated: 2026/07/10 12:50:45 by lprieri       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -324,5 +324,21 @@ void	Server::handleRequest(Client& client)
 	catch (const std::exception&)
 	{
 		serveErrorPage(res, 400); // or 404
+	}
+}
+
+// A request is CGI when the location it routes to configures a cgi extension.
+// getLocation throwing (no matching location) just means "not CGI"; the normal
+// handleRequest path will produce the error response for it.
+bool	Server::isCgiRequest(const std::string& uri)
+{
+	try
+	{
+		const Location&	location = this->getServerConfig().getLocation(uri);
+		return (!location.cgiExtension.empty());
+	}
+	catch (const std::exception&)
+	{
+		return (false);
 	}
 }

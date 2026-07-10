@@ -7,6 +7,12 @@ Webserv::~Webserv()
 	// _listenFdToServers (one key per host:port), so each fd is closed exactly once.
 	for (std::map<int, std::vector<Server*>>::iterator it = _listenFdToServers.begin(); it != _listenFdToServers.end(); ++it)
 		close(it->first);
+	for (std::map<pid_t, int>::iterator it = _cgiPid.begin(); it != _cgiPid.end(); it++)
+		kill(it->first, SIGKILL);
+	// for (std::map<int, int>::iterator it = _cgiFdToClientIn.begin(); it != _cgiFdToClientIn.end(); it++)
+	// 	close(it->first);
+	// for (std::map<int, int>::iterator it = _cgiFdToClientOut.begin(); it != _cgiFdToClientOut.end(); it++)
+	// 	close(it->first);
 	// Client fds are closed by ~Client when _clients is destroyed.
 	close(_epfd);
 }
@@ -75,25 +81,61 @@ void	Webserv::startServers()
 		
 		for (int i = 0; i < numEvents; i++)
 		{
-			int	eventFd = events[i].data.fd;
+			int         eventFd  = events[i].data.fd;
+			uint32_t    fdEvents = events[i].events;
+			bool        handled  = false;
 
 			std::cout << "DEBUG: We're in the startServers for loop." << std::endl;
-			if (_listenFdToServers.find(eventFd) != _listenFdToServers.end())
+
+			if (_listenFdToServers.find(eventFd) != _listenFdToServers.end() && (fdEvents & EPOLLIN))
 			{
 				connectNew(eventFd);
 				connections++;
+				handled = true;
+			}
+			else if (_cgiFdToClientIn.find(eventFd) != _cgiFdToClientIn.end() && (fdEvents & EPOLLOUT))
+			{
+				writeToCgi(eventFd);
+				handled = true;
+			}
+			else if (_cgiFdToClientOut.find(eventFd) != _cgiFdToClientOut.end() && (fdEvents & (EPOLLIN | EPOLLHUP)))
+			{
+				readFromCgi(eventFd);
+				handled = true;
 			}
 			else if (_clients.find(eventFd) != _clients.end())
 			{
-				if (events[i].events & EPOLLIN)
-					connectIn(eventFd);
-				else if (events[i].events & EPOLLOUT)
+				// Exactly one I/O operation on this client per epoll_wait pass.
+				// Priority: a socket error closes the client outright; otherwise
+				// finish flushing a pending response before reading more (this is
+				// what clears _busy and lets buffered/pipelined bytes progress).
+				// epoll is level-triggered and nothing here uses EPOLLET, so if a
+				// client is ready for both directions, whichever we *don't* handle
+				// this pass is reported again on the next epoll_wait — no bytes
+				// are lost by deferring it.
+				if (fdEvents & EPOLLERR)
+				{
+					closeAndRemoveFdFromClientList(eventFd);
+					handled = true;
+				}
+				else if (fdEvents & EPOLLOUT)
+				{
 					connectOut(eventFd);
+					handled = true;
+				}
+				else if (fdEvents & EPOLLIN)
+				{
+					connectIn(eventFd);
+					handled = true;
+				}
 			}
-			else
+
+			if (!handled)
 				throw std::runtime_error("This FD doesn't belong to a server nor a client.");
 		}
 		checkHealth();
+		if (!g_run_server)
+			return;
 	}
 }
 
@@ -147,14 +189,144 @@ void	Webserv::addFdToClientList(int clientFd, int listenFd)
 
 void	Webserv::closeAndRemoveFdFromClientList(int clientFd)
 {
-	_clients.erase(clientFd); // The Client destructor closes the fd, which also removes it from epoll.
+	closeCgiPipes(clientFd);
+
+	std::map<pid_t, int>::iterator it = _cgiPid.begin();
+	while (it != _cgiPid.end())
+	{
+		if (it->second == clientFd)
+		{
+			kill(it->first, SIGKILL);
+			_cgiPid.erase(it);
+			break;
+		}
+		it++;
+	}
+
+	_clients.erase(clientFd); // Client destructor closes the fd, which also removes it from epoll.
+}
+
+void	Webserv::closeAndCleanCgi()
+{
+	int status;
+	pid_t finished_pid;
+
+	while ((finished_pid = waitpid(-1, &status, WNOHANG))> 0)
+	{
+		auto it = _cgiPid.find(finished_pid);
+
+		if (it != _cgiPid.end())
+		{
+			closeCgiPipes(it->second);
+			_cgiPid.erase(it);
+		}
+		else
+			std::cout << "Reaped unknown child process, pid: " << finished_pid << std::endl;
+	}
+}
+void	Webserv::closeCgiPipes(int clientFd)
+{
+	std::map<int, Client>::iterator it = _clients.find(clientFd);
+    if (it == _clients.end())
+        return;
+    Client& client = it->second;
+
+	if (_clients.at(clientFd)._cgiFdIn != -1)
+	{
+		close(_clients.at(clientFd)._cgiFdIn);
+		_cgiFdToClientIn.erase(_clients.at(clientFd)._cgiFdIn);
+		_clients.at(clientFd)._cgiFdIn = -1;
+	}
+
+	if (_clients.at(clientFd)._cgiFdOut != -1)
+	{
+		close(_clients.at(clientFd)._cgiFdOut);
+		_cgiFdToClientOut.erase(_clients.at(clientFd)._cgiFdOut);
+		_clients.at(clientFd)._cgiFdOut = -1;
+	}
+
+}
+
+// Tries to parse whatever is already sitting in the client's buffer (freshly
+// received bytes, or leftovers from a pipelined request that arrived earlier)
+// and, if a full request is present, routes it and serializes the response.
+// Never performs a read()/recv()/write()/send() itself: it only inspects bytes
+// already in memory and updates the epoll registration via epollCtl so the
+// actual I/O happens the next time epoll_wait reports the fd ready.
+//  - INCOMPLETE: more bytes are needed, so arm EPOLLIN.
+//  - COMPLETE / ERROR: a response was built, so arm EPOLLOUT to flush it.
+void	Webserv::processBufferedRequest(int clientFd)
+{
+	Client&		client = _clients.at(clientFd); //If unsuccesful it throws an std::out_of_range
+	ParseStatus	status;
+
+	try
+	{
+		status = parse(clientFd); // Branch the status received into conditionals.
+
+		if (status == INCOMPLETE)
+		{
+			std::cout << "Parsing incomplete; waiting for more bytes." << std::endl;
+			if (!epollCtl(EPOLL_CTL_MOD, clientFd, EPOLLIN))
+			{
+				perror("Epoll_ctl: switch to EPOLLIN failed");
+				closeAndRemoveFdFromClientList(clientFd);
+			}
+			return ;
+		}
+
+		// A full request is present and we're about to build its response:
+		// mark the connection busy so connectIn keeps buffering any further
+		// (pipelined) bytes without acting on them until connectOut has fully
+		// flushed this response.
+		client._busy = true;
+
+		if (status == ERROR)
+		{
+			// The parser set the error status; build its body and serve it as is instead of routing the request (which would overwrite the status).
+			selectServer(client.getListenFd(), getRequestHost(client))->serveErrorPage(client._response, client._response.status);
+		}
+		else // COMPLETE: route the request and build the response now, while we wait for EPOLLOUT. connectOut only pushes bytes.
+		{
+			Server*	server = selectServer(client.getListenFd(), getRequestHost(client));
+			if (server->isCgiRequest(client._request.uri))
+			{
+				handleCGI(client);
+				// No serialization and no EPOLLOUT here: the response doesn't
+				// exist yet. finishCgi builds and arms it once the script's
+				// output pipe hits EOF. _busy stays true meanwhile, so
+				// connectIn keeps buffering without re-entering the parser.
+				return ;
+			}
+			server->handleRequest(client);
+		}
+
+		client._writeBuf = client.serializeResponse();
+		client._bytesSent = 0;
+
+		// Keep EPOLLIN armed alongside EPOLLOUT: the client may keep sending
+		// pipelined requests while we're still flushing this response; those
+		// bytes get buffered (see connectIn's _busy check) and parsed once
+		// connectOut clears _busy.
+		if (!epollCtl(EPOLL_CTL_MOD, clientFd, EPOLLIN | EPOLLOUT))
+		{
+			perror("Epoll_ctl: switch to EPOLLIN|EPOLLOUT failed");
+			closeAndRemoveFdFromClientList(clientFd);
+		}
+	}
+	catch (const std::exception& e)
+	{
+		// An unexpected failure while building the response: notify the client with a
+		// 500 page instead of crashing the server, then close once it's flushed.
+		std::cerr << "Server error while handling request: " << e.what() << std::endl;
+		serveError(client, 500, true);
+	}
 }
 
 void Webserv::connectIn(int clientFd)
 {
 	char		buffer[8192] = {0};
 	ssize_t		count = 0; // Bytes read.
-	ParseStatus	status;
 
 	count = recv(clientFd, buffer, sizeof(buffer), 0);
 	if (count == 0 || count == -1)
@@ -170,39 +342,12 @@ void Webserv::connectIn(int clientFd)
 	client.setTime(); // Reset time after a succesful read.
 	client._buf.append(buffer, count); // Changed this line to the CPP version.
 
-	try
-	{
-		status = parse(clientFd); // Branch the status received into conditionals.
+	if (client._busy)
+		return ; // A response for the previous request is still being built/flushed
+				 // (or a CGI is running); leave the new bytes buffered and let
+				 // connectOut resume parsing once that response is fully sent.
 
-		if (status == INCOMPLETE)
-		{
-			std::cout << "Parsing incomplete; returning so we connectIn again." << std::endl;
-			return ; // So it goes back to connectIn on next loop. And since it's level-triggered, the event will still be there.
-		}
-		else if (status == ERROR)
-		{
-			// The parser set the error status; build its body and serve it as is instead of routing the request (which would overwrite the status).
-			selectServer(client.getListenFd(), getRequestHost(client))->serveErrorPage(client._response, client._response.status);
-		}
-		else // COMPLETE: route the request and build the response now, while we wait for EPOLLOUT. connectOut only pushes bytes.
-			selectServer(client.getListenFd(), getRequestHost(client))->handleRequest(client);
-
-		client._writeBuf = client.serializeResponse();
-		client._bytesSent = 0;
-
-		if (!epollCtl(EPOLL_CTL_MOD, clientFd, EPOLLOUT))
-		{
-			perror("Epoll_ctl: switch to EPOLLOUT failed");
-			closeAndRemoveFdFromClientList(clientFd);
-		}
-	}
-	catch (const std::exception& e)
-	{
-		// An unexpected failure while building the response: notify the client with a
-		// 500 page instead of crashing the server, then close once it's flushed.
-		std::cerr << "Server error while handling request: " << e.what() << std::endl;
-		serveError(client, 500, true);
-	}
+	processBufferedRequest(clientFd);
 }
 
 // Serves `code` as an error page on the client and arms EPOLLOUT so connectOut
@@ -229,8 +374,9 @@ void	Webserv::serveError(Client& client, int code, bool closeConnection)
 
 	client._writeBuf = client.serializeResponse();
 	client._bytesSent = 0;
+	client._busy = true; // A response is now in flight; cleared by connectOut once it's fully sent.
 
-	if (!epollCtl(EPOLL_CTL_MOD, client.getFd(), EPOLLOUT))
+	if (!epollCtl(EPOLL_CTL_MOD, client.getFd(), EPOLLIN | EPOLLOUT))
 		closeAndRemoveFdFromClientList(client.getFd()); // Can't even notify the client; drop it.
 }
 
@@ -256,10 +402,14 @@ void Webserv::connectOut(int clientFd)
 	if (client._bytesSent < client._writeBuf.size())
 		return ; // Still subscribed to EPOLLOUT; we resume when the socket drains.
 
-	// Response fully sent: re-arm for the next request on this connection.
+	// Response fully sent: reset per-response state for the next request on
+	// this connection. _buf is deliberately left untouched here: if the client
+	// pipelined a second request (sent it without waiting for this response),
+	// its bytes are already sitting in _buf and must not be discarded.
 	client._writeBuf.clear();
 	client._bytesSent = 0;
 	client._response = HttpResponse(); // Headers like Allow or Location must not leak into the next response.
+	client._busy = false; // No response in flight anymore; connectIn/processBufferedRequest can act on buffered bytes again.
 
 	if (client._alive == false || client._mustClose)
 	{
@@ -271,8 +421,132 @@ void Webserv::connectOut(int clientFd)
 	{
 		perror("Epoll_ctl: switch to EPOLLIN failed");
 		closeAndRemoveFdFromClientList(clientFd);
+		return ;
+	}
+
+	// A pipelined request may already be fully (or partially) buffered from an
+	// earlier recv(). Parse what's already in memory now instead of waiting for
+	// another EPOLLIN event: the client may not send more bytes if it already
+	// sent everything back-to-back and is just waiting on replies.
+	processBufferedRequest(clientFd);
+}
+
+void	Webserv::writeToCgi(int cgiInFd)
+{
+	Client&				client = _clients.at(_cgiFdToClientIn.at(cgiInFd));
+	const std::string&	body = client._request.body;
+
+	ssize_t	written = write(cgiInFd,
+			body.data() + client._cgiBodySent,
+			body.size() - client._cgiBodySent);
+	if (written != -1)
+	{
+		client._cgiBodySent += written;
+		if (client._cgiBodySent < body.size())
+			return ;	// Partial write: stay armed for EPOLLOUT and resume.
+	}
+	epollCtl(EPOLL_CTL_DEL, cgiInFd, 0);
+	close(cgiInFd);
+	_cgiFdToClientIn.erase(cgiInFd);
+	client._cgiFdIn = -1;
+	client._cgiBodySent = 0;
+}
+
+void	Webserv::readFromCgi(int cgiOutFd)
+{
+	Client&	client = _clients.at(_cgiFdToClientOut.at(cgiOutFd));
+	char	buffer[8192];
+	ssize_t	count = read(cgiOutFd, buffer, sizeof(buffer));
+
+	if (count > 0)
+	{
+		client._cgiOutput.append(buffer, count);
+		return ;	// Keep reading until EOF; output can arrive in pieces.
+	}
+	if (count == -1)
+	{
+		finishCgi(cgiOutFd, client, 502);
+		return ;
+	}
+	// count == 0: the script closed stdout, so it's done.
+	if (client._cgiOutput.empty())
+		finishCgi(cgiOutFd, client, 502);	// A CGI that printed nothing is a failure.
+	else
+	{
+		buildResponseFromCgi(client);
+		finishCgi(cgiOutFd, client, 0);
 	}
 }
+
+void Webserv::buildResponseFromCgi(Client& client)
+{
+    HttpResponse&      res = client._response;
+    const std::string& out = client._cgiOutput;
+
+    res.status = 200;  // CGI default, unless a Status header overrides it
+
+    // Find the blank line that separates the CGI headers from the body.
+    // Accept both CRLF (spec) and bare LF (what many scripts actually emit).
+    size_t sep = out.find("\r\n\r\n");
+    size_t sepLen = 4;
+    if (sep == std::string::npos)
+    {
+        sep = out.find("\n\n");
+        sepLen = 2;
+    }
+    if (sep == std::string::npos)   // no header block: the whole output is the body
+    {
+        res.body = out;
+        return;
+    }
+
+    std::string        headerBlock = out.substr(0, sep);
+    res.body = out.substr(sep + sepLen);
+
+    std::istringstream stream(headerBlock);
+    std::string        line;
+    while (std::getline(stream, line))
+    {
+        if (!line.empty() && line.back() == '\r')   // tolerate CRLF line endings
+            line.pop_back();
+        size_t colon = line.find(':');
+        if (colon == std::string::npos)
+            continue;
+
+        std::string key = line.substr(0, colon);
+        std::string value = line.substr(colon + 1);
+        size_t      start = value.find_first_not_of(" \t");   // trim leading space
+        value = (start == std::string::npos) ? "" : value.substr(start);
+
+        if (key == "Status")                // e.g. "Status: 404 Not Found"
+            res.status = std::atoi(value.c_str());
+        else if (key == "Content-Type")
+            res.contentType = value;
+        else
+            res.headers[key] = value;
+    }
+}
+
+void Webserv::finishCgi(int cgiOutFd, Client& client, int errorCode)
+{
+    close(cgiOutFd);
+    _cgiFdToClientOut.erase(cgiOutFd);
+	client._cgiFdOut = -1;
+
+    if (errorCode != 0)                        // CGI failed: replace output with an error page
+        selectServer(client.getListenFd(), getRequestHost(client))
+            ->serveErrorPage(client._response, errorCode);
+
+    client._writeBuf = client.serializeResponse();
+    client._bytesSent = 0;
+    client._busy = true; // A response is now in flight; cleared by connectOut once it's fully sent.
+    epollCtl(EPOLL_CTL_MOD, client._clientFd, EPOLLIN | EPOLLOUT);   // connectOut sends it, EPOLLIN keeps buffering any pipelined bytes
+}
+
+// void Webserv::cgiDone(int clientFd)
+// {
+// 	epollCtl(EPOLL_CTL_MOD, clientFd, EPOLLOUT);
+// }
 
 // Extracts the request's Host, lowercased and stripped of any :port suffix,
 // for matching against server_name. Returns "" when no Host is present
@@ -289,6 +563,107 @@ std::string	Webserv::getRequestHost(const Client& client)
 		host = host.substr(0, colon);
 	std::transform(host.begin(), host.end(), host.begin(), ::tolower);
 	return (host);
+}
+
+void	Webserv::handleCGI(Client& client)
+{
+	client.setTimeCgi();
+	client._cgiOutput.empty();
+	int pipe_in[2] {-1,-1};
+	int pipe_out[2];
+	if (client._request.method == "POST")
+	{
+		if (pipe(pipe_in) == -1)
+		{
+			serveError(client, 500, false);
+			return;
+		};
+	}
+
+	if (pipe(pipe_out) == -1)
+	{
+		if (pipe_in[0] != -1)
+		{
+			close(pipe_in[0]);
+			close(pipe_in[1]);
+		}
+		serveError(client, 500, false);
+		return;
+	};
+	
+	pid_t pid = fork();
+	
+	//child
+	if (pid == 0)
+	{
+		Server *s = selectServer(client._listenFd, getRequestHost(client));
+		const Location &l = s->getServerConfig().getLocation(client._request.uri);
+		const std::string &scriptpath = l.indexPath;
+		std::string servername = s->getServerConfig().getServerName();
+		std::string serverport = _listenFdToPort[client._listenFd];
+		Cgi cgi(l, client._request, scriptpath, servername, serverport);
+		
+		//check all for failure
+		if (pipe_in[0] != -1)
+		{
+			dup2(pipe_in[0], STDIN_FILENO);
+			close(pipe_in[0]);
+			close(pipe_in[1]);
+		}
+		
+		close(pipe_out[0]);
+		dup2(pipe_out[1], STDOUT_FILENO);
+		close(pipe_out[1]);
+
+		// Split scriptpath into directory + filename, then run the CGI from
+		// its own directory so relative file access inside the script works.
+		size_t      slash = scriptpath.find_last_of('/');
+		std::string scriptDir  = (slash == std::string::npos) ? "." : scriptpath.substr(0, slash);
+		std::string scriptFile = (slash == std::string::npos) ? scriptpath : scriptpath.substr(slash + 1);
+
+		if (chdir(scriptDir.c_str()) == -1)
+			exit(1); // Can't reach the script's directory; nothing left to do but fail this child.
+
+		execve(scriptpath.c_str(), cgi.getArgv(), cgi.getEnvp());
+		exit(1);
+		
+	}
+
+	//fork failure
+	else if (pid == -1)
+	{
+		//call server failure function to send response to client, maybe throw
+		if (pipe_in[0] != -1)
+		{
+			close(pipe_in[0]);
+			close(pipe_in[1]);
+		}
+		close(pipe_out[0]);
+		close(pipe_out[1]);
+		serveError(client, 500, false);
+	}
+
+	//parent
+	else
+	{
+		//check for failure
+		if (pipe_in[0] != -1)
+		{
+			close(pipe_in[0]);
+			setNonBlocking(pipe_in[1]);
+		}
+		close(pipe_out[1]);
+		setNonBlocking(pipe_out[0]);
+		_cgiFdToClientOut[pipe_out[0]] = client._clientFd;
+		if (client._request.method == "POST")
+		{
+			_cgiFdToClientIn[pipe_in[1]] = client._clientFd;
+			//add in to epoll
+			epollCtl(EPOLL_CTL_ADD, pipe_in[1], EPOLLOUT);
+		}
+		epollCtl(EPOLL_CTL_ADD, pipe_out[0], EPOLLIN);
+		_cgiPid[pid] = client._clientFd;
+	}
 }
 
 // Among the servers behind listenFd, returns the one whose server_name matches host
@@ -310,19 +685,45 @@ Server*	Webserv::selectServer(int listenFd, const std::string& host)
 
 void Webserv::checkHealth()
 {
+	closeAndCleanCgi();
+
 	auto	it = _clients.begin();
 
 	while (it != _clients.end()) // Since the iterator was incremented within the loop, I changed this to a while loop.
 	{
 		std::cout << "DEBUG in checkHealth: Timecheck\n" << std::endl;
+		if (it->second._cgiFdOut != -1 && it->second.checkTimeCgi() == -1)
+		{
+			auto it2 = _cgiPid.begin();
+			while (it2 != _cgiPid.end())
+			{
+				if (it->first == it2->second)
+				{
+					kill(it2->first, SIGKILL);
+					_cgiPid.erase(it2);
+					break;
+				}
+				it2++;
+			}
+			closeCgiPipes(it->first);
+			serveError(it->second, 504, false);
+		}
 		if (it->second.checkTime() == -1)
 		{
 			int fd = it->first;
-			closeAndRemoveFdFromClientList(it->first);
+			Client &c = it->second;
+			it++;
+			if (c._alive == false && c._bytesSent == 0)
+				serveError(c, 408, true);
+			else if (c._alive == true && c._buf.empty() == false && c._bytesSent == 0)
+				serveError(c, 408, true);
+			else
+				closeAndRemoveFdFromClientList(fd);
 			std::cout << "Connection timed out after 15 seconds of inactivity" << std::endl;
-			break ; // The client is closed and the iterator becomes invalid, so we have to break out.
+			// break ; // The client is closed and the iterator becomes invalid, so we have to break out.
 		}
-		it++;
+		else
+			it++;
 	}
 }
 

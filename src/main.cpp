@@ -6,16 +6,30 @@
 #include "configparser/Configuration.hpp"
 #include "configparser/ServerConfig.hpp"
 
+volatile bool g_run_server = true;
+
 void	initialize(int argc, char **argv, std::vector<ServerConfig>& configurations);
 void	printErrorAndExit(const std::string& msg, int errorCode);
+
+void	signalHandler(int sig)
+{
+	(void)sig;
+	g_run_server = false;
+}
 
 int main(int argc, char** argv)
 {
 	std::vector<ServerConfig>	configurations;
 
 	initialize(argc, argv, configurations);
-	while (true)
+	int restart = 0;
+	while (g_run_server)
 	{
+		if (restart > 4)
+		{
+			std::cout << "Internal issue could not be resolved, proper restart needed" << std::endl;
+			exit(1);
+		}
 		std::cout << "Starting webserv" << std::endl;
 		try
 		{
@@ -30,6 +44,8 @@ int main(int argc, char** argv)
 
 			webserver.setServerConfigs(configurations);
 
+			signal(SIGINT, signalHandler);
+			signal(SIGPIPE, SIG_IGN);
 			webserver.initWebserv();
 			webserver.startServers();
 
@@ -39,7 +55,9 @@ int main(int argc, char** argv)
 		}	catch (const std::exception& e) {
 				std::cout << "Exception: " << e.what() << std::endl;
 		}
+		restart++;
 	}
+	std::cout << "Sigint received" << std::endl;
 }
 
 void	initialize(int argc, char **argv, std::vector<ServerConfig>& configurations)

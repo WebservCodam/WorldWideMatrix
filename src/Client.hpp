@@ -26,9 +26,13 @@ class Client
 	public:
 		const int 			_clientFd;
 		int					_listenFd;
+		int					_cgiFdIn = -1;
+		int					_cgiFdOut = -1;
 		int 				_time;
+		int					_timeCgi;
 		bool 				_alive = false;		// Keep-alive requested by the client (set by the parser).
 		bool 				_mustClose = false;	// Server-side override: close this connection once the current response is flushed.
+		bool				_busy = false;		// True from the moment a full request is parsed until its response is fully flushed by connectOut; blocks connectIn from processing further buffered bytes in the meantime (it still keeps reading them into _buf).
 		int					_readstate = 0;
 		int					_parseready = 0;
 		int 				_content_length = 0;
@@ -37,6 +41,8 @@ class Client
 		HttpRequest			_request;
 		std::string			_writeBuf;		// Serialized response; empty until built.
 		size_t				_bytesSent = 0;	// Progress into _writeBuf across writes.
+		size_t				_cgiBodySent = 0;
+		std::string			_cgiOutput;
 
 		Client(int fd);
 		~Client();
@@ -48,4 +54,7 @@ class Client
 		void		setTime();
 		int			getTime();
 		int			checkTime() const;
+		void		setTimeCgi();
+		int			getTimeCgi();
+		int			checkTimeCgi() const;
 };
