@@ -683,11 +683,12 @@ void Webserv::checkHealth()
 		if (it->second.checkTime() == -1)
 		{
 			int fd = it->first;
+			Client &c = it->second;
 			it++;
-			if (it->second._alive == false && it->second._bytesSent == 0)
-				serveError(it->second, 408, true);
-			else if (it->second._alive == true && it->second._buf.empty() == false && it->second._bytesSent == 0)
-				serveError(it->second, 408, true);
+			if (c._alive == false && c._bytesSent == 0)
+				serveError(c, 408, true);
+			else if (c._alive == true && c._buf.empty() == false && c._bytesSent == 0)
+				serveError(c, 408, true);
 			else
 				closeAndRemoveFdFromClientList(fd);
 			std::cout << "Connection timed out after 15 seconds of inactivity" << std::endl;
