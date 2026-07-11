@@ -148,8 +148,6 @@ void Webserv::connectNew(int listenFd)
 			throw ;
 		}
 
-		// EPOLLIN: notified when the fd is ready for reading. No edge-triggered flag,
-		// because it might be impossible to implement with the errno constraint.
 		if (!epollCtl(EPOLL_CTL_ADD, clientFd, EPOLLIN))
 		{
 			closeAndRemoveFdFromClientList(clientFd);
@@ -163,7 +161,7 @@ void	Webserv::addFdToClientList(int clientFd, int listenFd)
 	std::pair<std::map<int, Client>::iterator, bool>	result;
 
 	result = _clients.emplace(clientFd, clientFd);
-	result.first->second.setListenFd(listenFd);	// The client's server is chosen per-request from _listenFdToServers once its Host header is parsed.
+	result.first->second.setListenFd(listenFd);
 }
 
 void	Webserv::closeAndRemoveFdFromClientList(int clientFd)
@@ -182,7 +180,7 @@ void	Webserv::closeAndRemoveFdFromClientList(int clientFd)
 		it++;
 	}
 
-	_clients.erase(clientFd); // Client destructor closes the fd, which also removes it from epoll.
+	_clients.erase(clientFd);
 }
 
 void	Webserv::closeAndCleanCgi()
@@ -229,19 +227,16 @@ void	Webserv::closeCgiPipes(int clientFd)
 // Tries to parse whatever is already sitting in the client's buffer (freshly
 // received bytes, or leftovers from a pipelined request that arrived earlier)
 // and, if a full request is present, routes it and serializes the response.
-// Never performs a read()/recv()/write()/send() itself: it only inspects bytes
-// already in memory and updates the epoll registration via epollCtl so the
-// actual I/O happens the next time epoll_wait reports the fd ready.
 //  - INCOMPLETE: more bytes are needed, so arm EPOLLIN.
 //  - COMPLETE / ERROR: a response was built, so arm EPOLLOUT to flush it.
 void	Webserv::processBufferedRequest(int clientFd)
 {
-	Client&		client = _clients.at(clientFd); //If unsuccesful it throws an std::out_of_range
+	Client&		client = _clients.at(clientFd);
 	ParseStatus	status;
 
 	try
 	{
-		status = parse(clientFd); // Branch the status received into conditionals.
+		status = parse(clientFd);
 
 		if (status == INCOMPLETE)
 		{
@@ -254,9 +249,8 @@ void	Webserv::processBufferedRequest(int clientFd)
 		}
 
 		// A full request is present and we're about to build its response:
-		// mark the connection busy so connectIn keeps buffering any further
-		// (pipelined) bytes without acting on them until connectOut has fully
-		// flushed this response.
+		// mark the connection busy so connectIn keeps buffering any further (pipelined) bytes
+		// without acting on them until connectOut has fully flushed this response.
 		client._busy = true;
 
 		if (status == ERROR)
@@ -271,10 +265,9 @@ void	Webserv::processBufferedRequest(int clientFd)
 			{
 				server->handleRequest(client);
 				handleCGI(client);
-				// No serialization and no EPOLLOUT here: the response doesn't
-				// exist yet. finishCgi builds and arms it once the script's
-				// output pipe hits EOF. _busy stays true meanwhile, so
-				// connectIn keeps buffering without re-entering the parser.
+				// No serialization and no EPOLLOUT here: the response doesn't exist yet.
+				// finishCgi builds and arms it once the script's output pipe hits EOF.
+				// _busy stays true meanwhile, so connectIn keeps buffering without re-entering the parser.
 				return ;
 			}
 			server->handleRequest(client);
@@ -283,10 +276,9 @@ void	Webserv::processBufferedRequest(int clientFd)
 		client._writeBuf = client.serializeResponse();
 		client._bytesSent = 0;
 
-		// Keep EPOLLIN armed alongside EPOLLOUT: the client may keep sending
-		// pipelined requests while we're still flushing this response; those
-		// bytes get buffered (see connectIn's _busy check) and parsed once
-		// connectOut clears _busy.
+		// Keep EPOLLIN armed alongside EPOLLOUT: the client may keep sending pipelined requests
+		// while we're still flushing this response; those bytes get buffered
+		// (see connectIn's _busy check) and parsed once connectOut clears _busy.
 		if (!epollCtl(EPOLL_CTL_MOD, clientFd, EPOLLIN | EPOLLOUT))
 		{
 			perror("Epoll_ctl: switch to EPOLLIN|EPOLLOUT failed");
@@ -295,8 +287,6 @@ void	Webserv::processBufferedRequest(int clientFd)
 	}
 	catch (const std::exception& e)
 	{
-		// An unexpected failure while building the response: notify the client with a
-		// 500 page instead of crashing the server, then close once it's flushed.
 		std::cerr << "Server error while handling request: " << e.what() << std::endl;
 		serveError(client, 500, true);
 	}
@@ -305,7 +295,7 @@ void	Webserv::processBufferedRequest(int clientFd)
 void Webserv::connectIn(int clientFd)
 {
 	char		buffer[8192] = {0};
-	ssize_t		count = 0; // Bytes read.
+	ssize_t		count = 0;
 
 	count = recv(clientFd, buffer, sizeof(buffer), 0);
 	if (count == 0 || count == -1)
@@ -316,10 +306,10 @@ void Webserv::connectIn(int clientFd)
 		return ;
 	}
 
-	Client&	client = _clients.at(clientFd); //If unsuccesful it throws an std::out_of_range
+	Client&	client = _clients.at(clientFd);
 
 	client.setTime(); // Reset time after a succesful read.
-	client._buf.append(buffer, count); // Changed this line to the CPP version.
+	client._buf.append(buffer, count);
 
 	if (client._busy)
 		return ; // A response for the previous request is still being built/flushed
@@ -329,11 +319,7 @@ void Webserv::connectIn(int clientFd)
 	processBufferedRequest(clientFd);
 }
 
-// Serves `code` as an error page on the client and arms EPOLLOUT so connectOut
-// flushes it. When closeConnection is true the connection is dropped after the
-// page is sent (Connection: close); otherwise the client's keep-alive choice stands,
-// so the connection can serve another request. Kept exception-safe: it falls back to
-// a built-in page if the per-server lookup itself fails, since it runs on error paths.
+// Serves `code` as an error page on the client and arms EPOLLOUT so connectOut flushes it.
 void	Webserv::serveError(Client& client, int code, bool closeConnection)
 {
 	client._response = HttpResponse(); // Drop any half-built response so its headers don't leak.
@@ -371,7 +357,6 @@ void Webserv::connectOut(int clientFd)
 			client._writeBuf.size() - client._bytesSent);
 	if (written == -1)
 	{
-		// errno can't be checked after a write. epoll just reported the socket as writable, so -1 is a real error, not a full buffer. So we close the client.
 		closeAndRemoveFdFromClientList(clientFd);
 		return ;
 	}
@@ -381,10 +366,7 @@ void Webserv::connectOut(int clientFd)
 	if (client._bytesSent < client._writeBuf.size())
 		return ; // Still subscribed to EPOLLOUT; we resume when the socket drains.
 
-	// Response fully sent: reset per-response state for the next request on
-	// this connection. _buf is deliberately left untouched here: if the client
-	// pipelined a second request (sent it without waiting for this response),
-	// its bytes are already sitting in _buf and must not be discarded.
+	// Response fully sent: reset per-response state for the next request on this connection.
 	client._writeBuf.clear();
 	client._bytesSent = 0;
 	client._response = HttpResponse(); // Headers like Allow or Location must not leak into the next response.
@@ -403,10 +385,7 @@ void Webserv::connectOut(int clientFd)
 		return ;
 	}
 
-	// A pipelined request may already be fully (or partially) buffered from an
-	// earlier recv(). Parse what's already in memory now instead of waiting for
-	// another EPOLLIN event: the client may not send more bytes if it already
-	// sent everything back-to-back and is just waiting on replies.
+	// A pipelined request may already be fully (or partially) buffered from an earlier recv().
 	processBufferedRequest(clientFd);
 }
 
@@ -421,16 +400,15 @@ void	Webserv::writeToCgi(int cgiInFd)
 
 	if (written == -1)
 	{
-		// Broken pipe or other write failure: the CGI can't receive the rest
-		// of the body. Tear down the input side and let the output side
-		// (readFromCgi/finishCgi) decide the final status once its pipe
-		// hits EOF, instead of silently pretending the body was sent.
+		// Broken pipe or other write failure: the CGI can't receive the rest of the body.
+		// Tear down the input side and let the output side (readFromCgi/finishCgi)
+		// decide the final status once its pipe hits EOF, instead of silently pretending the body was sent.
 		epollCtl(EPOLL_CTL_DEL, cgiInFd, 0);
 		close(cgiInFd);
 		_cgiFdToClientIn.erase(cgiInFd);
 		client._cgiFdIn = -1;
 		client._cgiBodySent = 0;
-		client._cgiInputFailed = true; // new flag, see below
+		client._cgiInputFailed = true;
 		return ;
 	}
 
@@ -536,11 +514,6 @@ void Webserv::finishCgi(int cgiOutFd, Client& client, int errorCode)
     epollCtl(EPOLL_CTL_MOD, client._clientFd, EPOLLIN | EPOLLOUT);   // connectOut sends it, EPOLLIN keeps buffering any pipelined bytes
 }
 
-// void Webserv::cgiDone(int clientFd)
-// {
-// 	epollCtl(EPOLL_CTL_MOD, clientFd, EPOLLOUT);
-// }
-
 // Extracts the request's Host, lowercased and stripped of any :port suffix,
 // for matching against server_name. Returns "" when no Host is present
 // (e.g. a request that failed to parse), which makes selectServer fall back to the default server.
@@ -614,8 +587,6 @@ void	Webserv::handleCGI(Client& client)
 
 		// Split scriptpath into directory + filename, then run the CGI from
 		// its own directory so relative file access inside the script works.
-		// argv carries the bare filename (not scriptpath) because we chdir into
-		// scriptDir below: a path relative to the old cwd would no longer resolve.
 		size_t      slash = scriptpath.find_last_of('/');
 		std::string scriptDir  = (slash == std::string::npos) ? "." : scriptpath.substr(0, slash);
 		std::string scriptFile = (slash == std::string::npos) ? scriptpath : scriptpath.substr(slash + 1);
@@ -659,7 +630,6 @@ void	Webserv::handleCGI(Client& client)
 	//parent
 	else
 	{
-		//check for failure
 		if (pipe_in[0] != -1)
 		{
 			close(pipe_in[0]);
@@ -680,8 +650,8 @@ void	Webserv::handleCGI(Client& client)
 	}
 }
 
-// Among the servers behind listenFd, returns the one whose server_name matches host
-// (case-insensitive). Falls back to the first server on that socket,
+// Among the servers behind listenFd, returns the one whose server_name matches host (case insensitive).
+// Falls back to the first server on that socket,
 // which is the default server nginx would use when no server_name matches.
 Server*	Webserv::selectServer(int listenFd, const std::string& host)
 {
@@ -703,7 +673,7 @@ void Webserv::checkHealth()
 
 	auto	it = _clients.begin();
 
-	while (it != _clients.end()) // Since the iterator was incremented within the loop, I changed this to a while loop.
+	while (it != _clients.end())
 	{
 		if (it->second._cgiFdOut != -1 && it->second.checkTimeCgi() == -1)
 		{
@@ -732,7 +702,6 @@ void Webserv::checkHealth()
 				serveError(c, 408, true);
 			else
 				closeAndRemoveFdFromClientList(fd);
-			// break ; // The client is closed and the iterator becomes invalid, so we have to break out.
 		}
 		else
 			it++;
