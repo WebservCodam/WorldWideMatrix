@@ -48,10 +48,8 @@ int main(int argc, char** argv)
 			signal(SIGPIPE, SIG_IGN);
 			webserver.initWebserv();
 			webserver.startServers();
-
 		}	catch (const std::runtime_error& e) {
 				std::cout << "Runtime error: " << e.what() << std::endl;
-				// Replace exit with closing listenfds (include in destructor)
 		}	catch (const std::exception& e) {
 				std::cout << "Exception: " << e.what() << std::endl;
 		}
@@ -62,12 +60,16 @@ int main(int argc, char** argv)
 
 void	initialize(int argc, char **argv, std::vector<ServerConfig>& configurations)
 {
-	if (argc != 2)
-		printErrorAndExit("Error: Expecting an input file.", EXIT_FAILURE);
+	if (argc > 2)
+		printErrorAndExit("Usage: ./webserv [configuration file]", EXIT_FAILURE);
 
-	std::ifstream	file(argv[1]);
+	std::string configPath = (argc == 2) ? argv[1] : DEFAULT_CONF;
+	if (argc == 1)
+		std::cout << "No configuration file provided, using " << configPath << std::endl;
+
+	std::ifstream	file(configPath.c_str());
 	if (!file)
-		printErrorAndExit("Error: Could not open file.", EXIT_FAILURE);
+		printErrorAndExit("Error: Could not open file: " + configPath, EXIT_FAILURE);
 
 	std::stringstream	buffer;
 	buffer << file.rdbuf();

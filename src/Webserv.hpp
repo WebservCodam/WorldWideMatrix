@@ -10,6 +10,7 @@
 
 # define EPOLL_NBR_EVENTS 1000
 # define EPOLL_TIMEOUT 5000
+# define DEFAULT_CONF "default.conf"
 
 class Webserv
 {
