@@ -35,11 +35,6 @@ class	ServerConfig
 					int keepaliveTimeout);
 		~ServerConfig() = default;
 
-		// For the return directive -> if the page string is empty, and the code is an error page, then serve the error page for that code.
-		// If there is no error page for that code, serve the default error page.
-
-		// Create function that retrieves an error page from the code given. If the page is not specified, then return the default error page.
-
 		const std::string&							getServerName() const { return this->_serverName; }
 		const std::vector<ListenDirective>&			getListenDirectives() const { return this->_listenDirectives; }
 		unsigned long long							getMaxBodySize() const { return this->_maxBodySize; }

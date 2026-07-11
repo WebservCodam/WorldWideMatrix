@@ -13,10 +13,7 @@ struct HttpResponse
 	std::string							contentType = "text/html";	// Overridden per file by its MIME type.
 };
 
-// Maps an HTTP status code to its reason phrase (e.g. 404 -> "Not Found").
 std::string	reasonPhrase(int status);
-// Builds a self-contained HTML error page for `status`, using its reason phrase.
-// Served when no error_page file is configured or it can't be read.
 std::string	defaultErrorPage(int status);
 
 class Client
@@ -31,7 +28,7 @@ class Client
 		int 				_time;
 		int					_timeCgi;
 		bool 				_alive = false;		// Keep-alive requested by the client (set by the parser).
-		bool 				_mustClose = false;	// Server-side override: close this connection once the current response is flushed.
+		bool 				_mustClose = false;	// Server-side override: close this connection once the current response is sent.
 		bool				_busy = false;		// True from the moment a full request is parsed until its response is fully flushed by connectOut; blocks connectIn from processing further buffered bytes in the meantime (it still keeps reading them into _buf).
 		int					_readstate = 0;
 		int					_parseready = 0;
@@ -48,7 +45,7 @@ class Client
 		Client(int fd);
 		~Client();
 
-		std::string	serializeResponse(); // This creates the ready to send response that'll be written to the socket.
+		std::string	serializeResponse();
 		void		setListenFd(int listenFd);
 		int			getListenFd() const;
 		int			getFd() const;

@@ -7,7 +7,6 @@
 #include <vector>
 #include <memory>
 #include <stdexcept>
-// #include <functional>
 #include <set>
 #include <map>
 #include <unordered_map>
@@ -140,7 +139,7 @@ class	Parser
 
 		const Token&	currentToken() const;
 		void			advance();
-		const Token&	peekToken(size_t offset = 1) const;	// Default = 1
+		const Token&	peekToken(size_t offset = 1) const;
 		bool			isAtEnd();
 		void			expectToken(TokenType type, const std::string& errorMessage);
 
@@ -179,8 +178,8 @@ class	Directive
 			size_t column, 
 			const std::string& name, 
 			const std::string& context, 
-			std::vector<std::string> parameters, 				// by value, so we can use std::move
-			std::vector<std::unique_ptr<Directive>> children);	// by value, so we can use std::move
+			std::vector<std::string> parameters,
+			std::vector<std::unique_ptr<Directive>> children);
 		~Directive() = default;
 
 		// Getters
@@ -219,14 +218,13 @@ class	ConfigFile
 		ConfigFile(std::vector<std::unique_ptr<Directive>> directives);
 		~ConfigFile() = default;
 
-		std::vector<std::unique_ptr<Directive>>&	getDirectives() { return (_directives); }; // Non constant so the validation can modify the directives.
+		std::vector<std::unique_ptr<Directive>>&	getDirectives() { return (_directives); };
 		std::vector<ServerConfig>					getServers() const { return (_servers); }
 		ServerConfig								getServer(const std::string& serverName) const;
 
 		std::vector<ServerConfig>	createServers();
 
 	private:
-		// Helper functions for processing server directives
 		std::string							processServerName(const Directive* directive);
 		void								processListen(const Directive* directive, std::vector<ListenDirective>& listenDirectives);
 		unsigned long long					processClientMaxBodySize(const Directive* directive);

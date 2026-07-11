@@ -112,8 +112,6 @@ void	checkDuplicateLocations(Directive* node)
 		if (child->getName() != "location")
 			continue ;
 
-		// A location's identity is its path (the first parameter) — the same
-		// value processLocation() keys on.
 		const std::string&	path = child->getParameter(0);
 		if (seen.count(path))
 			throw ConfigError::validation("Duplicate location '" + path + "' in '" + node->getName() + "' block", child);
@@ -149,11 +147,6 @@ void	checkDuplicateErrorCodes(Directive* node)
 
 void	validateBlockDirective(Directive* node)
 {
-	// Not needed since validateDirective already checks this?
-	// if (node->getChildren().empty())
-	// 	throw ConfigError::validation("Directive '" + node->getName() + "' expected children directives but didn't have any", node);
-
-	// Validate required children are present
 	validateRequiredChildren(node); // Checks presence
 	checkDuplicateDirectives(node); // Reject once-only directives that repeat
 	checkDuplicateLocations(node);  // Reject two locations with the same path

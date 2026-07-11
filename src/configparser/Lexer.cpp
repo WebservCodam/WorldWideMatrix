@@ -77,7 +77,7 @@ std::vector<Token>	Lexer::tokenize()
 		//	--- Rule 3: Handle Single-Character Tokens
 		else if (currentChar == '{')
 		{
-			_tokens.push_back({LBRACE, "{", _lineNum, _colNum}); // Replace with addToken(LBRACE, "{");
+			_tokens.push_back({LBRACE, "{", _lineNum, _colNum});
 			advancePosition(1, pos);
 			continue ;
 		}
@@ -124,7 +124,7 @@ std::vector<Token>	Lexer::tokenize()
 			throw ConfigError(ErrorType::LEXER,
 							"Unexpected character '" + std::string(1, currentChar) + "'",
 							_lineNum, _colNum);
-			pos++;	// Just advance to avoid an infinite loop
+			pos++;	// Advance to avoid an infinite loop
 		}
 	}
 	_tokens.push_back({END_OF_FILE, "", _lineNum, _colNum});

@@ -30,7 +30,6 @@ void	checkPath(const std::string& path, ErrorType errorType, const std::string& 
 {
 	struct stat	st;
 
-	// Check URIs
 	if (stat(std::string(path).c_str(), &st) != 0)
 		throw ConfigError(errorType, msg + std::string(" doesn't exist."));
 	if (checkDir == true && !S_ISDIR(st.st_mode))
@@ -78,8 +77,7 @@ std::string	getRoot(Directive *node)
 		rootDirective = node->getChild("root");
 	else
 	{
-		// Walk up and use the nearest enclosing root: a location's own root
-		// takes precedence over the server's.
+		// Walk up and use the nearest enclosing root: a location's own root takes precedence over the server's.
 		for (Directive* iterator = node->getParent(); iterator != nullptr ; iterator = iterator->getParent())
 		{
 			if (iterator->getChild("root"))

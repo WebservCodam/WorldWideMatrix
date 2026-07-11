@@ -9,17 +9,12 @@ Webserv::~Webserv()
 		close(it->first);
 	for (std::map<pid_t, int>::iterator it = _cgiPid.begin(); it != _cgiPid.end(); it++)
 		kill(it->first, SIGKILL);
-	// for (std::map<int, int>::iterator it = _cgiFdToClientIn.begin(); it != _cgiFdToClientIn.end(); it++)
-	// 	close(it->first);
-	// for (std::map<int, int>::iterator it = _cgiFdToClientOut.begin(); it != _cgiFdToClientOut.end(); it++)
-	// 	close(it->first);
-	// Client fds are closed by ~Client when _clients is destroyed.
 	close(_epfd);
 }
 
 void	Webserv::initWebserv()
 {
-	std::map<std::string, int>	hostPortToFd;	// Collapses duplicate host:port across servers onto a single socket.
+	std::map<std::string, int>	hostPortToFd;
 
 	_servers.reserve(_serverConfigs.size());
 	for (const ServerConfig& serverConfig : _serverConfigs)
@@ -55,9 +50,7 @@ int	Webserv::getOrCreateListenSocket(const ListenDirective& listenDir, std::map<
 	return (listenFd);
 }
 
-// Registers (op == EPOLL_CTL_ADD) or updates (op == EPOLL_CTL_MOD) fd in epoll
-// with the given event flags. Returns true on success, false on failure; the
-// caller decides how to handle a failure (throw for listen fds, close the client otherwise).
+// Registers (op == EPOLL_CTL_ADD) or updates (op == EPOLL_CTL_MOD) fd in epoll with the given event flags.
 bool	Webserv::epollCtl(int op, int fd, uint32_t events)
 {
 	struct epoll_event	event;
@@ -104,14 +97,6 @@ void	Webserv::startServers()
 			}
 			else if (_clients.find(eventFd) != _clients.end())
 			{
-				// Exactly one I/O operation on this client per epoll_wait pass.
-				// Priority: a socket error closes the client outright; otherwise
-				// finish flushing a pending response before reading more (this is
-				// what clears _busy and lets buffered/pipelined bytes progress).
-				// epoll is level-triggered and nothing here uses EPOLLET, so if a
-				// client is ready for both directions, whichever we *don't* handle
-				// this pass is reported again on the next epoll_wait — no bytes
-				// are lost by deferring it.
 				if (fdEvents & EPOLLERR)
 				{
 					closeAndRemoveFdFromClientList(eventFd);
@@ -144,19 +129,14 @@ void Webserv::connectNew(int listenFd)
 
 	while (true)
 	{
-		struct sockaddr_in	clientAddr;	// When we accept we configure this struct to match the address of the connecting peer.
+		struct sockaddr_in	clientAddr;
 		socklen_t			clientLen = sizeof(clientAddr);
 
 		clientFd = accept(listenFd, (struct sockaddr*) &clientAddr, &clientLen);
 		if (clientFd == -1)
-		{
-			if (errno == EAGAIN || errno == EWOULDBLOCK)	// Remember to remove these checks. Check the Edge Cases notes in Obsidian.
-				return ;
-			else
-				throw std::runtime_error("Client accept failed");
-		}
+			return ;
 
-		setNonBlocking(clientFd); // Changed the function to void because in init we didn't check the return value, so now it directly throws an error from within the function.
+		setNonBlocking(clientFd);
 
 		try
 		{
