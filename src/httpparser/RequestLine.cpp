@@ -48,6 +48,29 @@ std::map<std::string, std::string>	HttpParser::parseQueryString(const std::strin
 	return result;
 }
 
+// Returns true if `uri` contains a ".." path segment (e.g. "/a/../b" or a
+// trailing "/.."). Path resolution later only concatenates the URI onto the
+// location's directory, so a ".." segment would let the request climb out of
+// the web root ("/../../etc/passwd"); such requests are rejected outright.
+static bool	hasDotDotSegment(const std::string &uri)
+{
+	size_t	pos = 0;
+
+	while (pos < uri.size())
+	{
+		size_t		slash = uri.find('/', pos);
+		std::string	segment = (slash == std::string::npos)
+			? uri.substr(pos) : uri.substr(pos, slash - pos);
+
+		if (segment == "..")
+			return (true);
+		if (slash == std::string::npos)
+			break ;
+		pos = slash + 1;
+	}
+	return (false);
+}
+
 void	HttpParser::parseRequestLine(const std::string &line, HttpRequest &req)
 {
 	if (line.length() > 8000) //octet = 1 byte = 1 char
@@ -97,4 +120,7 @@ void	HttpParser::parseRequestLine(const std::string &line, HttpRequest &req)
 		req.uri = fullURI;
 		req.query.clear();
 	}
+
+	if (hasDotDotSegment(req.uri))
+		throw HttpException(400, "Path traversal is not allowed");
 }
