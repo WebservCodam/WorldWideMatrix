@@ -1,22 +1,51 @@
+*This project has been created as part of the 42 curriculum by lprieri, rkaras, vknape.*
+
 # webserv
 
-A non-blocking HTTP/1.1 server written in C++17, configured with an
-nginx-inspired configuration file. It serves static sites, handles file
+## Description
+
+`webserv` is a non-blocking HTTP/1.1 server written in C++17, configured with
+an nginx-inspired configuration file. It serves static sites, handles file
 uploads, runs CGI scripts, and hosts multiple virtual servers on multiple
 interfaces and ports — all driven by a single `epoll` event loop.
 
-## Build & run
+The goal of the project is to understand what happens behind a URL: how HTTP
+requests are parsed and answered by hand, how a single process multiplexes
+many concurrent connections without threads or blocking I/O, and how a server
+delegates dynamic content to external programs through CGI. The result is a
+small nginx-like server that any browser can talk to out of the box.
+
+## Instructions
+
+### Requirements
+
+- Linux (the event loop is built on `epoll`)
+- A C++17 compiler (`c++`) and `make` — no external libraries
+
+### Compilation
 
 ```sh
-make                                        # produces ./webserv
-./webserv config_files/valid/example.conf   # run with a config file
+make            # produces ./webserv
 ```
 
-`webserv` takes exactly one argument: the path to a configuration file. It
-exits with an error if the argument is missing or the file cannot be opened or
-parsed. Send `SIGINT` (Ctrl-C) to shut it down cleanly.
+`make clean` removes the object files, `make fclean` also removes the binary,
+and `make re` rebuilds from scratch.
 
-Requirements: a C++17 compiler (`c++`) and `make`. No external libraries.
+### Execution
+
+```sh
+./webserv config_files/valid/example.conf   # run with a config file
+./webserv                                   # falls back to ./default.conf
+```
+
+`webserv` takes at most one argument: the path to a configuration file. When
+none is given it loads `default.conf` from the working directory. It exits
+with an error if the file cannot be opened or parsed (see
+[Configuration](#configuration) for the file format). Send `SIGINT` (Ctrl-C)
+to shut it down cleanly.
+
+Once the server is running, point a browser or `curl` at a configured
+`interface:port`, e.g. `http://127.0.0.1:8085/`.
 
 ## Features
 
@@ -144,3 +173,28 @@ valgrind --leak-check=full ./webserv config_files/valid/example.conf
 
 The `www/` directory holds sample site content, including `www/cgi-bin/` for
 CGI scripts.
+
+## Resources
+
+- [RFC 9112 — HTTP/1.1](https://datatracker.ietf.org/doc/html/rfc9112) and
+  [RFC 9110 — HTTP Semantics](https://datatracker.ietf.org/doc/html/rfc9110):
+  the protocol this server implements (message syntax, methods, status codes,
+  chunked transfer coding).
+- [RFC 3875 — The Common Gateway Interface (CGI) 1.1](https://datatracker.ietf.org/doc/html/rfc3875):
+  the environment variables and I/O contract used to run CGI scripts.
+- [MDN — HTTP documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP):
+  a gentler overview of HTTP messages, headers, and status codes.
+- [nginx documentation](https://nginx.org/en/docs/): the configuration file
+  format is modeled on nginx's `server`/`location` blocks.
+- [`epoll(7)` man page](https://man7.org/linux/man-pages/man7/epoll.7.html):
+  the Linux event-notification API at the heart of the event loop.
+- [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/): the
+  classic introduction to the sockets API (`socket`, `bind`, `listen`,
+  `accept`, non-blocking I/O).
+- [The C10K problem](http://www.kegel.com/c10k.html): background on why
+  servers moved from thread-per-connection to event-driven designs.
+
+### AI usage
+
+AI (Anthropic's Claude) was used for research and for documentation: writing and restructuring this README from the existing source code.
+The server itself: the event loop, HTTP and configuration parsers, request routing, and CGI handling was designed and written by the team.
