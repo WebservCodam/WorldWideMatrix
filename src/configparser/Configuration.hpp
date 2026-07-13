@@ -35,11 +35,6 @@ enum class ErrorType
 	SEMANTICS
 };
 
-namespace CGIExtensions {
-	const std::pair<std::string, std::string>	PYTHON = {".py", "/usr/bin/python3"};
-	const std::pair<std::string, std::string>	PHP    = {".php", "/usr/bin/php"};
-}
-
 class			ServerConfig;
 class			Directive;
 class			ConfigFile;
