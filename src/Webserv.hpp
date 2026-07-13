@@ -24,6 +24,7 @@ class Webserv
 		std::map<int, int>					_cgiFdToClientOut;
 		std::map<pid_t, int>				_cgiPid;
 		std::map<int, std::string>			_listenFdToPort;
+		int									_connectionFails;
 
 	public:
 		Webserv() = delete;

@@ -124,7 +124,6 @@ std::vector<Token>	Lexer::tokenize()
 			throw ConfigError(ErrorType::LEXER,
 							"Unexpected character '" + std::string(1, currentChar) + "'",
 							_lineNum, _colNum);
-			pos++;	// Advance to avoid an infinite loop
 		}
 	}
 	_tokens.push_back({END_OF_FILE, "", _lineNum, _colNum});

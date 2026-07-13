@@ -64,10 +64,10 @@ void	Webserv::startServers()
 {
 	epoll_event	events[EPOLL_NBR_EVENTS];
 	int			numEvents = 0;
-	int			connections = 0;
 
 	while (true)
 	{
+		_connectionFails = 0;
 		numEvents = epoll_wait(_epfd, events, EPOLL_NBR_EVENTS, EPOLL_TIMEOUT);
 		if (numEvents == -1)
 			throw std::runtime_error("Epoll_wait failed");
@@ -82,7 +82,6 @@ void	Webserv::startServers()
 			if (_listenFdToServers.find(eventFd) != _listenFdToServers.end() && (fdEvents & EPOLLIN))
 			{
 				connectNew(eventFd);
-				connections++;
 				handled = true;
 			}
 			else if (_cgiFdToClientIn.find(eventFd) != _cgiFdToClientIn.end() && (fdEvents & EPOLLOUT))
@@ -134,7 +133,15 @@ void Webserv::connectNew(int listenFd)
 
 		clientFd = accept(listenFd, (struct sockaddr*) &clientAddr, &clientLen);
 		if (clientFd == -1)
-			return ;
+		{
+			if (_connectionFails < 5)
+			{
+				_connectionFails++;
+				return ;
+			}
+			else
+				throw std::runtime_error("Too many failed connections to server.");
+		}
 
 		setNonBlocking(clientFd);
 
