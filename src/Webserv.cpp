@@ -215,18 +215,18 @@ void	Webserv::closeCgiPipes(int clientFd)
         return;
     Client& client = it->second;
 
-	if (_clients.at(clientFd)._cgiFdIn != -1)
+	if (client._cgiFdIn != -1)
 	{
-		close(_clients.at(clientFd)._cgiFdIn);
-		_cgiFdToClientIn.erase(_clients.at(clientFd)._cgiFdIn);
-		_clients.at(clientFd)._cgiFdIn = -1;
+		close(client._cgiFdIn);
+		_cgiFdToClientIn.erase(client._cgiFdIn);
+		client._cgiFdIn = -1;
 	}
 
-	if (_clients.at(clientFd)._cgiFdOut != -1)
+	if (client._cgiFdOut != -1)
 	{
-		close(_clients.at(clientFd)._cgiFdOut);
-		_cgiFdToClientOut.erase(_clients.at(clientFd)._cgiFdOut);
-		_clients.at(clientFd)._cgiFdOut = -1;
+		close(client._cgiFdOut);
+		_cgiFdToClientOut.erase(client._cgiFdOut);
+		client._cgiFdOut = -1;
 	}
 
 }

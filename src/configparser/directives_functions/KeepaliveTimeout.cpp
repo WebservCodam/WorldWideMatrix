@@ -11,7 +11,7 @@ void	validateKeepaliveTimeoutDirective(Directive* node)
 	timeout = std::stoi(param);
 
 	// Check if the string is purely a number.
-	int	numLen = std::to_string(timeout).length();
+	size_t	numLen = std::to_string(timeout).length();
 	if (numLen != param.length())
 		throw ConfigError::validation("Directive '" + node->getName() + "' is not a number.", node);
 	

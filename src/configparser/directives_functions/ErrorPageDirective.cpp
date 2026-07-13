@@ -41,7 +41,7 @@ void	ConfigFile::processErrorPages(Directive* directive, std::unordered_map<int,
 	std::string	URI;
 	bool		isRedirect = false;
 	int			redirectCode = -1;
-	int			numErrorCodes;
+	size_t		numErrorCodes;
 
 	numErrorCodes = directive->getParameters().size() - 1;
 	URI = directive->getParameter(numErrorCodes);

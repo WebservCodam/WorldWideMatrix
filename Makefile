@@ -40,13 +40,7 @@ SRC			=		$(SRC_DIR)/Cgi.cpp \
 					$(DIRECTIVES_SRC_DIR)/UploadPathDirective.cpp
 OBJ			=		$(SRC:.cpp=.o)
 CC			=		c++
-FLAGS		=		-g -std=c++17
-# FLAGS		=		-Wall -Wextra -Werror -g
-# FLAGS		+=		-fsanitize=thread
-# FLAGS		+=		-fsanitize=address
-ARGS		=	
-V1			= 		10
-V2			=		100
+FLAGS		=		-Wall -Wextra -Werror -g -std=c++17
 
 MAKEFLAGS= -j
 
@@ -68,18 +62,4 @@ fclean:		clean
 
 re:			fclean all
 
-run:		all
-#				@./$(NAME) $(ARGS)
-#				@bash ./test.sh
-#				@valgrind --leak-check=full ./$(NAME) $(ARGS)
-
-test:
-			siege -t $(V1)s -c $(V2) http://localhost:8080
-
-teststart:
-			./webserver config_files/valid/example.conf && siege -t $(V1)s -c $(V2) http://localhost:8080
-
-o:
-			./webserver config_files/valid/example.conf > output.txt 2>&1
-
-.PHONY:		all clean fclean re test teststart o
+.PHONY:		all clean fclean re

@@ -3,10 +3,10 @@
 // ----- CONSTRUCTORS -----
 
 ConfigError::ConfigError(ErrorType type, const std::string& message):
-	std::runtime_error(buildMessage(type, message)), _type(type) {}
+	std::runtime_error(buildMessage(type, message)) {}
 
 ConfigError::ConfigError(ErrorType type, const std::string& message, size_t line, size_t column, const std::string& context):
-	std::runtime_error(buildMessage(type, message, line, column, context)), _type(type), _line(line), _column(column), _context(context) {}
+	std::runtime_error(buildMessage(type, message, line, column, context)) {}
 
 ConfigError::ConfigError(ErrorType type, const std::string& message, const Directive* directive)
 	: ConfigError(type, message,
@@ -85,11 +85,14 @@ ConfigError ConfigError::initialization(const std::string& message)
 
 ConfigError ConfigError::lexing(const std::string& message, size_t line, size_t column)
 {
+	(void)	line;
+	(void)	column;
 	return ConfigError(ErrorType::LEXER, message);
 }
 
 ConfigError ConfigError::parsing(const std::string& message, size_t line, size_t column)
 {
+	(void)	column;
 	return ConfigError(ErrorType::PARSER, message, line, column);
 }
 

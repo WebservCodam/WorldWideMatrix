@@ -79,11 +79,6 @@ struct	DirectiveDefinition
 class ConfigError : public std::runtime_error
 {
 	private:
-		ErrorType	_type;
-		size_t		_line;
-		size_t		_column;
-		std::string	_context;
-
 		static std::string	buildMessage(ErrorType type, const std::string& message);
 		static std::string	buildMessage(ErrorType type, const std::string& message, size_t line, size_t column, const std::string& context);
 

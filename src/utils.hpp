@@ -19,6 +19,7 @@
 #include <sys/wait.h>
 #include <netdb.h>
 #include <cstring>
+#include <filesystem>
 #include "globals.hpp"
 
 #define MAXFD 1024
