@@ -21,7 +21,7 @@ Directive::Directive(
 
 const std::string&	Directive::getParameter(size_t i) const
 {
-	if (i < 0 || i >= _parameters.size())
+	if (i >= _parameters.size())
 		throw std::out_of_range("Parameter index out of range");
 
 	return (_parameters.at(i));
