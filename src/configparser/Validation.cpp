@@ -15,15 +15,14 @@
 const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 {
 	//	=== Main Context Directives ===
-	// {"main", DirectiveDefinition{"main", true, 1, 10, {"main"}, {"server"}, validateMainDirective}},
 	{"user", DirectiveDefinition{"user", false, 0, 2, {"main"}, {}, nullptr}},
-	{"server", DirectiveDefinition{"server", true, 0, 0, {"main"}, {"listen", "client_max_body_size", "location"}, validateServerDirective}},
+	{"server", DirectiveDefinition{"server", true, 0, 0, {"main"}, {"listen", "client_max_body_size", "location"}, validateBlockDirective}},
 
 	//	===	Server Context Directives ===
 	{"server_name", DirectiveDefinition{"server_name", false, 1, 1, {"server"}, {}, nullptr}},
 	{"listen", DirectiveDefinition{"listen", false, 1, 1, {"server"}, {}, validateListenDirective}}, 
 	{"keepalive_timeout", DirectiveDefinition{"keepalive_timeout", false, 1, 1, {"server"}, {}, validateKeepaliveTimeoutDirective}},
-	{"location", DirectiveDefinition{"location", true, 1, 2, {"server"}, {}, validateLocationDirective}},	// 2 parameters in case it's an equals
+	{"location", DirectiveDefinition{"location", true, 1, 2, {"server"}, {}, validateLocationDirective}},
 
 	//	=== Location Context Directives ===
 	{"root", DirectiveDefinition{"root", false, 1, 1, {"server", "location"}, {}, validateRootDirective}},
@@ -32,13 +31,11 @@ const std::map<std::string, DirectiveDefinition> NGINX_DIRECTIVE_SPECS =
 	{"error_page", DirectiveDefinition{"error_page", false, 2, 100, {"server", "location"}, {}, validateErrorPageDirective}},
 	{"client_max_body_size", DirectiveDefinition{"client_max_body_size", false, 1, 1, {"server", "location"}, {}, validateClientMaxBodySizeDirective}},
 	{"methods", DirectiveDefinition{"methods", false, 1, 4, {"location"}, {}, validateMethodsDirective}},
-	// {"redirect", DirectiveDefinition{"redirect", false, 1, 2, {"location"}, {}, validateRedirectDirective}}, // Check this is valid.
 	{"return", DirectiveDefinition{"return", false, 1, 2, {"server", "location"}, {}, validateReturnDirective}},
 	{"upload_path", DirectiveDefinition{"upload_path", false, 1, 1, {"location"}, {}, validateUploadPathDirective}},
 
 	// === CGI ===
 	{"cgi_handler", DirectiveDefinition{"cgi_handler", false, 2, 2, {"server", "location"}, {}, validateCgiHandlerDirective}},
-	// {"cgi_index", DirectiveDefinition{"cgi_index", false, 1, 1, {"server", "location"}, {}, validateCgiIndexDirective}},
 };
 
 //	----- GENERAL VALIDATION FUNCTIONS ------
@@ -115,8 +112,6 @@ void	checkDuplicateLocations(Directive* node)
 		if (child->getName() != "location")
 			continue ;
 
-		// A location's identity is its path (the first parameter) — the same
-		// value processLocation() keys on.
 		const std::string&	path = child->getParameter(0);
 		if (seen.count(path))
 			throw ConfigError::validation("Duplicate location '" + path + "' in '" + node->getName() + "' block", child);
@@ -152,11 +147,6 @@ void	checkDuplicateErrorCodes(Directive* node)
 
 void	validateBlockDirective(Directive* node)
 {
-	// Not needed since validateDirective already checks this?
-	// if (node->getChildren().empty())
-	// 	throw ConfigError::validation("Directive '" + node->getName() + "' expected children directives but didn't have any", node);
-
-	// Validate required children are present
 	validateRequiredChildren(node); // Checks presence
 	checkDuplicateDirectives(node); // Reject once-only directives that repeat
 	checkDuplicateLocations(node);  // Reject two locations with the same path

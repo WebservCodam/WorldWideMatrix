@@ -2,15 +2,10 @@
 
 void	validateListenDirective(Directive* node)
 {
-
-
 	const std::string&					hostPort = node->getParameter(0);
-	std::pair<std::string, std::string>	addressAndPort;	//127.0.0.0:8080?
+	std::pair<std::string, std::string>	addressAndPort;
 	bool								isValidAddress;
 	bool								isValidPort;
-
-	// if (node->getParameters().empty())
-	// 	throw ConfigError::validation("Directive '" + node->getName() + "' requires at least one parameter", node);
 
 	addressAndPort = parseAddressAndPort(hostPort);
 	if (addressAndPort.first.empty() && addressAndPort.second.empty())

@@ -42,7 +42,7 @@ Directive*	Directive::getChild(const std::string& name)
 		if (child && child->getName() == name)
 			return (child.get());
 	}
-	return (nullptr); // Throw error in the calling function.
+	return (nullptr);
 }
 
 std::vector<Directive*>	Directive::getChildren()

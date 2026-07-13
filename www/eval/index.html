@@ -83,8 +83,8 @@
 <section class="card s2">
   <h2>1. GET a static file and its MIME type <span class="badge b2">200</span></h2>
   <p class="what">Serves a file with the correct Content-Type based on its extension.</p>
-  <pre>curl -i http://127.0.0.1:8085/images/cat.png</pre>
-  <p class="expect">Returns the image with header <code>Content-Type: image/png</code>.</p>
+  <pre>curl -i http://127.0.0.1:8085/images/cat.jpg</pre>
+  <p class="expect">Returns the image with header <code>Content-Type: image/jpg</code>.</p>
 </section>
 
 <section class="card s2">
@@ -132,7 +132,7 @@
 <section class="card s4">
   <h2>8. Method Not Allowed <span class="badge b4">405</span></h2>
   <p class="what">/images allows only GET, so a POST is rejected and the allowed methods are listed.</p>
-  <pre>curl -i -X POST --data "x" http://127.0.0.1:8085/images/cat.png</pre>
+  <pre>curl -i -X POST --data "x" http://127.0.0.1:8085/images/cat.jpg</pre>
   <p class="expect">Returns 405 Method Not Allowed with header <code>Allow: GET</code>.</p>
 </section>
 

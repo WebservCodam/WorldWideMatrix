@@ -46,10 +46,6 @@ Cgi::Cgi(const Location& location, const HttpRequest& request, const std::string
 
 void	Cgi::buildArgv(const Location& location, const std::string& scriptPath)
 {
-	// The interpreter is used only when the requested file matches the
-	// location's CGI extension:  argv = [interpreter, scriptPath]
-	// (e.g. [/usr/bin/python3, foo.py]). Any other executable file in the
-	// location runs on its own:  argv = [scriptPath]  (e.g. cgi_tester).
 	const std::string&	ext = location.cgiExtension;
 	bool				matchesExt = !ext.empty()
 		&& scriptPath.size() >= ext.size()

@@ -4,11 +4,6 @@
 
 void	validateClientMaxBodySizeDirective(Directive* node)
 {
-	// Accepts a byte count with an optional, case-insensitive unit suffix:
-	//   (none)/b = bytes, k/kb = *1000, m/mb = *1000000.  "0" means no limit.
-	// The value is normalized to a plain byte count and written back, so the
-	// rest of the config code can just stoull() it. No upper limit is imposed;
-	// a per-location override may legitimately be larger than the default.
 	const std::string&	param = node->getParameter(0);
 
 	if (param.empty())
@@ -48,12 +43,6 @@ void	validateClientMaxBodySizeDirective(Directive* node)
 	node->setParameter(0, std::to_string(value));
 }
 
-/**
- * @brief
- * During validation the valid parameters that had letters have been changed to the number equivalent.
- * @return
- * This function simply returns the conversion of that number stored in a string into an unsigned long long.
- */
 unsigned long long	ConfigFile::processClientMaxBodySize(const Directive* directive)
 {
 	if (directive)

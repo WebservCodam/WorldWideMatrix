@@ -10,6 +10,7 @@
 
 # define EPOLL_NBR_EVENTS 1000
 # define EPOLL_TIMEOUT 5000
+# define DEFAULT_CONF "default.conf"
 
 class Webserv
 {
@@ -23,6 +24,7 @@ class Webserv
 		std::map<int, int>					_cgiFdToClientOut;
 		std::map<pid_t, int>				_cgiPid;
 		std::map<int, std::string>			_listenFdToPort;
+		int									_connectionFails;
 
 	public:
 		Webserv() = delete;
@@ -49,7 +51,6 @@ class Webserv
 		void		writeToCgi(int cgiInFd);
 		void		readFromCgi(int cgiOutFd);
 		void		handleCGI(Client& client);
-		// bool		isCgiRequest(const Server& server, const std::string& uri);
 		void 		buildResponseFromCgi(Client& client);
 		void		serveError(Client& client, int code, bool closeConnection);
 		Server*		selectServer(int listenFd, const std::string& host);

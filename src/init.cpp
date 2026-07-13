@@ -21,10 +21,7 @@ int createSocket(const char* ip, const char* port)
 	hints.ai_family = AF_INET;			// What domain or address family?: IPv4 
 	hints.ai_socktype = SOCK_STREAM;	// What type of service? Stream, datagram or raw?: Stream
 	hints.ai_protocol = 0;				// What kind of protocol: Default protocol, because family and socket type already tells us it's the TCP protocol.
-	hints.ai_flags = AI_PASSIVE;		// 
-	
-	// std::string portstr = std::to_string(port);
-	// const char* port_str = portstr.c_str();
+	hints.ai_flags = AI_PASSIVE;
 
 	int status = getaddrinfo(ip, port, &hints, &res);
 	if (status != 0)
@@ -57,7 +54,7 @@ int createSocket(const char* ip, const char* port)
 		throw std::runtime_error("Server socket bind failed");
 	}
 
-	setNonBlocking(listenFd); // fcntl can fail, that's why I modified this function to throw an error if that happens. Also since we're not using the return value, it returns void now.
+	setNonBlocking(listenFd);
 	freeaddrinfo(res);
 
 	if (listen(listenFd, EPOLL_NBR_EVENTS) < 0)

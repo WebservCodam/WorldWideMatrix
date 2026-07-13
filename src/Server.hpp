@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   Server.hpp                                         :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vknape <vknape@student.codam.nl>             +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/09/15 15:04:10 by vknape        #+#    #+#                 */
-/*   Updated: 2026/07/10 12:50:10 by lprieri       ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 #pragma once
 
 #include <cctype>
@@ -34,7 +22,6 @@ class Server
 
 
 	public:
-		// Orthodox Canonical Form (missing copy constructor, copy assignment operator, and move...)
 		Server() = delete;
 		Server(const ServerConfig& serverConfig);
 		~Server() = default;
@@ -45,10 +32,10 @@ class Server
 		const ServerConfig&		getServerConfig() const { return _serverConfig; };
 		const std::vector<int>&	getListenFds() const { return _listenFds; };
 
-		bool  isCgiRequest(const std::string& uri);
-		void  handleRequest(Client& client);
+		bool  		isCgiRequest(const std::string& uri);
+		void 		handleRequest(Client& client);
 		std::string	resolveFsPath(const HttpRequest& request) const;
 		std::string	resolveScriptPath(const std::string& uri) const;
-		void	serveErrorPage(HttpResponse& res, int code);
-		void	serveReturn(HttpResponse& res, const ReturnPage& ret);
+		void		serveErrorPage(HttpResponse& res, int code);
+		void		serveReturn(HttpResponse& res, const ReturnPage& ret);
 };

@@ -50,7 +50,7 @@ std::unique_ptr<ConfigFile>	Parser::parse()
 		directives.push_back(std::move(directive));
 	}
 
-	this->_configFile = std::make_unique<ConfigFile>(std::move(directives)); //Calls constructor of ConfigFile that takes a vector of directives as arg.
+	this->_configFile = std::make_unique<ConfigFile>(std::move(directives));
 
 	validateSemantics();
 

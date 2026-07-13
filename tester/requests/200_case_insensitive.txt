@@ -1,3 +1,0 @@
-GET / HTTP/1.1
-hOsT: localhost
-cOnTeNt-TyPe: text/plain

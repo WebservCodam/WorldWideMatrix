@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   Server.cpp                                         :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: vknape <vknape@student.codam.nl>             +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2025/09/01 10:59:15 by vknape        #+#    #+#                 */
-/*   Updated: 2026/07/10 14:34:58 by lprieri       ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Server.hpp"
 #include "Client.hpp"
 
@@ -78,7 +66,7 @@ static std::string	mimeType(const std::string& path)
 	return ("application/octet-stream");
 }
 
-// Fills `res` with an error page for `code`: tries the error page file
+// Fills response with an error page for `code`: tries the error page file
 // configured for that code, and falls back to a generated default page.
 void	Server::serveErrorPage(HttpResponse& res, int code)
 {
@@ -104,8 +92,7 @@ static void	appendMethod(std::string& list, const std::string& method)
 	list += method;
 }
 
-// Builds the "Allow" header value from the methods the location permits,
-// e.g. "GET, POST".
+// Builds the "Allow" header value from the methods the location permits, e.g. "GET, POST".
 static std::string	allowedMethods(const Location& location)
 {
 	std::string	list;
@@ -119,8 +106,7 @@ static std::string	allowedMethods(const Location& location)
 	return (list);
 }
 
-// Applies a `return` directive: a 3xx code redirects (page -> Location
-// header); any other code serves the error page for that status.
+// Applies a `return` directive: a 3xx code redirects (page -> Location header); any other code serves the error page for that status.
 void	Server::serveReturn(HttpResponse& res, const ReturnPage& ret)
 {
 	res.status = ret.code;

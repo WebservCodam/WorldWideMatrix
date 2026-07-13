@@ -45,9 +45,8 @@ std::string	reasonPhrase(int status)
 	}
 }
 
-// Builds a self-contained, styled HTML error page for `status`.
-// The status code maps to a reason phrase, and both are dropped into a fixed template,
-// so we can serve any error without shipping a file per code.
+// Builds a self-contained, HTML error page for `status`.
+// The status code maps to a reason phrase, and both are inserted into a fixed template.
 std::string	defaultErrorPage(int status)
 {
 	std::string	code = std::to_string(status);

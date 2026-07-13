@@ -12,11 +12,6 @@
 
 #include "HttpParser.hpp"
 
-// void	HttpParser::appendData(ConnectionContext &ctx, const char *data, size_t len)
-// {
-// 	ctx.buffer.append(data, len);
-// }
-
 bool	HttpParser::readLine(const char *buf, size_t length, size_t &pos, std::string &out)
 {
 	out.clear();

@@ -1,17 +1,7 @@
 #include "../Configuration.hpp"
 
-/**
- * @brief
- * 
- * @return
- */
 void	validateReturnDirective(Directive* node)
 {
-	// return 301 /uri;   (3xx codes take a redirect target)
-	// return 404;        (other codes take no second parameter)
-
-
-	// First parameter must be a valid HTTP status code
 	int					paramsSize = node->getParameters().size();
 	const std::string&	statusStr = node->getParameter(0);
 	int					statusCode = std::stoi(statusStr);
@@ -19,8 +9,6 @@ void	validateReturnDirective(Directive* node)
 	// Must be a valid HTTP status code (100-599)
 	if (statusCode < 100 || statusCode > 599)
 		throw ConfigError::validation("Invalid HTTP status code in " + node->getName() + " directive: '" + statusStr + "' must be between 100-599", node);
-
-	// throw ConfigError::validation("TEST", node);
 
 	// A second parameter is the redirect target, only valid for 3xx codes.
 	if (paramsSize == 2)
@@ -47,7 +35,6 @@ void	validateReturnDirective(Directive* node)
 			throw ConfigError::validation("Invalid path in " + node->getName() + " directive: '" + secondParam + "' contains consecutive slashes", node);
 	}
 }
-
 
 // Stores the status code and, for a 3xx redirect, the target path.
 ReturnPage	ConfigFile::processReturnPage(const Directive* directive)

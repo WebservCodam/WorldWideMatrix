@@ -9,7 +9,7 @@ const Directive*	ConfigFile::findDirective(const std::string& name) const
 	for (const std::unique_ptr<Directive>& directive : this->_directives)
 	{
 		if (directive && directive->getName() == name)
-			return (directive.get()); // Extracts raw pointer from unique_ptr
+			return (directive.get());
 	}
 	return (nullptr);
 }
