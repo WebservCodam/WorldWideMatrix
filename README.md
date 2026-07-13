@@ -4,16 +4,12 @@
 
 ## Description
 
-`webserv` is a non-blocking HTTP/1.1 server written in C++17, configured with
-an nginx-inspired configuration file. It serves static sites, handles file
-uploads, runs CGI scripts, and hosts multiple virtual servers on multiple
-interfaces and ports — all driven by a single `epoll` event loop.
+`webserv` is a non-blocking HTTP/1.1 server written in C++17, configured with an nginx-inspired configuration file.
+It serves static sites, handles file uploads, runs CGI scripts, and hosts multiple virtual servers on multiple interfaces and ports — all driven by a single `epoll` event loop.
 
-The goal of the project is to understand what happens behind a URL: how HTTP
-requests are parsed and answered by hand, how a single process multiplexes
-many concurrent connections without threads or blocking I/O, and how a server
-delegates dynamic content to external programs through CGI. The result is a
-small nginx-like server that any browser can talk to out of the box.
+The goal of the project is to understand what happens behind a URL: how HTTP requests are parsed and answered, how a single process multiplexes
+many concurrent connections without threads or blocking I/O, and how a server delegates dynamic content to external programs through CGI.
+The result is a small nginx-like server that any browser can talk to out of the box.
 
 ## Instructions
 
@@ -66,12 +62,11 @@ Once the server is running, point a browser or `curl` at a configured
 
 ## Architecture
 
-The program is built around one `epoll` instance in a single event loop
-(`Webserv::startServers`). Every socket — listening, client, and CGI pipe — is
-non-blocking and registered with `epoll`. I/O happens only when `epoll_wait`
-reports a file descriptor ready, and each ready client is serviced for exactly
-one read or write per loop pass so no direction can starve another. Nothing
-reads or writes an event-driven descriptor without first being told it is ready.
+The program is built around one `epoll` instance in a single event loop (`Webserv::startServers`).
+Every socket — listening, client, and CGI pipe — is non-blocking and registered with `epoll`.
+I/O happens only when `epoll_wait` reports a file descriptor ready,
+and each ready client is serviced for exactly one read or write per loop pass so no direction can starve another.
+Nothing reads or writes an event-driven descriptor without first being told it is ready.
 
 The main components:
 
@@ -83,16 +78,12 @@ The main components:
 | CGI | `Cgi.*`, `Webserv::handleCGI` | Fork the interpreter, wire up `stdin`/`stdout` pipes, build the CGI environment |
 | Configuration | `configparser/` | Lex → parse → validate the config file into `ServerConfig` objects |
 
-A request flows: `epoll` reports the client readable → bytes are buffered and
-parsed → the matching `Server`/`location` is selected → the response is either
-built directly (static/upload/delete/error) or produced by a CGI child whose
-output is read back through a pipe → the response is flushed when `epoll`
-reports the client writable.
+A request flows: `epoll` reports the client readable → bytes are buffered and parsed → the matching `Server`/`location` is selected → the response is either built directly (static/upload/delete/error)
+or produced by a CGI child whose output is read back through a pipe → the response is flushed when `epoll` reports the client writable.
 
 ## Configuration
 
-A config file contains one or more `server` blocks. Each may contain multiple
-`location` blocks. Directives end with `;`; blocks are wrapped in `{ }`.
+A config file contains one or more `server` blocks. Each may contain multiple `location` blocks. Directives end with `;`; blocks are wrapped in `{ }`.
 
 ### Server-level directives
 
@@ -110,9 +101,7 @@ A config file contains one or more `server` blocks. Each may contain multiple
 
 ### Location-level directives
 
-A `location /path { ... }` block matches request URIs by longest prefix. It
-accepts `root`, `index`, `autoindex`, `client_max_body_size`, and `cgi_handler`
-(same meaning as above), plus:
+A `location /path { ... }` block matches request URIs by longest prefix. It accepts `root`, `index`, `autoindex`, `client_max_body_size`, and `cgi_handler` (same meaning as above), plus:
 
 | Directive | Example | Meaning |
 |-----------|---------|---------|
@@ -122,7 +111,7 @@ accepts `root`, `index`, `autoindex`, `client_max_body_size`, and `cgi_handler`
 
 ### Example
 
-```nginx
+```
 server {
     listen 127.0.0.1:8085;
     server_name "Server 1";
@@ -152,8 +141,7 @@ server {
 }
 ```
 
-More examples live in `config_files/valid/`; `config_files/invalid/` holds
-files that must be rejected by the parser.
+More examples live in `config_files/valid/`; `config_files/invalid/` holds files that must be rejected by the parser.
 
 ## Testing
 
@@ -188,11 +176,6 @@ CGI scripts.
   format is modeled on nginx's `server`/`location` blocks.
 - [`epoll(7)` man page](https://man7.org/linux/man-pages/man7/epoll.7.html):
   the Linux event-notification API at the heart of the event loop.
-- [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/): the
-  classic introduction to the sockets API (`socket`, `bind`, `listen`,
-  `accept`, non-blocking I/O).
-- [The C10K problem](http://www.kegel.com/c10k.html): background on why
-  servers moved from thread-per-connection to event-driven designs.
 
 ### AI usage
 

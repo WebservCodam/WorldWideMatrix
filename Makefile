@@ -52,6 +52,7 @@ MAKEFLAGS= -j
 
 $(NAME):	$(OBJ)
 				$(CC) $(FLAGS) -o $(NAME) $(OBJ)
+				@mkdir -p www/uploads
 				@rm -f $(OBJ)
 
 %.o: %.cpp	
